@@ -55,8 +55,12 @@
 %left AND
 %right CONS
 %left SNOC
+%left PLUS MINUS
+%left TIMES DIV
 
 %right ARROW
+
+%nonassoc MOD_ID PMOD_ID MACRO_ID
 
 %start<stmt> program
 
@@ -196,7 +200,8 @@ term:
   delimited(LBRACKET, separated_list(COMMA, elem), RBRACKET) {$1}
 
 %inline tuple_like(elem): 
-  grouped(separated_list(COMMA, elem)) {$1}
+  grouped(separated_pair(elem, COMMA, 
+  separated_nonempty_list(COMMA, elem))) {let h, t = $1 in h :: t}
 
 %inline mod_like(open_kw, s):
   delimited(open_kw, list(s), END) {$1}

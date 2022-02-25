@@ -1,3 +1,4 @@
 (ocamllex lex)
 (menhir
-  (modules parse))
+  (modules parse)
+  (flags --explain))
