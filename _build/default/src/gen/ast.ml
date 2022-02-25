@@ -99,14 +99,15 @@ and expr =
 and pat = 
   | PId of string
   | PSq of pat list
-  | PCons
-  | PSnoc
-  | Alternate
+  | PCons of pat * pat
+  | PSnoc of pat * pat
+  | Alternate of pat *pat
   | PTuple of pat list
   | PRecord of (string * pat) list
   | PPolyRecord of (string * pat) list
   | PArr of pat list
   | PDict of (expr * pat) list
+  | PQuoted of pat
   | PAs of pat * pat
 
 and named_arg = string * expr option

@@ -56,6 +56,8 @@
 %right CONS
 %left SNOC
 
+%right ARROW
+
 %start<stmt> program
 
 %%
@@ -68,28 +70,27 @@ spec:
   | TYPE any_id {SAbsTy $2}
   | DATA any_id ASSIGN data {SData ($2, $4)}
 
-ty: 
-  | separated_pair(separated_nonempty_list(COMMA, type_constraint), 
-    COMMA, ty_body) {$1}
-  | ty_body {[], $1}
+ty: pair(list(terminated(type_constraint, COMMA)), ty_body) {$1}
 
 %inline type_constraint: pair(any_id, nonempty_list(any_id)) {$1}
 
 ty_body: 
-  | sq_like(ty_body) {TSq $1}
   | any_id {TId $1}
   | ty_body ARROW ty_body {TFn ($1, $3)}
+  | UNIT {TUnit}
+  | METATYPE {SMetaType $1}
+  | nonempty_list(ty_term) {TSq $1}
+
+ty_term: 
   | arr_like(ty_body) {TArr $1}
   | grouped(ty_body) {$1}
   | quoted(ty_body) {TQuoted $1}
-  | UNIT {TUnit}
-  | METATYPE {SMetaType $1}
   | mod_like(SIG, spec) {Sig $1}
 
 data: 
   | arr_like(pair(opt_unit(ty), VARIANT)) {DVariant $1}
-  | func_like(PBRACE, ID, ty) {DRecord $1}
-  | func_like(PBRACE, CAP_ID, ty) {DPolyRecord $1}
+  | record_like(ID, ty) {DRecord $1}
+  | record_like(CAP_ID, ty) {DPolyRecord $1}
 
 %inline opt_unit(t): 
   ioption(t) {
@@ -139,21 +140,15 @@ stmt:
   pair(LABEL, ioption(grouped(expr))) {$1}
 
 expr: 
-  | sq_like(expr) {Sq $1}
   | any_id {Id $1}
   | MOD_ID expr {Spaced ($1, $2)}
   | PMOD_ID expr {PSpaced ($1, $2)}
   | MACRO_ID expr {Macro ($1, $2)}
-  | delimited(LET, stmt, IN) {Let $1}
   | preceded(TO, grouped(ty)) {To $1}
   | METATYPE {Metatype $1}
-  | mod_like(MOD, stmt) {Mod $1}
-
   | VARIANT {Variant $1}
   | PVARIANT {PolyVariant $1}
-  | func_like(PBRACE, ID, expr) {Record $1}
-  | func_like(PBRACE, CAP_ID, expr) {PolyRecord $1}
-  | tuple_like(expr) {Tuple $1}
+
   | STRING {StrLit $1}
   | CHAR {CharLit $1}
   | INTEGER {IntLit $1}
@@ -161,13 +156,6 @@ expr:
   | UNIT {UnitLit}
   | NOP {FuncLit []}
   | QNOP {Quoted (FuncLit [])}
-
-  | arr_like(expr) {ArrayLit $1}
-  | func_like(LBRACE, pat, expr) {FuncLit $1}
-  | quoted(expr) {Quoted $1}
-  | grouped(expr) {$1}
-
-  | expr bop expr {$2 $1 $3}
 
   | DOLLAR {Lift}
   | AT {LiftA}
@@ -179,11 +167,29 @@ expr:
   | EMARK {Dup}
   | BACKARROW {Mut}
 
-%inline sq_like(value): value nonempty_list(value) {$1 :: $2}
+  | expr bop expr {$2 $1 $3}
+  | nonempty_list(term) {Sq $1}
 
-%inline func_like(open_brace, key, value): delimited(
-    open_brace, 
+term: 
+  | delimited(LET, stmt, IN) {Let $1}
+  | mod_like(MOD, stmt) {Mod $1}
+  | record_like(ID, expr) {Record $1}
+  | record_like(CAP_ID, expr) {PolyRecord $1}
+  | tuple_like(expr) {Tuple $1}
+
+  | arr_like(expr) {ArrayLit $1}
+  | func_like(pat, expr) {FuncLit $1}
+  | quoted(expr) {Quoted $1}
+  | grouped(expr) {$1}
+
+%inline func_like(key, value): delimited(
+    LBRACE, 
     separated_list(COMMA, separated_pair(key, ARROW, value)), 
+  RBRACE) {$1}
+
+%inline record_like(key, value): delimited(
+    PBRACE, 
+    separated_nonempty_list(COMMA, separated_pair(key, ARROW, value)), 
   RBRACE) {$1}
 
 %inline arr_like(elem): 
@@ -214,15 +220,21 @@ expr:
   | SNOC {fun u v -> Snoc (u, v)}
 
 pat: 
-  | sq_like(pat) {PSq $1}
   | any_id {PId $1}
-  | CONS {PCons}
-  | SNOC {PSnoc}
-  | PIPE {Alternate}
+  | pat pbop pat {$2 $1 $3}
+  | nonempty_list(pat_term) {PSq $1}
+
+pat_term:
   | tuple_like(pat) {PTuple $1}
-  | func_like(PBRACE, ID, pat) {PRecord $1}
-  | func_like(PBRACE, CAP_ID, pat) {PPolyRecord $1}
+  | record_like(ID, pat) {PRecord $1}
+  | record_like(CAP_ID, pat) {PPolyRecord $1}
   | arr_like(pat) {PArr $1}
-  | func_like(RBRACE, expr, pat) {PDict $1}
+  | func_like(expr, pat) {PDict $1}
   | grouped(pat) {$1}
-  | pat AS pat {PAs ($1, $3)}
+  | quoted(pat) {PQuoted $1}
+
+%inline pbop: 
+  | CONS {fun u v -> PCons (u, v)}
+  | SNOC {fun u v -> PSnoc (u, v)}
+  | PIPE {fun u v -> Alternate (u, v)}
+  | AS {fun u v -> PAs (u, v)}
