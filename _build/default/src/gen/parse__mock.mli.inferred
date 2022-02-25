@@ -1,0 +1,254 @@
+type token =
+    VARIANT of string
+  | VAL
+  | UNIT
+  | TYPE
+  | TO
+  | TIMES
+  | STRING of string
+  | SPEC
+  | SNOC
+  | SIG
+  | RPAREN
+  | REC
+  | RBRACKET
+  | RBRACE
+  | RANGLE
+  | QNOP
+  | QMARK
+  | PVARIANT of string
+  | PUB
+  | PMOD_ID of string
+  | PLUS
+  | PIPE
+  | PERCENT
+  | PBRACE
+  | OR
+  | OPEN
+  | OPAQ
+  | NOP
+  | NEW
+  | NEQ
+  | MOD_ID of string
+  | MOD
+  | MINUS
+  | METATYPE of string
+  | MACRO_ID of string
+  | LPAREN
+  | LET
+  | LBRACKET
+  | LBRACE
+  | LANGLE
+  | LABEL of string
+  | INTEGER of int
+  | INST
+  | INCL
+  | IN
+  | IMP
+  | ID of string
+  | FOLDR
+  | FOLDL
+  | FN
+  | FLOAT of float
+  | EQ
+  | EOF
+  | END
+  | EMARK
+  | DOLLAR
+  | DIV
+  | DATA
+  | CONS
+  | COMMA
+  | COLON
+  | CMP
+  | CHAR of char
+  | CARET
+  | CAP_ID of string
+  | BEGIN
+  | BACKARROW
+  | AT
+  | ASSIGN
+  | AS
+  | ARROW
+  | AND
+val menhir_begin_marker : int
+val xv_type_constraint : Ast.constraints
+val xv_ty_body : Ast.ty_body
+val xv_ty : Ast.ty
+val xv_tuple_like_pat_ : Ast.pat list
+val xv_tuple_like_expr_ : Ast.expr list
+val xv_stmt : Ast.stmt
+val xv_sq_like_ty_body_ : Ast.ty_body list
+val xv_sq_like_pat_ : Ast.pat list
+val xv_sq_like_expr_ : Ast.expr list
+val xv_spec : Ast.spec
+val xv_separated_pair_separated_nonempty_list_COMMA_type_constraint__COMMA_ty_body_ :
+  Ast.ty
+val xv_separated_pair_pat_ARROW_expr_ : Ast.pat * Ast.expr
+val xv_separated_pair_expr_ARROW_pat_ : Ast.expr * Ast.pat
+val xv_separated_pair_ID_ARROW_ty_ : string * Ast.ty
+val xv_separated_pair_ID_ARROW_pat_ : string * Ast.pat
+val xv_separated_pair_ID_ARROW_expr_ : string * Ast.expr
+val xv_separated_pair_CAP_ID_ARROW_ty_ : string * Ast.ty
+val xv_separated_pair_CAP_ID_ARROW_pat_ : string * Ast.pat
+val xv_separated_pair_CAP_ID_ARROW_expr_ : string * Ast.expr
+val xv_separated_nonempty_list_COMMA_type_constraint_ : Ast.constraints list
+val xv_separated_nonempty_list_COMMA_ty_body_ : Ast.ty_body list
+val xv_separated_nonempty_list_COMMA_separated_pair_pat_ARROW_expr__ :
+  (Ast.pat * Ast.expr) list
+val xv_separated_nonempty_list_COMMA_separated_pair_expr_ARROW_pat__ :
+  (Ast.expr * Ast.pat) list
+val xv_separated_nonempty_list_COMMA_separated_pair_ID_ARROW_ty__ :
+  (string * Ast.ty) list
+val xv_separated_nonempty_list_COMMA_separated_pair_ID_ARROW_pat__ :
+  (string * Ast.pat) list
+val xv_separated_nonempty_list_COMMA_separated_pair_ID_ARROW_expr__ :
+  (string * Ast.expr) list
+val xv_separated_nonempty_list_COMMA_separated_pair_CAP_ID_ARROW_ty__ :
+  (string * Ast.ty) list
+val xv_separated_nonempty_list_COMMA_separated_pair_CAP_ID_ARROW_pat__ :
+  (string * Ast.pat) list
+val xv_separated_nonempty_list_COMMA_separated_pair_CAP_ID_ARROW_expr__ :
+  (string * Ast.expr) list
+val xv_separated_nonempty_list_COMMA_pat_ : Ast.pat list
+val xv_separated_nonempty_list_COMMA_pair_opt_unit_ty__VARIANT__ :
+  (Ast.ty * string) list
+val xv_separated_nonempty_list_COMMA_expr_ : Ast.expr list
+val xv_separated_list_COMMA_ty_body_ : Ast.ty_body list
+val xv_separated_list_COMMA_separated_pair_pat_ARROW_expr__ :
+  (Ast.pat * Ast.expr) list
+val xv_separated_list_COMMA_separated_pair_expr_ARROW_pat__ :
+  (Ast.expr * Ast.pat) list
+val xv_separated_list_COMMA_separated_pair_ID_ARROW_ty__ :
+  (string * Ast.ty) list
+val xv_separated_list_COMMA_separated_pair_ID_ARROW_pat__ :
+  (string * Ast.pat) list
+val xv_separated_list_COMMA_separated_pair_ID_ARROW_expr__ :
+  (string * Ast.expr) list
+val xv_separated_list_COMMA_separated_pair_CAP_ID_ARROW_ty__ :
+  (string * Ast.ty) list
+val xv_separated_list_COMMA_separated_pair_CAP_ID_ARROW_pat__ :
+  (string * Ast.pat) list
+val xv_separated_list_COMMA_separated_pair_CAP_ID_ARROW_expr__ :
+  (string * Ast.expr) list
+val xv_separated_list_COMMA_pat_ : Ast.pat list
+val xv_separated_list_COMMA_pair_opt_unit_ty__VARIANT__ :
+  (Ast.ty * string) list
+val xv_separated_list_COMMA_expr_ : Ast.expr list
+val xv_rec_ : Ast.fn_mods
+val xv_quoted_ty_body_ : Ast.ty_body
+val xv_quoted_expr_ : Ast.expr
+val xv_pub : Ast.fn_mods
+val xv_program : Ast.stmt
+val xv_preceded_TO_grouped_ty__ : Ast.ty
+val xv_pat : Ast.pat
+val xv_pair_opt_unit_ty__VARIANT_ : Ast.ty * string
+val xv_pair_any_id_nonempty_list_any_id__ : Ast.constraints
+val xv_pair_LABEL_ioption_grouped_expr___ : Ast.named_arg
+val xv_opt_unit_ty_ : Ast.ty
+val xv_nonempty_list_ty_body_ : Ast.ty_body list
+val xv_nonempty_list_pat_ : Ast.pat list
+val xv_nonempty_list_expr_ : Ast.expr list
+val xv_nonempty_list_any_id_ : string list
+val xv_new_ : Ast.ty_mods
+val xv_named_arg : Ast.named_arg
+val xv_mod_like_SIG_spec_ : Ast.spec list
+val xv_mod_like_MOD_stmt_ : Ast.stmt list
+val xv_mod_like_BEGIN_stmt_ : Ast.stmt list
+val xv_loption_separated_nonempty_list_COMMA_ty_body__ : Ast.ty_body list
+val xv_loption_separated_nonempty_list_COMMA_separated_pair_pat_ARROW_expr___ :
+  (Ast.pat * Ast.expr) list
+val xv_loption_separated_nonempty_list_COMMA_separated_pair_expr_ARROW_pat___ :
+  (Ast.expr * Ast.pat) list
+val xv_loption_separated_nonempty_list_COMMA_separated_pair_ID_ARROW_ty___ :
+  (string * Ast.ty) list
+val xv_loption_separated_nonempty_list_COMMA_separated_pair_ID_ARROW_pat___ :
+  (string * Ast.pat) list
+val xv_loption_separated_nonempty_list_COMMA_separated_pair_ID_ARROW_expr___ :
+  (string * Ast.expr) list
+val xv_loption_separated_nonempty_list_COMMA_separated_pair_CAP_ID_ARROW_ty___ :
+  (string * Ast.ty) list
+val xv_loption_separated_nonempty_list_COMMA_separated_pair_CAP_ID_ARROW_pat___ :
+  (string * Ast.pat) list
+val xv_loption_separated_nonempty_list_COMMA_separated_pair_CAP_ID_ARROW_expr___ :
+  (string * Ast.expr) list
+val xv_loption_separated_nonempty_list_COMMA_pat__ : Ast.pat list
+val xv_loption_separated_nonempty_list_COMMA_pair_opt_unit_ty__VARIANT___ :
+  (Ast.ty * string) list
+val xv_loption_separated_nonempty_list_COMMA_expr__ : Ast.expr list
+val xv_list_stmt_ : Ast.stmt list
+val xv_list_spec_ : Ast.spec list
+val xv_list_named_arg_ : Ast.named_arg list
+val xv_ioption_ty_ : Ast.ty option
+val xv_ioption_rec__ : Ast.fn_mods option
+val xv_ioption_pub_ : Ast.fn_mods option
+val xv_ioption_new__ : Ast.ty_mods option
+val xv_ioption_inst_ : Ast.incl_mods option
+val xv_ioption_imp_mods_ : Ast.fn_mods option
+val xv_ioption_imp_ : Ast.ty_mods option
+val xv_ioption_grouped_expr__ : Ast.expr option
+val xv_ioption_annot_ : Ast.fn_mods option
+val xv_ioption_access_mods_ : Ast.ty_mods option
+val xv_inst : Ast.incl_mods
+val xv_imp_mods : Ast.fn_mods
+val xv_imp : Ast.ty_mods
+val xv_grouped_ty_body_ : Ast.ty_body
+val xv_grouped_ty_ : Ast.ty
+val xv_grouped_separated_list_COMMA_pat__ : Ast.pat list
+val xv_grouped_separated_list_COMMA_expr__ : Ast.expr list
+val xv_grouped_pat_ : Ast.pat
+val xv_grouped_expr_ : Ast.expr
+val xv_func_like_RBRACE_expr_pat_ : (Ast.expr * Ast.pat) list
+val xv_func_like_PBRACE_ID_ty_ : (string * Ast.ty) list
+val xv_func_like_PBRACE_ID_pat_ : (string * Ast.pat) list
+val xv_func_like_PBRACE_ID_expr_ : (string * Ast.expr) list
+val xv_func_like_PBRACE_CAP_ID_ty_ : (string * Ast.ty) list
+val xv_func_like_PBRACE_CAP_ID_pat_ : (string * Ast.pat) list
+val xv_func_like_PBRACE_CAP_ID_expr_ : (string * Ast.expr) list
+val xv_func_like_LBRACE_pat_expr_ : (Ast.pat * Ast.expr) list
+val xv_expr : Ast.expr
+val xv_delimited_SIG_list_spec__END_ : Ast.spec list
+val xv_delimited_RBRACE_separated_list_COMMA_separated_pair_expr_ARROW_pat___RBRACE_ :
+  (Ast.expr * Ast.pat) list
+val xv_delimited_PBRACE_separated_list_COMMA_separated_pair_ID_ARROW_ty___RBRACE_ :
+  (string * Ast.ty) list
+val xv_delimited_PBRACE_separated_list_COMMA_separated_pair_ID_ARROW_pat___RBRACE_ :
+  (string * Ast.pat) list
+val xv_delimited_PBRACE_separated_list_COMMA_separated_pair_ID_ARROW_expr___RBRACE_ :
+  (string * Ast.expr) list
+val xv_delimited_PBRACE_separated_list_COMMA_separated_pair_CAP_ID_ARROW_ty___RBRACE_ :
+  (string * Ast.ty) list
+val xv_delimited_PBRACE_separated_list_COMMA_separated_pair_CAP_ID_ARROW_pat___RBRACE_ :
+  (string * Ast.pat) list
+val xv_delimited_PBRACE_separated_list_COMMA_separated_pair_CAP_ID_ARROW_expr___RBRACE_ :
+  (string * Ast.expr) list
+val xv_delimited_MOD_list_stmt__END_ : Ast.stmt list
+val xv_delimited_LPAREN_ty_body_RPAREN_ : Ast.ty_body
+val xv_delimited_LPAREN_ty_RPAREN_ : Ast.ty
+val xv_delimited_LPAREN_separated_list_COMMA_pat__RPAREN_ : Ast.pat list
+val xv_delimited_LPAREN_separated_list_COMMA_expr__RPAREN_ : Ast.expr list
+val xv_delimited_LPAREN_pat_RPAREN_ : Ast.pat
+val xv_delimited_LPAREN_expr_RPAREN_ : Ast.expr
+val xv_delimited_LET_stmt_IN_ : Ast.stmt
+val xv_delimited_LBRACKET_separated_list_COMMA_ty_body__RBRACKET_ :
+  Ast.ty_body list
+val xv_delimited_LBRACKET_separated_list_COMMA_pat__RBRACKET_ : Ast.pat list
+val xv_delimited_LBRACKET_separated_list_COMMA_pair_opt_unit_ty__VARIANT___RBRACKET_ :
+  (Ast.ty * string) list
+val xv_delimited_LBRACKET_separated_list_COMMA_expr__RBRACKET_ :
+  Ast.expr list
+val xv_delimited_LBRACE_separated_list_COMMA_separated_pair_pat_ARROW_expr___RBRACE_ :
+  (Ast.pat * Ast.expr) list
+val xv_delimited_LANGLE_ty_body_RANGLE_ : Ast.ty_body
+val xv_delimited_LANGLE_expr_RANGLE_ : Ast.expr
+val xv_delimited_BEGIN_list_stmt__END_ : Ast.stmt list
+val xv_data : Ast.data
+val xv_bop : Ast.expr -> Ast.expr -> Ast.expr
+val xv_arr_like_ty_body_ : Ast.ty_body list
+val xv_arr_like_pat_ : Ast.pat list
+val xv_arr_like_pair_opt_unit_ty__VARIANT__ : (Ast.ty * string) list
+val xv_arr_like_expr_ : Ast.expr list
+val xv_any_id : string
+val xv_annot : Ast.fn_mods
+val xv_access_mods : Ast.ty_mods
+val menhir_end_marker : int

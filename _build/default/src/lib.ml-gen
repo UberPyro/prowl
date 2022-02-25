@@ -1,0 +1,18 @@
+(** @canonical Lib.Ast *)
+module Ast = Lib__Ast
+
+
+(** @canonical Lib.Lex *)
+module Lex = Lib__Lex
+
+
+(** @canonical Lib.Lex_proc *)
+module Lex_proc = Lib__Lex_proc
+
+
+(** @canonical Lib.Parse *)
+module Parse = Lib__Parse
+
+
+(** @canonical Lib.Parse_proc *)
+module Parse_proc = Lib__Parse_proc
