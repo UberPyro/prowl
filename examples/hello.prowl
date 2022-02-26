@@ -1,0 +1,5 @@
+val Hello = mod
+
+  pub fn main = "Hello, World!" putln
+
+end
