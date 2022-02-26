@@ -1,12 +1,15 @@
+open Sexplib.Conv
+
 type spec = 
   | Spec of string * ty
   | SType of string * ty
   | SAbsTy of string
   | SData of string * data
+  [@@deriving sexp]
 
-and ty = constraints list * ty_body
+and ty = constraints list * ty_body [@@deriving sexp]
 
-and constraints = string * string list
+and constraints = string * string list [@@deriving sexp]
 
 and ty_body = 
   | TId of string
@@ -18,24 +21,26 @@ and ty_body =
   | SMetaType of string
   | Sig of spec list
   | TWith of ty
+  [@@deriving sexp]
 
 and data = 
   | DVariant of (ty * string) list
   | DRecord of (string * ty) list
   | DPolyRecord of (string * ty) list
+  [@@deriving sexp]
 
-type annot = [`Annotation of ty]
+type annot = [`Annotation of ty]                        [@@deriving sexp]
 
-type access_mods = [`Pub]
-type ty_access_mods = [`Opaq | access_mods]
+type access_mods = [`Pub]                               [@@deriving sexp]
+type ty_access_mods = [`Opaq | access_mods]             [@@deriving sexp]
 
-type ty_imp_mods = [`Imp]
-type imp_mods = [`Inst | ty_imp_mods]
+type ty_imp_mods = [`Imp]                               [@@deriving sexp]
+type imp_mods = [`Inst | ty_imp_mods]                   [@@deriving sexp]
 
-type fn_mods = [`Rec | access_mods | imp_mods | annot]
-type val_mods = [`Rec | access_mods | imp_mods | annot]
-type ty_mods = [`New | ty_access_mods | ty_imp_mods]
-type incl_mods = [`Inst]
+type fn_mods = [`Rec | access_mods | imp_mods | annot]  [@@deriving sexp]
+type val_mods = [`Rec | access_mods | imp_mods | annot] [@@deriving sexp]
+type ty_mods = [`New | ty_access_mods | ty_imp_mods]    [@@deriving sexp]
+type incl_mods = [`Inst]                                [@@deriving sexp]
 
 type stmt = 
   | Fn of fn_mods list * pat * named_arg list * string * expr
@@ -47,6 +52,7 @@ type stmt =
   | AbsTy of string
   | Data of ty_mods list * string * data
   | Begin of stmt list
+  [@@deriving sexp]
 
 and expr = 
   | Sq of expr list
@@ -90,16 +96,19 @@ and expr =
   | FilterMap
   | Dup
   | Mut
+  [@@deriving sexp]
 
 and bop = 
   | Add | Sub | Mul | Div | And | Or
   | Eq | Neq | Cmp
   | Cons | Snoc
+  [@@deriving sexp]
 
 and cmp = 
   | Gt | Lt | Ge | Le
+  [@@deriving sexp]
 
-and pat = pat_body * expr list
+and pat = pat_body * expr list [@@deriving sexp]
 
 and pat_body = 
   | PId of string
@@ -125,15 +134,18 @@ and pat_body =
 
   | PBop of pat_body * pbop * pat_body
   | PCmp of pcmp
+  [@@deriving sexp]
 
 and pbop = 
   | PCons
   | PSnoc
   | POr
   | PAnd
+  [@@deriving sexp]
 
 and pcmp = 
   | PLt | PGt | PLe | PGe
   | PEq | PNeq
+  [@@deriving sexp]
 
-and named_arg = string * expr option
+and named_arg = string * expr option [@@deriving sexp]

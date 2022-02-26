@@ -1,0 +1,8 @@
+val Fac = mod
+
+  pub rec fn fac = {
+    0 -> 1,
+    n -> n * (n-1) fac
+  }
+
+end
