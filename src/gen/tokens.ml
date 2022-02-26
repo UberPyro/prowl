@@ -9,6 +9,7 @@ type token =
   | PLUS | MINUS | TIMES | DIV | ASSIGN
 
   | CMP | EQ | NEQ
+  | SLT | SGT | SLE | SGE
   
   | AND | OR
   

@@ -79,6 +79,7 @@ and expr =
   | Sect of bop
   | SectL of bop * expr
   | SectR of expr * bop
+  | SectCmp of cmp
 
   | Lift
   | LiftA
@@ -94,6 +95,9 @@ and bop =
   | Add | Sub | Mul | Div | And | Or
   | Eq | Neq | Cmp
   | Cons | Snoc
+
+and cmp = 
+  | Gt | Lt | Ge | Le
 
 and pat = pat_body * expr list
 
@@ -120,11 +124,16 @@ and pat_body =
   | PQuoted of pat_body
 
   | PBop of pat_body * pbop * pat_body
+  | PCmp of pcmp
 
 and pbop = 
   | PCons
   | PSnoc
   | POr
   | PAnd
+
+and pcmp = 
+  | PLt | PGt | PLe | PGe
+  | PEq | PNeq
 
 and named_arg = string * expr option

@@ -24,6 +24,7 @@
   PLUS MINUS TIMES DIV ASSIGN
 
   CMP EQ NEQ
+  SLT SGT SLE SGE
 
   AND OR
 
@@ -182,6 +183,7 @@ term:
   | grouped(bop) {Sect $1}
   | grouped(pair(bop, expr)) {let b, e = $1 in SectL (b, e)}
   | grouped(pair(expr, bop)) {let e, b = $1 in SectR (e, b)}
+  | cmp_op {SectCmp $1}
 
   | delimited(LET, stmt, IN) {Let $1}
   | mod_like(MOD, stmt) {Mod $1}
@@ -235,6 +237,12 @@ term:
   | CONS {Cons}
   | SNOC {Snoc}
 
+%inline cmp_op: 
+  | SLT {Lt}
+  | SGT {Gt}
+  | SLE {Le}
+  | SGE {Ge}
+
 pat: 
   | pair(pat_body, pat_constraint) {$1}
   | pat_body {$1, []}
@@ -246,6 +254,7 @@ pat_body:
   | any_id {PId $1}
   | BLANK {WildCard}
   | pat_body pbop pat_body {PBop ($1, $2, $3)}
+  | pcmp_op {PCmp $1}
   | to_like(PAT, expr) {PActive $1}
 
   | INTEGER {IntPat $1}
@@ -272,3 +281,11 @@ pat_term:
   | SNOC {PSnoc}
   | PIPE {POr}
   | AMPERSAND {PAnd}
+
+%inline pcmp_op: 
+  | SLT {PLt}
+  | SGT {PGt}
+  | SLE {PLe}
+  | SGE {PGe}
+  | grouped(EQ) {PEq}
+  | grouped(NEQ) {PNeq}

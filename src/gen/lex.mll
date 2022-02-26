@@ -117,6 +117,11 @@ rule token = parse
   | "->" {ARROW}
   | "<-" {BACKARROW}
 
+  | "(<)" {SLT}
+  | "(>)" {SGT}
+  | "(<=)" {SLE}
+  | "(>=)" {SGE}
+
   | eof {EOF}
   | whitespace {token lexbuf}
 
