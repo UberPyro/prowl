@@ -32,4 +32,3 @@ type token =
   | INTEGER of int
   | FLOAT of float
   | CHAR of char
-[@@deriving variants]
