@@ -1,5 +1,5 @@
 (include_subdirs unqualified)
 (library
   (name lib)
-  (preprocess (pps ppx_variants_conv))
+  ; (preprocess (pps ppx_variants_conv))
   (libraries batteries))
