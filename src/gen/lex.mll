@@ -50,6 +50,7 @@ rule token = parse
   | (any_id as s) "::" {MACRO_ID s}
   | id as s {ID s}
   | cap_id as s {CAP_ID s}
+  | '_' any_id {BLANK}
 
   | "fn" {FN}
   | "val" {VAL}

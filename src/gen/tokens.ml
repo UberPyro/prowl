@@ -22,7 +22,7 @@ type token =
 
   | COMMA | COLON | ARROW | BACKARROW
 
-  | UNIT | NOP | QNOP | EOF
+  | UNIT | NOP | QNOP | BLANK| EOF
 
   | ID of string | CAP_ID of string
   | MOD_ID of string | PMOD_ID of string | MACRO_ID of string

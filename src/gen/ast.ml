@@ -102,6 +102,7 @@ and pat = pat_body * expr list
 
 and pat_body = 
   | PId of string
+  | WildCard
   | PActive of expr
   | PSq of pat_body list
 

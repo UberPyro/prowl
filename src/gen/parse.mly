@@ -37,7 +37,7 @@
 
   COMMA COLON ARROW BACKARROW
 
-  UNIT NOP QNOP EOF
+  UNIT NOP QNOP BLANK EOF
 
 %token<string>
   ID CAP_ID MOD_ID PMOD_ID MACRO_ID
@@ -240,6 +240,7 @@ pat:
 
 pat_body: 
   | any_id {PId $1}
+  | BLANK {WildCard}
   | pat_body pbop pat_body {$2 $1 $3}
   | to_like(PAT, expr) {PActive $1}
   | nonempty_list(pat_term) {PSq $1}
