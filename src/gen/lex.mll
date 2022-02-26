@@ -29,29 +29,6 @@ let char_ascii = '\\' hex
 let string_body = ([^ '"'] | "\\\"")*
 
 rule token = parse
-  | integer as i                                 {INTEGER (int_of_string i)}
-  | float as f                                   {FLOAT (float_of_string f)}
-  | "()"                                                              {UNIT}
-  | "{}"                                                               {NOP}
-  | "<>"                                                              {QNOP}
-  | "/#"                                                  {comment 0 lexbuf}
-  | "'" (char_single as c) "'"                                      {CHAR c}
-  | "'" '\\' (_ as c) "'"                                           {CHAR c}
-  | "'" (char_ascii as c) "'"                         {CHAR (decode_char c)}
-  | '"' (string_body as s) '"'                          {STRING (decode2 s)}
-  | "/#"                                                  {comment 0 lexbuf}
-  
-  | ':' (id as s)                                                {VARIANT s}
-  | ':' (cap_id as s)                                           {PVARIANT s}
-  | "--" (any_id as s)                                          {METATYPE s}
-  | '~' (any_id as s)                                              {LABEL s}
-  | (any_id as s) '.'                                             {MOD_ID s}
-  | (any_id as s) ':'                                            {PMOD_ID s}
-  | (any_id as s) "::"                                          {MACRO_ID s}
-  | id as s                                                           {ID s}
-  | cap_id as s                                                   {CAP_ID s}
-  | '_' any_id                                                       {BLANK}
-
   | "fn"                                                                {FN}
   | "val"                                                              {VAL}
   | "let"                                                              {LET}
@@ -121,6 +98,29 @@ rule token = parse
   | "(>)"                                                              {SGT}
   | "(<=)"                                                             {SLE}
   | "(>=)"                                                             {SGE}
+
+  | integer as i                                 {INTEGER (int_of_string i)}
+  | float as f                                   {FLOAT (float_of_string f)}
+  | "()"                                                              {UNIT}
+  | "{}"                                                               {NOP}
+  | "<>"                                                              {QNOP}
+  | "/#"                                                  {comment 0 lexbuf}
+  | "'" (char_single as c) "'"                                      {CHAR c}
+  | "'" '\\' (_ as c) "'"                                           {CHAR c}
+  | "'" (char_ascii as c) "'"                         {CHAR (decode_char c)}
+  | '"' (string_body as s) '"'                          {STRING (decode2 s)}
+  | "/#"                                                  {comment 0 lexbuf}
+  
+  | ':' (id as s)                                                {VARIANT s}
+  | ':' (cap_id as s)                                           {PVARIANT s}
+  | "--" (any_id as s)                                          {METATYPE s}
+  | '~' (any_id as s)                                              {LABEL s}
+  | (any_id as s) '.'                                             {MOD_ID s}
+  | (any_id as s) ':'                                            {PMOD_ID s}
+  | (any_id as s) "::"                                          {MACRO_ID s}
+  | id as s                                                           {ID s}
+  | cap_id as s                                                   {CAP_ID s}
+  | '_' any_id                                                       {BLANK}
 
   | eof                                                                {EOF}
   | whitespace                                                {token lexbuf}
