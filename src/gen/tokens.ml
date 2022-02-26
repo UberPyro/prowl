@@ -1,5 +1,5 @@
 type token = 
-  | FN | VAL | LET | ANY | IN | REC
+  | FN | VAL | LET | IN | REC
   | OPEN | INCL | SPEC | INST | IMP
   | PUB | OPAQ | TYPE
   | NEW | DATA
