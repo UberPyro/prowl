@@ -75,19 +75,11 @@ and expr =
   | FuncLit of (pat * expr) list
   | Quoted of expr
 
-  | Add of expr * expr
-  | Sub of expr * expr
-  | Mul of expr * expr
-  | Div of expr * expr
-  | And of expr * expr
-  | Or of expr * expr
+  | Bop of expr * bop * expr
+  | Sect of bop
+  | SectL of bop * expr
+  | SectR of expr * bop
 
-  | Eq of expr * expr
-  | Neq of expr * expr
-  | Cmp of expr * expr
-
-  | Cons of expr * expr
-  | Snoc of expr * expr
   | Lift
   | LiftA
   | LiftM
@@ -97,6 +89,11 @@ and expr =
   | FilterMap
   | Dup
   | Mut
+
+and bop = 
+  | Add | Sub | Mul | Div | And | Or
+  | Eq | Neq | Cmp
+  | Cons | Snoc
 
 and pat = pat_body * expr list
 
@@ -122,9 +119,12 @@ and pat_body =
   | PDict of (expr * pat_body) list
   | PQuoted of pat_body
 
-  | PCons of pat_body * pat_body
-  | PSnoc of pat_body * pat_body
-  | POr of pat_body * pat_body
-  | PAnd of pat_body * pat_body
+  | PBop of pat_body * pbop * pat_body
+
+and pbop = 
+  | PCons
+  | PSnoc
+  | POr
+  | PAnd
 
 and named_arg = string * expr option

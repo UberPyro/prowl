@@ -175,10 +175,14 @@ expr:
   | EMARK {Dup}
   | BACKARROW {Mut}
 
-  | expr bop expr {$2 $1 $3}
+  | expr bop expr {Bop ($1, $2, $3)}
   | nonempty_list(term) {Sq $1}
 
 term: 
+  | grouped(bop) {Sect $1}
+  | grouped(pair(bop, expr)) {let b, e = $1 in SectL (b, e)}
+  | grouped(pair(expr, bop)) {let e, b = $1 in SectR (e, b)}
+
   | delimited(LET, stmt, IN) {Let $1}
   | mod_like(MOD, stmt) {Mod $1}
   | record_like(ID, expr) {Record $1}
@@ -217,19 +221,19 @@ term:
 %inline quoted(expr_like): delimited(LANGLE, expr_like, RANGLE) {$1}
 
 %inline bop: 
-  | PLUS {fun u v -> Add (u, v)}
-  | MINUS {fun u v -> Sub (u, v)}
-  | TIMES {fun u v -> Mul (u, v)}
-  | DIV {fun u v -> Div (u, v)}
-  | AND {fun u v -> And (u, v)}
-  | OR {fun u v -> Or (u, v)}
+  | PLUS {Add}
+  | MINUS {Sub}
+  | TIMES {Mul}
+  | DIV {Div}
+  | AND {And}
+  | OR {Or}
 
-  | EQ {fun u v -> Eq (u, v)}
-  | NEQ {fun u v -> Neq (u, v)}
-  | CMP {fun u v -> Cmp (u, v)}
+  | EQ {Eq}
+  | NEQ {Neq}
+  | CMP {Cmp}
 
-  | CONS {fun u v -> Cons (u, v)}
-  | SNOC {fun u v -> Snoc (u, v)}
+  | CONS {Cons}
+  | SNOC {Snoc}
 
 pat: 
   | pair(pat_body, pat_constraint) {$1}
@@ -241,7 +245,7 @@ pat:
 pat_body: 
   | any_id {PId $1}
   | BLANK {WildCard}
-  | pat_body pbop pat_body {$2 $1 $3}
+  | pat_body pbop pat_body {PBop ($1, $2, $3)}
   | to_like(PAT, expr) {PActive $1}
 
   | INTEGER {IntPat $1}
@@ -264,7 +268,7 @@ pat_term:
   | quoted(pat_body) {PQuoted $1}
 
 %inline pbop: 
-  | CONS {fun u v -> PCons (u, v)}
-  | SNOC {fun u v -> PSnoc (u, v)}
-  | PIPE {fun u v -> POr (u, v)}
-  | AMPERSAND {fun u v -> PAnd (u, v)}
+  | CONS {PCons}
+  | SNOC {PSnoc}
+  | PIPE {POr}
+  | AMPERSAND {PAnd}
