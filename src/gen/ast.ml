@@ -17,6 +17,7 @@ and ty_body =
   | TUnit
   | SMetaType of string
   | Sig of spec list
+  | TWith of ty
 
 and data = 
   | DVariant of (ty * string) list
@@ -55,6 +56,7 @@ and expr =
   | Macro of string * expr
   | Let of stmt
   | To of ty
+  | With of ty
   | Metatype of string
   | Mod of stmt list
 
@@ -96,20 +98,23 @@ and expr =
   | Dup
   | Mut
 
-and pat = 
-  | PId of string
-  | PSq of pat list
+and pat = pat_body * expr list
 
-  | PCons of pat * pat
-  | PSnoc of pat * pat
-  | Alternate of pat *pat
-  | PAs of pat * pat
+and pat_body = 
+  | PId of string
+  | PActive of expr
+  | PSq of pat_body list
+
+  | PCons of pat_body * pat_body
+  | PSnoc of pat_body * pat_body
+  | Alternate of pat_body * pat_body
+  | PAs of pat_body * pat_body
   
-  | PTuple of pat list
-  | PRecord of (string * pat) list
-  | PPolyRecord of (string * pat) list
-  | PArr of pat list
-  | PDict of (expr * pat) list
-  | PQuoted of pat
+  | PTuple of pat_body list
+  | PRecord of (string * pat_body) list
+  | PPolyRecord of (string * pat_body) list
+  | PArr of pat_body list
+  | PDict of (expr * pat_body) list
+  | PQuoted of pat_body
 
 and named_arg = string * expr option

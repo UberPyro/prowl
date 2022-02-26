@@ -19,7 +19,7 @@
   PUB OPAQ TYPE
   NEW DATA
   MOD SIG BEGIN END
-  AS TO
+  AS TO WITH PAT DOT
 
   PLUS MINUS TIMES DIV ASSIGN
 
@@ -87,6 +87,7 @@ ty_body:
   | UNIT {TUnit}
   | METATYPE {SMetaType $1}
   | nonempty_list(ty_term) {TSq $1}
+  | to_like(WITH, ty) {TWith $1}
 
 ty_term: 
   | arr_like(ty_body) {TArr $1}
@@ -151,7 +152,8 @@ expr:
   | MOD_ID expr {Spaced ($1, $2)}
   | PMOD_ID expr {PSpaced ($1, $2)}
   | MACRO_ID expr {Macro ($1, $2)}
-  | preceded(TO, grouped(ty)) {To $1}
+  | to_like(TO, ty) {To $1}
+  | to_like(WITH, ty) {With $1}
   | METATYPE {Metatype $1}
   | VARIANT {Variant $1}
   | PVARIANT {PolyVariant $1}
@@ -209,6 +211,9 @@ term:
 %inline mod_like(open_kw, s):
   delimited(open_kw, list(s), END) {$1}
 
+%inline to_like(kw, content): 
+  preceded(kw, grouped(content)) {$1}
+
 %inline grouped(expr_like): delimited(LPAREN, expr_like, RPAREN) {$1}
 %inline quoted(expr_like): delimited(LANGLE, expr_like, RANGLE) {$1}
 
@@ -228,18 +233,26 @@ term:
   | SNOC {fun u v -> Snoc (u, v)}
 
 pat: 
+  | pair(pat_body, pat_constraint) {$1}
+  | pat_body {$1, []}
+
+%inline pat_constraint: 
+  preceded(DOT, separated_nonempty_list(COMMA, expr)) {$1}
+
+pat_body: 
   | any_id {PId $1}
-  | pat pbop pat {$2 $1 $3}
+  | pat_body pbop pat_body {$2 $1 $3}
+  | to_like(PAT, expr) {PActive $1}
   | nonempty_list(pat_term) {PSq $1}
 
 pat_term:
-  | tuple_like(pat) {PTuple $1}
-  | record_like(ID, pat) {PRecord $1}
-  | record_like(CAP_ID, pat) {PPolyRecord $1}
-  | arr_like(pat) {PArr $1}
-  | func_like(expr, pat) {PDict $1}
-  | grouped(pat) {$1}
-  | quoted(pat) {PQuoted $1}
+  | tuple_like(pat_body) {PTuple $1}
+  | record_like(ID, pat_body) {PRecord $1}
+  | record_like(CAP_ID, pat_body) {PPolyRecord $1}
+  | arr_like(pat_body) {PArr $1}
+  | func_like(expr, pat_body) {PDict $1}
+  | grouped(pat_body) {$1}
+  | quoted(pat_body) {PQuoted $1}
 
 %inline pbop: 
   | CONS {fun u v -> PCons (u, v)}

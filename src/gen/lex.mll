@@ -73,6 +73,8 @@ rule token = parse
   | "end" {END}
   | "as" {AS}
   | "to" {TO}
+  | "with" {WITH}
+  | "pat" {PAT}
 
   | "+" {PLUS}
   | "-" {MINUS}
@@ -111,6 +113,7 @@ rule token = parse
 
   | "," {COMMA}
   | ":" {COLON}
+  | "." {DOT}
   | "->" {ARROW}
   | "<-" {BACKARROW}
 
