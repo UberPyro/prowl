@@ -14,7 +14,7 @@
 %}
 
 %token
-  FN VAL LET IN REC
+  FN VAL LET ANY IN REC
   OPEN INCL SPEC INST IMP
   PUB OPAQ TYPE
   NEW DATA
@@ -74,7 +74,10 @@ spec:
   | TYPE any_id {SAbsTy $2}
   | DATA any_id ASSIGN data {SData ($2, $4)}
 
-ty: pair(list(terminated(type_constraint, COMMA)), ty_body) {$1}
+ty: 
+  | pair(delimited(ANY, separated_nonempty_list(COMMA, 
+    type_constraint), IN), ty_body) {$1}
+  | ty_body {[], $1}
 
 %inline type_constraint: pair(any_id, nonempty_list(any_id)) {$1}
 

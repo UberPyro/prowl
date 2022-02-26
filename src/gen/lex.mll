@@ -54,6 +54,7 @@ rule token = parse
   | "fn" {FN}
   | "val" {VAL}
   | "let" {LET}
+  | "any" {ANY}
   | "in" {IN}
   | "rec" {REC}
   | "open" {OPEN}
