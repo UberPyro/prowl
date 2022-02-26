@@ -1,0 +1,9 @@
+val Fib = mod
+
+  pub rec fn fib = {
+    0 -> 0,
+    1 -> 1,
+    n -> (n-1) fib + (n-2) fib
+  }
+
+end

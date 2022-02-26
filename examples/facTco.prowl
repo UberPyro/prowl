@@ -1,0 +1,8 @@
+val FacTco = mod
+
+  pub rec fn ~acc(0) fac = {
+    0 -> acc,
+    n -> (n-1) ~acc(n*acc) fac
+  }
+
+end
