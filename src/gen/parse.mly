@@ -1,13 +1,7 @@
 %{ open Batteries
    
    open Ast
-   open Parse_proc
-
-  (* Consider formatting everything a bit nicer *)
-  (* E.g. all } on 76 *)
-
-  (* Use sexp to generate graphviz output *)
-%}
+   open Parse_proc %}
 
 %token
   FN VAL LET IN REC
@@ -96,8 +90,7 @@ data:
   | record_like(ID, ty)                                         {DRecord $1}
   | record_like(CAP_ID, ty)                                 {DPolyRecord $1}
 
-%inline opt_unit(t): 
-  ioption(t)                                         { match $1 with
+%inline opt_unit(t): ioption(t)                      { match $1 with
                                                        | Some s -> s
                                                        | None -> [], TUnit }
 
