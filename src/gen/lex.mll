@@ -39,7 +39,7 @@ rule token = parse
   | "'" '\\' (_ as c) "'"                                           {CHAR c}
   | "'" (char_ascii as c) "'"                         {CHAR (decode_char c)}
   | '"' (string_body as s) '"'                          {STRING (decode2 s)}
-  | "/#" {comment 0 lexbuf}
+  | "/#"                                                  {comment 0 lexbuf}
   
   | ':' (id as s)                                                {VARIANT s}
   | ':' (cap_id as s)                                           {PVARIANT s}
