@@ -106,16 +106,25 @@ and pat_body =
   | PActive of expr
   | PSq of pat_body list
 
+  | IntPat of int
+  | FloatPat of float
+  | CharPat of char
+  | StrPat of string
+  | UnitPat
+
+  | PVariant of string
+  | PPolyVariant of string
+  | PTuple of pat_body list
+  | PRecord of (string * pat_body) list
+  | PPolyRecord of (string * pat_body) list
+
+  | PArr of pat_body list
+  | PDict of (expr * pat_body) list
+  | PQuoted of pat_body
+
   | PCons of pat_body * pat_body
   | PSnoc of pat_body * pat_body
   | POr of pat_body * pat_body
   | PAnd of pat_body * pat_body
-  
-  | PTuple of pat_body list
-  | PRecord of (string * pat_body) list
-  | PPolyRecord of (string * pat_body) list
-  | PArr of pat_body list
-  | PDict of (expr * pat_body) list
-  | PQuoted of pat_body
 
 and named_arg = string * expr option

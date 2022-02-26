@@ -243,6 +243,15 @@ pat_body:
   | BLANK {WildCard}
   | pat_body pbop pat_body {$2 $1 $3}
   | to_like(PAT, expr) {PActive $1}
+
+  | INTEGER {IntPat $1}
+  | FLOAT {FloatPat $1}
+  | CHAR {CharPat $1}
+  | STRING {StrPat $1}
+  | UNIT {UnitPat}
+  | VARIANT {PVariant $1}
+  | PVARIANT {PPolyVariant $1}
+
   | nonempty_list(pat_term) {PSq $1}
 
 pat_term:
