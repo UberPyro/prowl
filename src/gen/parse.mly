@@ -51,7 +51,7 @@
 %left AS
 %left CMP
 %left EQ NEQ
-%left OR
+%left OR PIPE
 %left AND
 %right CONS
 %left SNOC
