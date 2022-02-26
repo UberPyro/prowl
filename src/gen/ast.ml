@@ -149,4 +149,5 @@ and pcmp =
   | PEq | PNeq
   [@@deriving sexp]
 
-and named_arg = string * expr option [@@deriving sexp]
+(* Forcing these to all have defaults atm *)
+and named_arg = string * expr [@@deriving sexp]

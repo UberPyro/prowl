@@ -74,12 +74,13 @@ ty:
 ty_body: 
   | any_id                                                          {TId $1}
   | ty_body ARROW ty_body                                     {TFn ($1, $3)}
-  | UNIT                                                             {TUnit}
-  | METATYPE                                                  {SMetaType $1}
   | nonempty_list(ty_term)                                          {TSq $1}
-  | to_like(WITH, ty)                                             {TWith $1}
 
 ty_term: 
+  | UNIT                                                             {TUnit}
+  | METATYPE                                                  {SMetaType $1}
+  | to_like(WITH, ty)                                             {TWith $1}
+
   | arr_like(ty_body)                                              {TArr $1}
   | grouped(ty_body)                                                    {$1}
   | quoted(ty_body)                                             {TQuoted $1}
@@ -130,13 +131,17 @@ stmt:
   | CAP_ID                                                              {$1}
 
 %inline named_arg: 
-  pair(LABEL, ioption(grouped(expr)))                                   {$1}
+  pair(LABEL, grouped(expr))                                            {$1}
 
 expr: 
-  | any_id                                                           {Id $1}
+  | expr bop expr                                         {Bop ($1, $2, $3)}
+  | nonempty_list(term)                                              {Sq $1}
   | MOD_ID expr                                            {Spaced ($1, $2)}
   | PMOD_ID expr                                          {PSpaced ($1, $2)}
   | MACRO_ID expr                                           {Macro ($1, $2)}
+
+term: 
+  | any_id                                                           {Id $1}
   | to_like(TO, ty)                                                  {To $1}
   | to_like(WITH, ty)                                              {With $1}
   | METATYPE                                                   {Metatype $1}
@@ -161,10 +166,6 @@ expr:
   | EMARK                                                              {Dup}
   | BACKARROW                                                          {Mut}
 
-  | expr bop expr                                         {Bop ($1, $2, $3)}
-  | nonempty_list(term)                                              {Sq $1}
-
-term: 
   | grouped(bop)                                                   {Sect $1}
   | grouped(pair(bop, expr))                 {let b, e = $1 in SectL (b, e)}
   | grouped(pair(expr, bop))                 {let e, b = $1 in SectR (e, b)}
@@ -234,12 +235,15 @@ pat:
   preceded(DOT, separated_nonempty_list(COMMA, expr))                   {$1}
 
 pat_body: 
-  | any_id                                                          {PId $1}
-  | BLANK                                                         {WildCard}
   | pat_body pbop pat_body                               {PBop ($1, $2, $3)}
+  | nonempty_list(pat_term)                                         {PSq $1}
+
+pat_term:
+  | any_id                                                          {PId $1}
+  | named_arg                                                     {Named $1}
+  | BLANK                                                         {WildCard}
   | pcmp_op                                                        {PCmp $1}
   | to_like(PAT, expr)                                          {PActive $1}
-  | named_arg                                                     {Named $1}
 
   | INTEGER                                                      {IntPat $1}
   | FLOAT                                                      {FloatPat $1}
@@ -249,9 +253,6 @@ pat_body:
   | VARIANT                                                    {PVariant $1}
   | PVARIANT                                               {PPolyVariant $1}
 
-  | nonempty_list(pat_term)                                         {PSq $1}
-
-pat_term:
   | tuple_like(pat_body)                                         {PTuple $1}
   | record_like(ID, pat_body)                                   {PRecord $1}
   | record_like(CAP_ID, pat_body)                           {PPolyRecord $1}
