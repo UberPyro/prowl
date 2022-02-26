@@ -71,7 +71,6 @@ rule token = parse
   | "sig" {SIG}
   | "begin" {BEGIN}
   | "end" {END}
-  | "as" {AS}
   | "to" {TO}
   | "with" {WITH}
   | "pat" {PAT}
@@ -100,6 +99,7 @@ rule token = parse
   | "?" {QMARK}
   | "!" {EMARK}
   | "|" {PIPE}
+  | "&" {AMPERSAND}
 
   | "<" {LANGLE}
   | ">" {RANGLE}

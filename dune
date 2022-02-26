@@ -1,3 +1,4 @@
 (executable
   (name main)
+  (preprocess (pps ppx_variants_conv))
   (libraries lib batteries))

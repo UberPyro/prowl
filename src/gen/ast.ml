@@ -107,8 +107,8 @@ and pat_body =
 
   | PCons of pat_body * pat_body
   | PSnoc of pat_body * pat_body
-  | Alternate of pat_body * pat_body
-  | PAs of pat_body * pat_body
+  | POr of pat_body * pat_body
+  | PAnd of pat_body * pat_body
   
   | PTuple of pat_body list
   | PRecord of (string * pat_body) list

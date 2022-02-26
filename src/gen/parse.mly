@@ -19,7 +19,7 @@
   PUB OPAQ TYPE
   NEW DATA
   MOD SIG BEGIN END
-  AS TO WITH PAT DOT
+  TO WITH PAT DOT
 
   PLUS MINUS TIMES DIV ASSIGN
 
@@ -28,7 +28,7 @@
   AND OR
 
   CONS SNOC DOLLAR AT PERCENT CARET
-  FOLDL FOLDR QMARK EMARK PIPE
+  FOLDL FOLDR QMARK EMARK PIPE AMPERSAND
 
   LANGLE RANGLE
   LPAREN RPAREN
@@ -48,11 +48,10 @@
 %token<float> FLOAT
 %token<char> CHAR
 
-%left AS
 %left CMP
 %left EQ NEQ
 %left OR PIPE
-%left AND
+%left AND AMPERSAND
 %right CONS
 %left SNOC
 %left PLUS MINUS
@@ -257,5 +256,5 @@ pat_term:
 %inline pbop: 
   | CONS {fun u v -> PCons (u, v)}
   | SNOC {fun u v -> PSnoc (u, v)}
-  | PIPE {fun u v -> Alternate (u, v)}
-  | AS {fun u v -> PAs (u, v)}
+  | PIPE {fun u v -> POr (u, v)}
+  | AMPERSAND {fun u v -> PAnd (u, v)}

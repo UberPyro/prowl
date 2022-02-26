@@ -4,7 +4,7 @@ type token =
   | PUB | OPAQ | TYPE
   | NEW | DATA
   | MOD | SIG | BEGIN | END
-  | AS | TO | WITH | PAT | DOT
+  | TO | WITH | PAT | DOT
 
   | PLUS | MINUS | TIMES | DIV | ASSIGN
 
@@ -13,7 +13,7 @@ type token =
   | AND | OR
   
   | CONS | SNOC | DOLLAR | AT | PERCENT | CARET
-  | FOLDL | FOLDR | QMARK | EMARK | PIPE
+  | FOLDL | FOLDR | QMARK | EMARK | PIPE | AMPERSAND
 
   | LANGLE | RANGLE
   | LPAREN | RPAREN
@@ -32,3 +32,4 @@ type token =
   | INTEGER of int
   | FLOAT of float
   | CHAR of char
+[@@deriving variants]
