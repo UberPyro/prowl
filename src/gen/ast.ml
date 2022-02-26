@@ -43,8 +43,8 @@ type ty_mods = [`New | ty_access_mods | ty_imp_mods]    [@@deriving sexp]
 type incl_mods = [`Inst]                                [@@deriving sexp]
 
 type stmt = 
-  | Fn of fn_mods list * pat * named_arg list * string * expr
-  | Val of fn_mods list * pat * expr
+  | Fn of fn_mods list * pat_body * expr
+  | Val of fn_mods list * pat_body * expr
   | Open of expr
   | Incl of incl_mods list * expr
   | Imp of expr
@@ -115,6 +115,7 @@ and pat_body =
   | WildCard
   | PActive of expr
   | PSq of pat_body list
+  | Named of named_arg
 
   | IntPat of int
   | FloatPat of float

@@ -96,10 +96,9 @@ data:
 
 stmt: 
   | ioption(annot) ioption(pub) ioption(imp_mods) ioption(rec_)
-    FN pat list(named_arg) any_id ASSIGN expr
-                          {Fn (filter_id [$1; $2; $3; $4], $6, $7, $8, $10)}
+    FN pat_body ASSIGN expr        {Fn (filter_id [$1; $2; $3; $4], $6, $8)}
   | ioption(annot) ioption(pub) ioption(imp_mods) ioption(rec_)
-      VAL pat ASSIGN expr         {Val (filter_id [$1; $2; $3; $4], $6, $8)}
+      VAL pat_body ASSIGN expr    {Val (filter_id [$1; $2; $3; $4], $6, $8)}
   | OPEN expr                                                      {Open $2}
   | INCL ioption(inst) expr                      {Incl (filter_id [$2], $3)}
   | IMP expr                                                        {Imp $2}
@@ -240,6 +239,7 @@ pat_body:
   | pat_body pbop pat_body                               {PBop ($1, $2, $3)}
   | pcmp_op                                                        {PCmp $1}
   | to_like(PAT, expr)                                          {PActive $1}
+  | named_arg                                                     {Named $1}
 
   | INTEGER                                                      {IntPat $1}
   | FLOAT                                                      {FloatPat $1}
