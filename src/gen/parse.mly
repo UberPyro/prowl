@@ -144,6 +144,7 @@ term:
   | any_id                                                           {Id $1}
   | to_like(TO, ty)                                                  {To $1}
   | to_like(WITH, ty)                                              {With $1}
+  | named_arg                                                    {ENamed $1}
   | METATYPE                                                   {Metatype $1}
   | VARIANT                                                     {Variant $1}
   | PVARIANT                                                {PolyVariant $1}

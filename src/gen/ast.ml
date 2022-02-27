@@ -65,6 +65,7 @@ and expr =
   | With of ty
   | Metatype of string
   | Mod of stmt list
+  | ENamed of named_arg
 
   | Variant of string
   | PolyVariant of string
