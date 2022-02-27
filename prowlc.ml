@@ -37,7 +37,7 @@ let () =
       if is_sexp then
         ast
         |> Ast.sexp_of_stmt
-        |> Sexp.to_string
+        |> Sexp.to_string_hum
         |> Enum.singleton
         |> File.write_lines (name ^ "_sexp.txt")
     end lst |> ignore
