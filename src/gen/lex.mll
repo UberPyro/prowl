@@ -57,6 +57,7 @@ rule token = parse
   | "*" {TIMES}
   | "/" {DIV}
   
+  | "**"  {EXP}
   | "="   {ASSIGN}
   | ":="  {UPDATE}
 
