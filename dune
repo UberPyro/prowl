@@ -1,0 +1,3 @@
+(executable
+  (name prowlc)
+  (libraries lib batteries sexplib))

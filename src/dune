@@ -1,0 +1,5 @@
+(include_subdirs unqualified)
+(library
+  (name lib)
+  (preprocess (pps ppx_sexp_conv))
+  (libraries batteries sexplib))
