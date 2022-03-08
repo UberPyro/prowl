@@ -58,12 +58,18 @@ rule token = parse
   | "/" {DIV}
   
   | "**"  {EXP}
+  | ".."  {RANGE}
+  | "-<"  {CONS}
+  | ">-"  {SNOC}
+  | "++"  {APPEND}
+
+
   | "="   {ASSIGN}
   | ":="  {UPDATE}
 
-  | "?=" {CMP}
-  | "==" {EQ}
-  | "/=" {NEQ}
+  | "?="  {CMP}
+  | "=="  {EQ}
+  | "/="  {NEQ}
 
   | ":{"  {PBRACE}
   | "}:"  {ABRACE}
@@ -87,7 +93,7 @@ rule token = parse
   | '"' (string_body as s) '"'  {STR (decode2 s)}
   
   | cap_id as s         {SUM s} 
-  | ':' (any_id as s)   {PSUM s}
+  | ':' (any_id as s)   {ATOM s}
   | '~' (cap_id as s)   {METATYPE s}
   | '~' (id as s)       {LABEL s}
   
@@ -107,4 +113,3 @@ and comment level = parse
           else comment (level-1) lexbuf}
   | "/#" {comment (level+1) lexbuf}
   | _ {comment level lexbuf}
-
