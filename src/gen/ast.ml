@@ -15,7 +15,7 @@ module T(M : Meta) = struct
 
   type mods_st = [access_st | class_st] list            [@@deriving sexp]
   type mods_ty = [`new_ty | access_ty | class_ty] list  [@@deriving sexp]
-  type mods_class_st = [`Inst] option                   [@@deriving sexp]
+  type mods_class_st = [`Inst] list                     [@@deriving sexp]
 
   (* specs *)
   type sp = sp_t m [@@deriving sexp]
@@ -34,6 +34,7 @@ module T(M : Meta) = struct
   and ty_body_t = [
     | `id of string
     | `sq of ty_body list
+    | `access of ty_body * accop * ty_body
     | `fn of ty_body * ty_body
     | `arr of ty_body list
     | `quoted of ty_body
@@ -68,9 +69,6 @@ module T(M : Meta) = struct
   and e_t = [
     | `sq of e list
     | `id of string
-    | `access of string * e
-    | `poly_access of string * e
-    | `macro of string * e
     | `let_ of s
     | `to_ of ty
     | `as_ of p
@@ -84,16 +82,17 @@ module T(M : Meta) = struct
     | `prod of (string * e) list
     | `rows of (string * e) list
     | `tup of e list
-    | `str_lit of string
-    | `int_lit of int
-    | `flo_lit of float
-    | `char_lit of char
-    | `unit_lit
+    | `str of string
+    | `int of int
+    | `flo of float
+    | `char of char
+    | `unit
 
-    | `arr_lit of e list
-    | `fun_lit of (p * e) list
+    | `arr of e list
+    | `fun_ of (p * e) list
     | `quoted of e
 
+    | `access of e * accop * e
     | `bop of e * bop * e
     | `sect of bop
     | `sect_left of bop * e
@@ -107,17 +106,24 @@ module T(M : Meta) = struct
     | `range | `eq | `neq | `cmp
   ] [@@deriving sexp]
 
+  and accop = access_t m [@@deriving sexp]
+  and accop_t = [
+    | `access
+    | `poly_access
+    | `macro
+  ] [@@deriving sexp]
+
   and p = p_t m [@@deriving sexp]
   and p_t = [
     | `id of string
     | `wildcard
     | `sq of p list
     | `named of named_arg
-    | `int_pat of int
-    | `flo_pat of float
-    | `char_pat of char
-    | `str_pat of string
-    | `unit_pat
+    | `int of int
+    | `flo of float
+    | `char of char
+    | `str of string
+    | `unit
     
     | `sum of string
     | `atom of string

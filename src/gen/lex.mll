@@ -60,7 +60,6 @@ rule token = parse
   | ">-"  {SNOC}
   | "++"  {APPEND}
 
-
   | "="   {ASSIGN}
   | ":="  {UPDATE}
 
@@ -68,9 +67,9 @@ rule token = parse
   | "=="  {EQ}
   | "/="  {NEQ}
 
-  | ":{"  {PBRACE}
-  | "}:"  {ABRACE}
-  | "}::" {PABRACE}
+  | ":"   {COLON}
+  | "::"  {DCOLON}
+  | "'{"  {PBRACE}
   
   | "<" {LANGLE}
   | ">" {RANGLE}
@@ -90,14 +89,11 @@ rule token = parse
   | "'" (any_id as s)   {ATOM s}
   | '~' (cap_id as s)   {METATYPE s}
   | '~' (id as s)       {LABEL s}
-  
-  | (id as s) ':'       {ACCESS}
-  | (id as s) "::"      {PACCESS}
-  | (cap_id as s) ':'   {MACRO}
 
   | id as s     {ID s}
   | '_'         {USCORE}
   | '_' any_id  {BLANK}
+  | sym         {SYMBOL}
 
   | eof         {EOF}
   | whitespace  {token lexbuf}
