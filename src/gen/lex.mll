@@ -25,9 +25,6 @@ let sym = ';' | [
 let integer = '0' | sig_digits
 let float = sig_digits '.' digit* | '.' digit+
 
-let char_single = [^ '\'']
-let char_ascii = '\\' hex
-
 let string_body = ([^ '"'] | "\\\"")*
 
 rule token = parse
@@ -87,13 +84,10 @@ rule token = parse
   | integer as i                {INT (int_of_string i)}
   | float as f                  {FLOAT (float_of_string f)}
   | "/#"                        {comment 0 lexbuf}
-  | "'" (char_single as c) "'"  {CHAR c}
-  | "'" '\\' (_ as c) "'"       {CHAR c}
-  | "'" (char_ascii as c) "'"   {CHAR (decode_char c)}
   | '"' (string_body as s) '"'  {STR (decode2 s)}
   
   | cap_id as s         {SUM s} 
-  | ':' (any_id as s)   {ATOM s}
+  | "'" (any_id as s)   {ATOM s}
   | '~' (cap_id as s)   {METATYPE s}
   | '~' (id as s)       {LABEL s}
   
