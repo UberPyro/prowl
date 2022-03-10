@@ -1,35 +1,33 @@
-open Sexplib.Conv
-
 module type Meta = sig
-  type 'a m [@@deriving sexp]
+  type 'a m
 end
 
 module T(M : Meta) = struct
   open M
 
-  type access_st = [`pub]               [@@deriving sexp]
-  type access_ty = [`opaq | access_st]  [@@deriving sexp]
-  type class_ty = [`use]                [@@deriving sexp]
-  type class_st = [`inst | class_ty]    [@@deriving sexp]
+  type access_st = [`pub]
+  type access_ty = [`opaq | access_st]
+  type class_ty = [`use]
+  type class_st = [`inst | class_ty]
 
-  type mods_st = [access_st | class_st] list            [@@deriving sexp]
-  type mods_ty = [`new_ty | access_ty | class_ty] list  [@@deriving sexp]
-  type mods_class_st = [`Inst] list                     [@@deriving sexp]
+  type mods_st = [access_st | class_st] list
+  type mods_ty = [`new_ty | access_ty | class_ty] list
+  type mods_class_st = [`Inst] list
 
   (* specs *)
-  type sp = sp_t m [@@deriving sexp]
+  type sp = sp_t m
   and sp_t = [
     | `sp of string * ty
     | `ty of string * ty
     | `abst_ty of string m
     | `data of string * data
-  ] [@@deriving sexp]
+  ]
 
   (* types *)
-  and ty = (constr list * ty_body) m    [@@deriving sexp]
-  and constr = (string * string list) m [@@deriving sexp]
+  and ty = (constr list * ty_body) m    
+  and constr = (string * string list) m 
 
-  and ty_body = ty_body_t m [@@deriving sexp]
+  and ty_body = ty_body_t m 
   and ty_body_t = [
     | `id of string
     | `sq of ty_body list
@@ -41,24 +39,24 @@ module T(M : Meta) = struct
     | `metatype of string
     | `sig_ of sp list
     | `with_ of ty
-  ] [@@deriving sexp]
+  ] 
 
-  and data = data_t m [@@deriving sexp]
+  and data = data_t m 
   and data_t = [
     | `sum of (ty * string) list
     | `prod of (string * ty) list
     | `rows of (string * ty) list
-  ] [@@deriving sexp]
+  ] 
 
-  and accop = accop_t m [@@deriving sexp]
+  and accop = accop_t m 
   and accop_t = [
     | `access
     | `poly_access
     | `macro
-  ] [@@deriving sexp]
+  ] 
 
   (* statements *)
-  type s = s_t m [@@deriving sexp]
+  type s = s_t m 
   and s_t = [
     | `fn of mods_st * p * e
     | `val_ of mods_st * p * e
@@ -68,10 +66,10 @@ module T(M : Meta) = struct
     | `abst_ty of string
     | `data of mods_ty * string * data
     | `begin_ of s list
-  ] [@@deriving sexp]
+  ] 
 
   (* expressions *)
-  and e = e_t m [@@deriving sexp]
+  and e = e_t m 
   and e_t = [
     | `sq of e list
     | `id of string
@@ -104,11 +102,11 @@ module T(M : Meta) = struct
     | `sect of bop
     | `sect_left of bop * e
     | `sect_right of e * bop
-  ] [@@deriving sexp]
+  ] 
 
-  and bop = string m [@@deriving sexp]
+  and bop = string m 
 
-  and p = p_t m [@@deriving sexp]
+  and p = p_t m 
   and p_t = [
     | `id of string
     | `wildcard
@@ -131,15 +129,15 @@ module T(M : Meta) = struct
     | `quoted of p
     
     | `bop of p * p_bop * p
-  ] [@@deriving sexp]
+  ] 
   
-  and p_bop = string m [@@deriving sexp]
+  and p_bop = string m 
 
-  and named_arg = (string * e) m [@@deriving sexp]
+  and named_arg = (string * e) m 
 
   type t = [
     | `stmt of s
     | `expr of e
-  ] [@@deriving sexp]
+  ] 
 
 end

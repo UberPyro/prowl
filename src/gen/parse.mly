@@ -2,8 +2,7 @@
   open Batteries
 
   module M = struct
-    type loc = Lexing.position  [@@deriving sexp]
-    type 'a t = 'a * loc        [@@deriving sexp]
+    type 'a m = 'a * Lexing.position
   end
   
   module T = Ast.T(M)
