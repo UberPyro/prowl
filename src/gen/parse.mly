@@ -2,12 +2,6 @@
   open Batteries
 
   open Parse_proc
-
-  module M = struct
-    type 'a m = 'a * (Lexing.position * Lexing.position)
-  end
-  
-  module T = Ast.T(M)
   open T
 %}
 
@@ -38,18 +32,23 @@
 %token<float> FLOAT
 %token<char> CHAR
 
-%right ARROW
+%right ASSIGN
 
 %left CMP
+%left OR
+%left AND
 %left EQ NEQ
 %left SNOC
+%right APPEND
 %right CONS
+%right RANGE
 %left PLUS MINUS
 %left TIMES DIV
+%right EXP
 
 %right COLON DCOLON
 
-%start<T.t> program
+%start<Parse_proc.T.t> program
 
 %%
 
@@ -61,7 +60,7 @@ spec: spec_t {$1, $loc}
 %inline spec_t: 
   | SPEC ID MINUS ty    {SPSp ($2, $4)}
   | TYPE ID ASSIGN ty   {SPTy ($2, $4)}
-  | TYPE ID             {SPAbst_ty $2}
+  | TYPE ID             {SPAbst_ty ($2, $loc)}
   | DATA ID ASSIGN data {SPData ($2, $4)}
 
 ty: ty_t {$1, $loc}
@@ -77,18 +76,19 @@ ty: ty_t {$1, $loc}
 ty_body: ty_body_t {$1, $loc}
 %inline ty_body_t: 
   | ID                            {TId $1}
-  | ty_body constr_arrow ty_body  {TFn ($1, $3)}
+  | ty_body constr_arrow ty_term  {TFn ($1, $3)}
   | ty_body access ty_body        {TAccess ($1, $2, $3)}
   | nonempty_list(ty_term)        {TSq $1}
 
-ty_term: ty_term_t {$1, $loc}
+ty_term: 
+  | ty_term_t {$1, $loc}
+  | grouped(ty_body) {$1}
 %inline ty_term_t: 
   | LPAREN RPAREN     {TUnit}
   | METATYPE          {TMetatype $1}
   | to_like(WITH, ty) {TWith $1}
 
   | arr_like(ty_body)   {TArr $1}
-  | grouped(ty_body)    {$1}
   | quoted(ty_body)     {TQuoted $1}
   | mod_like(SIG, spec) {TSig $1}
 
@@ -98,11 +98,11 @@ data: data_t {$1, $loc}
   | record_like(LBRACE, ty)           {DProd $1}
   | record_like(PBRACE, ty)           {DRows $1}
 
-%inline constr_arrow: pair(ASSIGN, RANGLE) %prec ARROW {$1}
-%inline abst_arrow:   pair(MINUS, RANGLE)  %prec ARROW {$1}
+constr_arrow: pair(ASSIGN, RANGLE) {$1}
+%inline abst_arrow:   pair(MINUS, RANGLE)  {$1}
 
 %inline opt_unit(t): ioption(t) 
-  {match $1 with Some s -> s | None -> [], TUnit}
+  {match $1 with Some s -> s | None -> ([], (TUnit, $loc)), $loc}
 
 s: s_t {$1, $loc}
 %inline s_t: 
@@ -110,9 +110,9 @@ s: s_t {$1, $loc}
     {Fn (filter_id [$1; $2], $4, $6)}
   | ioption(pub) ioption(use_mods) VAL p ASSIGN e
     {Val (filter_id [$1; $2], $4, $6)}
-  | OPEN e {Open_ $2}
-  | MIX ioption(inst) e {`incl (filter_id [$2], $3)}
+  | OPEN e {Open $2}
   | USE e {Use $2}
+  | MIX ioption(inst) e {Mix (filter_id [$2], $3)}
   | ioption(access_mods) ioption(use) ioption(new_)
     TYPE ID ASSIGN ty {Ty (filter_id [$1; $2; $3], $5, $7)}
   | TYPE ID {Abst_ty $2}
@@ -124,9 +124,9 @@ s: s_t {$1, $loc}
   | ID      {$1}
   | CAP_ID  {$1}
 
-%inline named_arg: pair(LABEL, grouped(e)) {$1}
+%inline named_arg: pair(LABEL, grouped(e)) {$1, $loc}
 
-%inline new_: NEW   {`new_}
+%inline new_: NEW   {`new_ty}
 %inline inst: INST  {`inst}
 %inline use: USE    {`use}
 %inline pub: PUB    {`pub}
@@ -141,11 +141,13 @@ s: s_t {$1, $loc}
 
 e: e_t {$1, $loc}
 %inline e_t: 
-  | e access e          {Accop ($1, $2, $3)}
+  | e access e          {Access ($1, $2, $3)}
   | e bop e             {Bop ($1, $2, $3)}
   | nonempty_list(term) {Sq $1}
 
-term: term_t {$1, $loc}
+term: 
+  | term_t {$1, $loc}
+  | grouped(e) {$1}
 %inline term_t: 
   | ID                {Id $1}
   | SYMBOL            {Id $1}
@@ -166,7 +168,6 @@ term: term_t {$1, $loc}
   | FLOAT {Flo $1}
 
   | LPAREN RPAREN {Unit}
-  | LBRACE RBRACE {Fun []}
   | LANGLE RANGLE {Quoted (Fun [], $loc)}
 
   | grouped(bop)          {Sect $1}
@@ -175,14 +176,13 @@ term: term_t {$1, $loc}
   
   | delimited(LET, s, IN)   {Let $1}
   | mod_like(MOD, s)        {Mod $1}
-  | record_like(RBRACE, e)  {Prod $1}
+  | record_like(LBRACE, e)  {Prod $1}
   | record_like(PBRACE, e)  {Rows $1}
   | tuple_like(e)           {Tup $1}
 
   | arr_like(e)     {Arr $1}
   | func_like(p, e) {Fun $1}
   | quoted(e)       {Quoted $1}
-  | grouped(e)      {$1}
 
 %inline func_like(key, value): delimited(
     LBRACE, 
@@ -212,7 +212,8 @@ term: term_t {$1, $loc}
   | COLON   {`access}
   | DCOLON  {`poly_access}
 
-%inline bop: 
+%inline bop: bop_t {$1, $loc}
+%inline bop_t: 
   | PLUS  {"+"}
   | MINUS {"-"}
   | TIMES {"*"}
@@ -237,7 +238,9 @@ p: p_t {$1, $loc}
   | p access p            {PAccess ($1, $2, $3)}
   | nonempty_list(p_term) {PSq $1}
 
-p_term: p_term_t {$1, $loc}
+p_term: 
+  | p_term_t {$1, $loc}
+  | grouped(p) {$1}
 p_term_t: 
   | ID        {PId $1}
   | named_arg {PNamed $1}
@@ -258,10 +261,10 @@ p_term_t:
   | record_like(PBRACE, p)  {PRows $1}
   | arr_like(p)             {PArr $1}
   | func_like(e, p)         {PDict $1}
-  | grouped(p)              {$1}
   | quoted(p)               {PQuoted $1}
 
-%inline pbop: 
+%inline pbop: pbop_t {$1, $loc}
+%inline pbop_t: 
   | CONS {"-<"}
   | SNOC {">-"}
   | OR   {"\\/"}

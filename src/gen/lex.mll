@@ -98,7 +98,7 @@ rule token = parse
   | id as s     {ID s}
   | '_'         {USCORE}
   | '_' any_id  {BLANK}
-  | sym         {SYMBOL}
+  | sym as s    {SYMBOL s}
 
   | eof         {EOF}
   | whitespace  {token lexbuf}

@@ -12,7 +12,7 @@ module T(M : Meta) = struct
 
   type mods_st = [access_st | class_st] list
   type mods_ty = [`new_ty | access_ty | class_ty] list
-  type mods_class_st = [`Inst] list
+  type mods_class_st = [`inst] list
 
   (* specs *)
   type sp = sp_t m
@@ -45,8 +45,7 @@ module T(M : Meta) = struct
     | DProd of (string * ty) list
     | DRows of (string * ty) list
 
-  and accop = accop_t m 
-  and accop_t = [
+  and accop = [
     | `access
     | `poly_access
     | `macro
@@ -58,8 +57,9 @@ module T(M : Meta) = struct
     | Fn of mods_st * p * e
     | Val of mods_st * p * e
     | Open of e
+    | Use of e
     | Mix of mods_class_st * e
-    | Ty of mods_ty * string * data
+    | Ty of mods_ty * string * ty
     | Abst_ty of string
     | Data of mods_ty * string * data
     | Begin of s list
@@ -125,6 +125,7 @@ module T(M : Meta) = struct
     | PQuoted of p
     
     | PBop of p * p_bop * p
+    | PAccess of p * accop * p
   
   and p_bop = string m 
 
