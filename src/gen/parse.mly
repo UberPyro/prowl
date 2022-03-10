@@ -1,6 +1,8 @@
 %{
   open Batteries
 
+  open Parse_proc
+
   module M = struct
     type 'a m = 'a * Lexing.position
   end
@@ -51,8 +53,8 @@
 %%
 
 program: 
-  | s EOF {`stmt $1}
-  | e EOF {`expr $1}
+  | s EOF {`s $1}
+  | e EOF {`e $1}
 
 spec: spec_t {$1, $loc}
 %inline spec_t: 
@@ -73,7 +75,7 @@ ty: ty_t {$1, $loc}
 
 ty_body: ty_body_t {$1, $loc}
 %inline ty_body_t: 
-  | ID                            {`id $1, $loc}
+  | ID                            {`id $1}
   | ty_body constr_arrow ty_body  {`fn ($1, $3)}
   | ty_body access ty_body        {`accop ($1, $2, $3)}
   | nonempty_list(ty_term)        {`sq $1}
@@ -103,14 +105,14 @@ data: data_t {$1, $loc}
 s: s_t {$1, $loc}
 %inline s_t: 
   | ioption(pub) ioption(use_mods) FN p ASSIGN e
-    {`fn (filter_id [$1, $2], $4, $6)}
+    {`fn (filter_id [$1; $2], $4, $6)}
   | ioption(pub) ioption(use_mods) VAL p ASSIGN e
-    {`val_ (filter_id [$1, $2], $4, $6)}
+    {`val_ (filter_id [$1; $2], $4, $6)}
   | OPEN e {`open_ $2}
   | MIX ioption(inst) e {`incl (filter_id [$2], $3)}
   | USE e {`use $2}
   | ioption(access_mods) ioption(use) ioption(new_)
-    TYPE ID ASSIGN ty {`ty (filter_id [$1, $2, $3], $5, $7)}
+    TYPE ID ASSIGN ty {`ty (filter_id [$1; $2; $3], $5, $7)}
   | TYPE ID {`abst_ty $2}
   | ioption(access_mods) DATA ID ASSIGN data
     {`data (filter_id [$1], $3, $5)}

@@ -136,8 +136,8 @@ module T(M : Meta) = struct
   and named_arg = (string * e) m 
 
   type t = [
-    | `stmt of s
-    | `expr of e
+    | `s of s
+    | `e of e
   ] 
 
 end
