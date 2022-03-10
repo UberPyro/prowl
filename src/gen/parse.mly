@@ -1,23 +1,23 @@
-%{ (* try demangling? *)
+%{
   open Batteries
 
   module M = struct
-    'a t = 'a * Parsing.position
+    type loc = Lexing.position  [@@deriving sexp]
+    type 'a t = 'a * loc        [@@deriving sexp]
   end
   
-  module T = Ast(M)
+  module T = Ast.T(M)
 %}
 
 %token
   FN VAL LET IN OPEN MIX USE INST
-  PUB OPAQ TYPE NEW DATA
-  MOD SIG BEGIN END WITH
-  TO AS
+  PUB OPAQ TYPE SPEC NEW DATA
+  MOD SIG BEGIN END WITH TO AS
 
   PLUS MINUS TIMES DIV
-  EXPR CONS SNOC APPEND
-  RANGE CMP EQ NEQ
-  ASSIGN UPDATE
+  EXP CONS SNOC APPEND
+  RANGE CMP EQ NEQ AND
+  OR ASSIGN UPDATE
 
   LANGLE   RANGLE
   LPAREN   RPAREN
@@ -25,12 +25,12 @@
   LBRACE   RBRACE
 
   PBRACE COLON DCOLON
-  USCORE BLANK EOF
+  COMMA USCORE BLANK EOF
 
 %token<string>
   STR SUM ATOM
   LABEL METATYPE
-  ID SYMBOL
+  ID CAP_ID SYMBOL
 
 %token<int> INT
 %token<float> FLOAT
@@ -52,8 +52,8 @@
 %%
 
 program: 
-  | stmt EOF {`stmt $1}
-  | expr EOF {`expr $1}
+  | s EOF {`stmt $1}
+  | e EOF {`expr $1}
 
 spec: spec_t {$1, $loc}
 %inline spec_t: 
@@ -64,12 +64,13 @@ spec: spec_t {$1, $loc}
 
 ty: ty_t {$1, $loc}
 %inline ty_t: 
-  | pair(terminated(
+  | separated_pair(
       separated_nonempty_list(COMMA, type_constr), 
-      pair(ASSIGN, RANGLE) )) {$1}
-  | ty_body                   {([], $1)}
+      pair(ASSIGN, RANGLE), 
+      ty_body)  {$1}
+  | ty_body     {([], $1)}
 
-%inline type_constr: pair(id, nonempty_list(id)) {$1, $loc}
+%inline type_constr: pair(ID, nonempty_list(ID)) {$1, $loc}
 
 ty_body: ty_body_t {$1, $loc}
 %inline ty_body_t: 
@@ -95,6 +96,7 @@ data: data_t {$1, $loc}
   | record_like(PBRACE, ty)           {`rows $1}
 
 %inline constr_arrow: pair(ASSIGN, RANGLE) %prec ARROW {$1}
+%inline abst_arrow:   pair(MINUS, RANGLE)  %prec ARROW {$1}
 
 %inline opt_unit(t): ioption(t) 
   {match $1 with Some s -> s | None -> [], TUnit}
@@ -104,26 +106,26 @@ s: s_t {$1, $loc}
   | ioption(pub) ioption(use_mods) FN p ASSIGN e
     {`fn (filter_id [$1, $2], $4, $6)}
   | ioption(pub) ioption(use_mods) VAL p ASSIGN e
-    {`val (filter_id [$1, $2], $4, $6)}
-  | OPEN e {`open $2}
+    {`val_ (filter_id [$1, $2], $4, $6)}
+  | OPEN e {`open_ $2}
   | MIX ioption(inst) e {`incl (filter_id [$2], $3)}
   | USE e {`use $2}
   | ioption(access_mods) ioption(use) ioption(new_)
-    TYPE id ASSIGN ty {`ty (filter_id [$1, $2, $3], $5, $7)}
-  | TYPE id {`abst_ty $2}
-  | ioption(access_mods) DATA id ASSIGN data
+    TYPE ID ASSIGN ty {`ty (filter_id [$1, $2, $3], $5, $7)}
+  | TYPE ID {`abst_ty $2}
+  | ioption(access_mods) DATA ID ASSIGN data
     {`data (filter_id [$1], $3, $5)}
-  | mod_like(BEGIN, s) {`begin $1}
+  | mod_like(BEGIN, s) {`begin_ $1}
 
 %inline any_id:
   | ID      {$1}
   | CAP_ID  {$1}
 
-%inline named_arg: pair(LABEL, grouped(expr)) {$1}
+%inline named_arg: pair(LABEL, grouped(e)) {$1}
 
-%inline new_: NEW   {`new}
+%inline new_: NEW   {`new_}
 %inline inst: INST  {`inst}
-%inline use: USE    {`ump}
+%inline use: USE    {`use}
 %inline pub: PUB    {`pub}
 
 %inline use_mods: 
@@ -144,12 +146,15 @@ term:
   | ID                {`id $1}
   | SYMBOL            {`id $1}
   | USCORE            {`id "_"}
-  | to_like(TO, ty)   {`to $1}
-  | to_like(WITH, ty) {`with $1}
+  | to_like(TO, ty)   {`to_ $1}
+  | to_like(AS, e)    {`as_ $1}
+  | to_like(WITH, ty) {`with_ $1}
   | named_arg         {`named $1}
   | METATYPE          {`metatype $1}
   | SUM               {`sum $1}
   | ATOM              {`atom $1}
+  
+  | to_like(UPDATE, record_like(LBRACE, e)) {`rec_upd $1}
 
   | STR   {`str $1}
   | CHAR  {`char $1}
@@ -165,7 +170,7 @@ term:
   | grouped(pair(e, bop)) {let e, b = $1 in `sect_right (e, b)}
   
   | delimited(LET, s, IN)   {`let_ $1}
-  | mod_like(MOD, stmt)     {`mod_ $1}
+  | mod_like(MOD, s)        {`mod_ $1}
   | record_like(RBRACE, e)  {`prod $1}
   | record_like(PBRACE, e)  {`rows $1}
   | tuple_like(e)           {`tup $1}
@@ -177,7 +182,7 @@ term:
 
 %inline func_like(key, value): delimited(
     LBRACE, 
-    separated_list(COMMA, separated_pair(key, ARROW, value)), 
+    separated_list(COMMA, separated_pair(key, abst_arrow, value)), 
   RBRACE)                                                               {$1}
 
 %inline record_like(lsep, value): delimited(
@@ -202,51 +207,55 @@ term:
 %inline access: 
   | COLON   {`access}
   | DCOLON  {`poly_access}
-  | MACRO   {`macro}
 
 %inline bop: 
-  | PLUS  {`add}
-  | MINUS {`sub}
-  | TIMES {`mul}
-  | DIV   {`div}
-  | EXP   {`exp}
+  | PLUS  {"+"}
+  | MINUS {"-"}
+  | TIMES {"*"}
+  | DIV   {"/"}
+  | EXP   {"**"}
 
-  | EQ    {`eq}
-  | NEQ   {`neq}
-  | CMP   {`cmp}
+  | APPEND  {"++"}
+  | RANGE   {".."}
 
-  | CONS  {`cons}
-  | SNOC  {`snoc}
+  | EQ    {"=="}
+  | NEQ   {"/="}
+  | CMP   {"?="}
+  | AND   {"/\\"}
+  | OR    {"\\/"}
+
+  | CONS  {"-<"}
+  | SNOC  {">-"}
 
 p: p_t {$1, $loc}
 p_t: 
-  | p pbop p {`bop ($1, $2, $3)}
-  | p access p {`access ($1, $2, $3)}
+  | p pbop p              {`bop ($1, $2, $3)}
+  | p access p            {`access ($1, $2, $3)}
   | nonempty_list(p_term) {`sq $1}
 
 p_term: 
-  | ID {`id $1}
+  | ID        {`id $1}
   | named_arg {`named $1}
-  | USCORE {`wildcard}
-  | BLANK {`wildcard}
+  | USCORE    {`wildcard}
+  | BLANK     {`wildcard}
   
-  | INT {`int $1}
-  | FLOAT {`flo $1}
-  | CHAR {`char $1}
-  | STR {`str $1}
-  | UNIT {`unit}
-  | SUM {`sum $1}
-  | ATOM {`atom $1}
+  | INT           {`int $1}
+  | FLOAT         {`flo $1}
+  | CHAR          {`char $1}
+  | STR           {`str $1}
+  | LPAREN RPAREN {`unit}
+  | SUM           {`sum $1}
+  | ATOM          {`atom $1}
 
-  | tuple_like(p_body) {`tup $1}
-  | record_like(LBRACE, p_body) {`prod $1}
-  | record_like(PBRACE, p_body) {`rows $1}
-  | arr_like(p_body) {`arr $1}
-  | func_like(e, p_body) {`dict $1}
-  | grouped(p_body) {$1}
-  | quoted(p_body) {`quoted $1}
+  | tuple_like(p)           {`tup $1}
+  | record_like(LBRACE, p)  {`prod $1}
+  | record_like(PBRACE, p)  {`rows $1}
+  | arr_like(p)             {`arr $1}
+  | func_like(e, p)         {`dict $1}
+  | grouped(p)              {$1}
+  | quoted(p)               {`quoted $1}
 
 %inline pbop: 
-  | CONS {`cons}
-  | SNOC {`snoc}
-  | PIPE {`or_}
+  | CONS {"-<"}
+  | SNOC {">-"}
+  | OR   {"\\/"}

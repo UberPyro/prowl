@@ -1,4 +1,5 @@
-{ open Lex_proc }
+{ open Lex_proc
+  open Parse }
 
 let eol = '\r' | '\n' | '\r' '\n'
 let whitespace = eol | [' ']
@@ -38,6 +39,7 @@ rule token = parse
   | "inst"  {INST}
   | "pub"   {PUB}
   | "opaq"  {OPAQ}
+  | "spec"  {SPEC}
   | "type"  {TYPE}
   | "new"   {NEW}
   | "data"  {DATA}
@@ -66,10 +68,13 @@ rule token = parse
   | "?="  {CMP}
   | "=="  {EQ}
   | "/="  {NEQ}
+  | "/\\"  {AND}
+  | "\\/"  {OR}
 
   | ":"   {COLON}
   | "::"  {DCOLON}
   | "'{"  {PBRACE}
+  | ","   {COMMA}
   
   | "<" {LANGLE}
   | ">" {RANGLE}

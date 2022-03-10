@@ -1,4 +1,3 @@
-open Batteries
 open Sexplib.Conv
 
 module type Meta = sig
@@ -51,6 +50,13 @@ module T(M : Meta) = struct
     | `rows of (string * ty) list
   ] [@@deriving sexp]
 
+  and accop = accop_t m [@@deriving sexp]
+  and accop_t = [
+    | `access
+    | `poly_access
+    | `macro
+  ] [@@deriving sexp]
+
   (* statements *)
   type s = s_t m [@@deriving sexp]
   and s_t = [
@@ -73,6 +79,7 @@ module T(M : Meta) = struct
     | `to_ of ty
     | `as_ of p
     | `with_ of ty
+    | `rec_upd of (string * e) list
     | `metatype of string
     | `mod_ of s list
     | `named of named_arg
@@ -99,19 +106,7 @@ module T(M : Meta) = struct
     | `sect_right of e * bop
   ] [@@deriving sexp]
 
-  and bop = bop_t m [@@deriving sexp]
-  and bop_t = [
-    | `add | `sub | `mul | `div
-    | `exp | `cons | `snoc | `append
-    | `range | `eq | `neq | `cmp
-  ] [@@deriving sexp]
-
-  and accop = access_t m [@@deriving sexp]
-  and accop_t = [
-    | `access
-    | `poly_access
-    | `macro
-  ] [@@deriving sexp]
+  and bop = string m [@@deriving sexp]
 
   and p = p_t m [@@deriving sexp]
   and p_t = [
@@ -138,12 +133,7 @@ module T(M : Meta) = struct
     | `bop of p * p_bop * p
   ] [@@deriving sexp]
   
-  and p_bop = p_bop_t m [@@deriving sexp]
-  and p_bop_t = [
-    | `cons
-    | `snoc
-    | `alt
-  ] [@@deriving sexp]
+  and p_bop = string m [@@deriving sexp]
 
   and named_arg = (string * e) m [@@deriving sexp]
 
