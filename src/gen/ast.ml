@@ -38,14 +38,12 @@ module T(M : Meta) = struct
     | TMetatype of string
     | TSig of sp list
     | TWith of ty
-  
 
   and data = data_t m 
   and data_t = 
     | DSum of (ty * string) list
     | DProd of (string * ty) list
     | DRows of (string * ty) list
-  
 
   and accop = accop_t m 
   and accop_t = [
@@ -65,7 +63,6 @@ module T(M : Meta) = struct
     | Abst_ty of string
     | Data of mods_ty * string * data
     | Begin of s list
-  
 
   (* expressions *)
   and e = e_t m
@@ -129,14 +126,12 @@ module T(M : Meta) = struct
     
     | PBop of p * p_bop * p
   
-  
   and p_bop = string m 
 
   and named_arg = (string * e) m 
 
   type t = 
     | S of s
-    | E of e
-  
+    | E of e  
 
 end
