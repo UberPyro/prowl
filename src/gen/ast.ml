@@ -68,12 +68,12 @@ module T(M : Meta) = struct
   
 
   (* expressions *)
-  and e = e_t m 
+  and e = e_t m
   and e_t = 
     | Sq of e list
     | Id of string
     | Let of s
-    | To of ty
+    | To of e
     | As of p
     | With of ty
     | Rec_upd of (string * e) list
@@ -107,6 +107,7 @@ module T(M : Meta) = struct
   and p = p_t m 
   and p_t = 
     | PId of string
+    | PAs of p
     | PWildcard
     | PSq of p list
     | PNamed of named_arg

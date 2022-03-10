@@ -4,7 +4,7 @@
   open Parse_proc
 
   module M = struct
-    type 'a m = 'a * Lexing.position
+    type 'a m = 'a * (Lexing.position * Lexing.position)
   end
   
   module T = Ast.T(M)
@@ -78,10 +78,11 @@ ty_body: ty_body_t {$1, $loc}
 %inline ty_body_t: 
   | ID                            {TId $1}
   | ty_body constr_arrow ty_body  {TFn ($1, $3)}
-  | ty_body access ty_body        {TAccop ($1, $2, $3)}
+  | ty_body access ty_body        {TAccess ($1, $2, $3)}
   | nonempty_list(ty_term)        {TSq $1}
 
-ty_term: 
+ty_term: ty_term_t {$1, $loc}
+%inline ty_term_t: 
   | LPAREN RPAREN     {TUnit}
   | METATYPE          {TMetatype $1}
   | to_like(WITH, ty) {TWith $1}
@@ -144,12 +145,13 @@ e: e_t {$1, $loc}
   | e bop e             {Bop ($1, $2, $3)}
   | nonempty_list(term) {Sq $1}
 
-term: 
+term: term_t {$1, $loc}
+%inline term_t: 
   | ID                {Id $1}
   | SYMBOL            {Id $1}
   | USCORE            {Id "_"}
-  | to_like(TO, ty)   {To $1}
-  | to_like(AS, e)    {As $1}
+  | to_like(TO, e)    {To $1}
+  | to_like(AS, p)    {As $1}
   | to_like(WITH, ty) {With $1}
   | named_arg         {Named $1}
   | METATYPE          {Metatype $1}
@@ -165,7 +167,7 @@ term:
 
   | LPAREN RPAREN {Unit}
   | LBRACE RBRACE {Fun []}
-  | LANGLE RANGLE {Quoted (Fun [])}
+  | LANGLE RANGLE {Quoted (Fun [], $loc)}
 
   | grouped(bop)          {Sect $1}
   | grouped(pair(bop, e)) {let b, e = $1 in Sect_left (b, e)}
@@ -235,7 +237,8 @@ p: p_t {$1, $loc}
   | p access p            {PAccess ($1, $2, $3)}
   | nonempty_list(p_term) {PSq $1}
 
-p_term:
+p_term: p_term_t {$1, $loc}
+p_term_t: 
   | ID        {PId $1}
   | named_arg {PNamed $1}
   | USCORE    {PWildcard}
@@ -249,6 +252,7 @@ p_term:
   | SUM           {PSum $1}
   | ATOM          {PAtom $1}
 
+  | to_like(AS, p)          {PAs $1}
   | tuple_like(p)           {PTup $1}
   | record_like(LBRACE, p)  {PProd $1}
   | record_like(PBRACE, p)  {PRows $1}
