@@ -68,8 +68,6 @@ rule token = parse
   | "?="  {CMP}
   | "=="  {EQ}
   | "/="  {NEQ}
-  | "/\\"  {AND}
-  | "\\/"  {OR}
 
   | ":"   {COLON}
   | "::"  {DCOLON}

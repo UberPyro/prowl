@@ -111,7 +111,6 @@ module T(M : Meta) = struct
   and p = p_t m [@@deriving sexp]
   and p_t = 
     | PId of string
-    | PAs of p
     | PWildcard
     | PSq of p list
     | PNamed of named_arg

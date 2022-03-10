@@ -12,8 +12,8 @@
 
   PLUS MINUS TIMES DIV
   EXP CONS SNOC APPEND
-  RANGE CMP EQ NEQ AND
-  OR ASSIGN UPDATE
+  RANGE CMP EQ NEQ
+  ASSIGN UPDATE
 
   LANGLE   RANGLE
   LPAREN   RPAREN
@@ -35,8 +35,6 @@
 %right ASSIGN
 
 %left CMP
-%left OR
-%left AND
 %left EQ NEQ
 %left SNOC
 %right APPEND
@@ -226,8 +224,6 @@ term:
   | EQ    {"=="}
   | NEQ   {"/="}
   | CMP   {"?="}
-  | AND   {"/\\"}
-  | OR    {"\\/"}
 
   | CONS  {"-<"}
   | SNOC  {">-"}
@@ -255,7 +251,6 @@ p_term_t:
   | SUM           {PSum $1}
   | ATOM          {PAtom $1}
 
-  | to_like(AS, p)          {PAs $1}
   | tuple_like(p)           {PTup $1}
   | record_like(LBRACE, p)  {PProd $1}
   | record_like(PBRACE, p)  {PRows $1}
@@ -265,6 +260,7 @@ p_term_t:
 
 %inline pbop: pbop_t {$1, $loc}
 %inline pbop_t: 
-  | CONS {"-<"}
-  | SNOC {">-"}
-  | OR   {"\\/"}
+  | CONS  {"-<"}
+  | SNOC  {">-"}
+  | PLUS  {"+"}
+  | TIMES {"*"}
