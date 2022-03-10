@@ -8,6 +8,7 @@
   end
   
   module T = Ast.T(M)
+  open T
 %}
 
 %token
@@ -53,15 +54,15 @@
 %%
 
 program: 
-  | s EOF {`s $1}
-  | e EOF {`e $1}
+  | s EOF {S $1}
+  | e EOF {E $1}
 
 spec: spec_t {$1, $loc}
 %inline spec_t: 
-  | SPEC ID MINUS ty    {`sp ($2, $4)}
-  | TYPE ID ASSIGN ty   {`ty ($2, $4)}
-  | TYPE ID             {`abst_ty $2}
-  | DATA ID ASSIGN data {`data ($2, $4)}
+  | SPEC ID MINUS ty    {SPSp ($2, $4)}
+  | TYPE ID ASSIGN ty   {SPTy ($2, $4)}
+  | TYPE ID             {SPAbst_ty $2}
+  | DATA ID ASSIGN data {SPData ($2, $4)}
 
 ty: ty_t {$1, $loc}
 %inline ty_t: 
@@ -75,26 +76,26 @@ ty: ty_t {$1, $loc}
 
 ty_body: ty_body_t {$1, $loc}
 %inline ty_body_t: 
-  | ID                            {`id $1}
-  | ty_body constr_arrow ty_body  {`fn ($1, $3)}
-  | ty_body access ty_body        {`accop ($1, $2, $3)}
-  | nonempty_list(ty_term)        {`sq $1}
+  | ID                            {TId $1}
+  | ty_body constr_arrow ty_body  {TFn ($1, $3)}
+  | ty_body access ty_body        {TAccop ($1, $2, $3)}
+  | nonempty_list(ty_term)        {TSq $1}
 
-ty_term:
-  | LPAREN RPAREN     {`unit}
-  | METATYPE          {`metatype $1}
-  | to_like(WITH, ty) {`with_ $1}
+ty_term: 
+  | LPAREN RPAREN     {TUnit}
+  | METATYPE          {TMetatype $1}
+  | to_like(WITH, ty) {TWith $1}
 
-  | arr_like(ty_body)   {`arr $1}
+  | arr_like(ty_body)   {TArr $1}
   | grouped(ty_body)    {$1}
-  | quoted(ty_body)     {`quoted $1}
-  | mod_like(SIG, spec) {`sig_ $1}
+  | quoted(ty_body)     {TQuoted $1}
+  | mod_like(SIG, spec) {TSig $1}
 
 data: data_t {$1, $loc}
 %inline data_t: 
-  | arr_like(pair(opt_unit(ty), SUM)) {`sum $1}
-  | record_like(LBRACE, ty)           {`prod $1}
-  | record_like(PBRACE, ty)           {`rows $1}
+  | arr_like(pair(opt_unit(ty), SUM)) {DSum $1}
+  | record_like(LBRACE, ty)           {DProd $1}
+  | record_like(PBRACE, ty)           {DRows $1}
 
 %inline constr_arrow: pair(ASSIGN, RANGLE) %prec ARROW {$1}
 %inline abst_arrow:   pair(MINUS, RANGLE)  %prec ARROW {$1}
@@ -105,18 +106,18 @@ data: data_t {$1, $loc}
 s: s_t {$1, $loc}
 %inline s_t: 
   | ioption(pub) ioption(use_mods) FN p ASSIGN e
-    {`fn (filter_id [$1; $2], $4, $6)}
+    {Fn (filter_id [$1; $2], $4, $6)}
   | ioption(pub) ioption(use_mods) VAL p ASSIGN e
-    {`val_ (filter_id [$1; $2], $4, $6)}
-  | OPEN e {`open_ $2}
+    {Val (filter_id [$1; $2], $4, $6)}
+  | OPEN e {Open_ $2}
   | MIX ioption(inst) e {`incl (filter_id [$2], $3)}
-  | USE e {`use $2}
+  | USE e {Use $2}
   | ioption(access_mods) ioption(use) ioption(new_)
-    TYPE ID ASSIGN ty {`ty (filter_id [$1; $2; $3], $5, $7)}
-  | TYPE ID {`abst_ty $2}
+    TYPE ID ASSIGN ty {Ty (filter_id [$1; $2; $3], $5, $7)}
+  | TYPE ID {Abst_ty $2}
   | ioption(access_mods) DATA ID ASSIGN data
-    {`data (filter_id [$1], $3, $5)}
-  | mod_like(BEGIN, s) {`begin_ $1}
+    {Data (filter_id [$1], $3, $5)}
+  | mod_like(BEGIN, s) {Begin $1}
 
 %inline any_id:
   | ID      {$1}
@@ -139,46 +140,46 @@ s: s_t {$1, $loc}
 
 e: e_t {$1, $loc}
 %inline e_t: 
-  | e access e          {`accop ($1, $2, $3)}
-  | e bop e             {`bop ($1, $2, $3)}
-  | nonempty_list(term) {`sq $1}
+  | e access e          {Accop ($1, $2, $3)}
+  | e bop e             {Bop ($1, $2, $3)}
+  | nonempty_list(term) {Sq $1}
 
 term: 
-  | ID                {`id $1}
-  | SYMBOL            {`id $1}
-  | USCORE            {`id "_"}
-  | to_like(TO, ty)   {`to_ $1}
-  | to_like(AS, e)    {`as_ $1}
-  | to_like(WITH, ty) {`with_ $1}
-  | named_arg         {`named $1}
-  | METATYPE          {`metatype $1}
-  | SUM               {`sum $1}
-  | ATOM              {`atom $1}
+  | ID                {Id $1}
+  | SYMBOL            {Id $1}
+  | USCORE            {Id "_"}
+  | to_like(TO, ty)   {To $1}
+  | to_like(AS, e)    {As $1}
+  | to_like(WITH, ty) {With $1}
+  | named_arg         {Named $1}
+  | METATYPE          {Metatype $1}
+  | SUM               {Sum $1}
+  | ATOM              {Atom $1}
   
-  | to_like(UPDATE, record_like(LBRACE, e)) {`rec_upd $1}
+  | to_like(UPDATE, record_like(LBRACE, e)) {Rec_upd $1}
 
-  | STR   {`str $1}
-  | CHAR  {`char $1}
-  | INT   {`int $1}
-  | FLOAT {`flo $1}
+  | STR   {Str $1}
+  | CHAR  {Char $1}
+  | INT   {Int $1}
+  | FLOAT {Flo $1}
 
-  | LPAREN RPAREN {`unit}
-  | LBRACE RBRACE {`fun_ []}
-  | LANGLE RANGLE {`quoted (`fun_ [])}
+  | LPAREN RPAREN {Unit}
+  | LBRACE RBRACE {Fun []}
+  | LANGLE RANGLE {Quoted (Fun [])}
 
-  | grouped(bop)          {`sect $1}
-  | grouped(pair(bop, e)) {let b, e = $1 in `sect_left (b, e)}
-  | grouped(pair(e, bop)) {let e, b = $1 in `sect_right (e, b)}
+  | grouped(bop)          {Sect $1}
+  | grouped(pair(bop, e)) {let b, e = $1 in Sect_left (b, e)}
+  | grouped(pair(e, bop)) {let e, b = $1 in Sect_right (e, b)}
   
-  | delimited(LET, s, IN)   {`let_ $1}
-  | mod_like(MOD, s)        {`mod_ $1}
-  | record_like(RBRACE, e)  {`prod $1}
-  | record_like(PBRACE, e)  {`rows $1}
-  | tuple_like(e)           {`tup $1}
+  | delimited(LET, s, IN)   {Let $1}
+  | mod_like(MOD, s)        {Mod $1}
+  | record_like(RBRACE, e)  {Prod $1}
+  | record_like(PBRACE, e)  {Rows $1}
+  | tuple_like(e)           {Tup $1}
 
-  | arr_like(e)     {`arr $1}
-  | func_like(p, e) {`fun_ $1}
-  | quoted(e)       {`quoted $1}
+  | arr_like(e)     {Arr $1}
+  | func_like(p, e) {Fun $1}
+  | quoted(e)       {Quoted $1}
   | grouped(e)      {$1}
 
 %inline func_like(key, value): delimited(
@@ -229,32 +230,32 @@ term:
   | SNOC  {">-"}
 
 p: p_t {$1, $loc}
-p_t: 
-  | p pbop p              {`bop ($1, $2, $3)}
-  | p access p            {`access ($1, $2, $3)}
-  | nonempty_list(p_term) {`sq $1}
+%inline p_t: 
+  | p pbop p              {PBop ($1, $2, $3)}
+  | p access p            {PAccess ($1, $2, $3)}
+  | nonempty_list(p_term) {PSq $1}
 
-p_term: 
-  | ID        {`id $1}
-  | named_arg {`named $1}
-  | USCORE    {`wildcard}
-  | BLANK     {`wildcard}
+p_term:
+  | ID        {PId $1}
+  | named_arg {PNamed $1}
+  | USCORE    {PWildcard}
+  | BLANK     {PWildcard}
   
-  | INT           {`int $1}
-  | FLOAT         {`flo $1}
-  | CHAR          {`char $1}
-  | STR           {`str $1}
-  | LPAREN RPAREN {`unit}
-  | SUM           {`sum $1}
-  | ATOM          {`atom $1}
+  | INT           {PInt $1}
+  | FLOAT         {PFlo $1}
+  | CHAR          {PChar $1}
+  | STR           {PStr $1}
+  | LPAREN RPAREN {PUnit}
+  | SUM           {PSum $1}
+  | ATOM          {PAtom $1}
 
-  | tuple_like(p)           {`tup $1}
-  | record_like(LBRACE, p)  {`prod $1}
-  | record_like(PBRACE, p)  {`rows $1}
-  | arr_like(p)             {`arr $1}
-  | func_like(e, p)         {`dict $1}
+  | tuple_like(p)           {PTup $1}
+  | record_like(LBRACE, p)  {PProd $1}
+  | record_like(PBRACE, p)  {PRows $1}
+  | arr_like(p)             {PArr $1}
+  | func_like(e, p)         {PDict $1}
   | grouped(p)              {$1}
-  | quoted(p)               {`quoted $1}
+  | quoted(p)               {PQuoted $1}
 
 %inline pbop: 
   | CONS {"-<"}

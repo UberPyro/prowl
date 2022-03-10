@@ -16,37 +16,36 @@ module T(M : Meta) = struct
 
   (* specs *)
   type sp = sp_t m
-  and sp_t = [
-    | `sp of string * ty
-    | `ty of string * ty
-    | `abst_ty of string m
-    | `data of string * data
-  ]
+  and sp_t = 
+    | SPSp of string * ty
+    | SPTy of string * ty
+    | SPAbst_ty of string m
+    | SPData of string * data
 
   (* types *)
   and ty = (constr list * ty_body) m    
   and constr = (string * string list) m 
 
   and ty_body = ty_body_t m 
-  and ty_body_t = [
-    | `id of string
-    | `sq of ty_body list
-    | `access of ty_body * accop * ty_body
-    | `fn of ty_body * ty_body
-    | `arr of ty_body list
-    | `quoted of ty_body
-    | `unit
-    | `metatype of string
-    | `sig_ of sp list
-    | `with_ of ty
-  ] 
+  and ty_body_t = 
+    | TId of string
+    | TSq of ty_body list
+    | TAccess of ty_body * accop * ty_body
+    | TFn of ty_body * ty_body
+    | TArr of ty_body list
+    | TQuoted of ty_body
+    | TUnit
+    | TMetatype of string
+    | TSig of sp list
+    | TWith of ty
+  
 
   and data = data_t m 
-  and data_t = [
-    | `sum of (ty * string) list
-    | `prod of (string * ty) list
-    | `rows of (string * ty) list
-  ] 
+  and data_t = 
+    | DSum of (ty * string) list
+    | DProd of (string * ty) list
+    | DRows of (string * ty) list
+  
 
   and accop = accop_t m 
   and accop_t = [
@@ -57,87 +56,86 @@ module T(M : Meta) = struct
 
   (* statements *)
   type s = s_t m 
-  and s_t = [
-    | `fn of mods_st * p * e
-    | `val_ of mods_st * p * e
-    | `open_ of e
-    | `mix of mods_class_st * e
-    | `ty of mods_ty * string * data
-    | `abst_ty of string
-    | `data of mods_ty * string * data
-    | `begin_ of s list
-  ] 
+  and s_t = 
+    | Fn of mods_st * p * e
+    | Val of mods_st * p * e
+    | Open of e
+    | Mix of mods_class_st * e
+    | Ty of mods_ty * string * data
+    | Abst_ty of string
+    | Data of mods_ty * string * data
+    | Begin of s list
+  
 
   (* expressions *)
   and e = e_t m 
-  and e_t = [
-    | `sq of e list
-    | `id of string
-    | `let_ of s
-    | `to_ of ty
-    | `as_ of p
-    | `with_ of ty
-    | `rec_upd of (string * e) list
-    | `metatype of string
-    | `mod_ of s list
-    | `named of named_arg
+  and e_t = 
+    | Sq of e list
+    | Id of string
+    | Let of s
+    | To of ty
+    | As of p
+    | With of ty
+    | Rec_upd of (string * e) list
+    | Metatype of string
+    | Mod of s list
+    | Named of named_arg
 
-    | `sum of string
-    | `atom of string
-    | `prod of (string * e) list
-    | `rows of (string * e) list
-    | `tup of e list
-    | `str of string
-    | `int of int
-    | `flo of float
-    | `char of char
-    | `unit
+    | Sum of string
+    | Atom of string
+    | Prod of (string * e) list
+    | Rows of (string * e) list
+    | Tup of e list
+    | Str of string
+    | Int of int
+    | Flo of float
+    | Char of char
+    | Unit
 
-    | `arr of e list
-    | `fun_ of (p * e) list
-    | `quoted of e
+    | Arr of e list
+    | Fun of (p * e) list
+    | Quoted of e
 
-    | `access of e * accop * e
-    | `bop of e * bop * e
-    | `sect of bop
-    | `sect_left of bop * e
-    | `sect_right of e * bop
-  ] 
+    | Access of e * accop * e
+    | Bop of e * bop * e
+    | Sect of bop
+    | Sect_left of bop * e
+    | Sect_right of e * bop
 
   and bop = string m 
 
   and p = p_t m 
-  and p_t = [
-    | `id of string
-    | `wildcard
-    | `sq of p list
-    | `named of named_arg
-    | `int of int
-    | `flo of float
-    | `char of char
-    | `str of string
-    | `unit
+  and p_t = 
+    | PId of string
+    | PWildcard
+    | PSq of p list
+    | PNamed of named_arg
+    | PInt of int
+    | PFlo of float
+    | PChar of char
+    | PStr of string
+    | PUnit
     
-    | `sum of string
-    | `atom of string
-    | `prod of (string * p) list
-    | `rows of (string * p) list
-    | `tup of p list
+    | PSum of string
+    | PAtom of string
+    | PProd of (string * p) list
+    | PRows of (string * p) list
+    | PTup of p list
 
-    | `arr of p list
-    | `dict of (e * p) list
-    | `quoted of p
+    | PArr of p list
+    | PDict of (e * p) list
+    | PQuoted of p
     
-    | `bop of p * p_bop * p
-  ] 
+    | PBop of p * p_bop * p
+  
   
   and p_bop = string m 
 
   and named_arg = (string * e) m 
 
-  type t = [
-    | `s of s
-    | `e of e
-  ] 
+  type t = 
+    | S of s
+    | E of e
+  
 
 end
