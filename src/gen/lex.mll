@@ -85,7 +85,7 @@ rule token = parse
 
   | integer as i                {INT (int_of_string i)}
   | float as f                  {FLOAT (float_of_string f)}
-  | "/#"                        {comment 0 lexbuf}
+  | "/;"                        {comment 0 lexbuf}
   | '"' (string_body as s) '"'  {STR (decode2 s)}
   
   | cap_id as s         {SUM s} 
@@ -102,7 +102,7 @@ rule token = parse
   | whitespace  {token lexbuf}
 
 and comment level = parse
-  | "#/" {if level = 0 then token lexbuf
+  | ";/" {if level = 0 then token lexbuf
           else comment (level-1) lexbuf}
-  | "/#" {comment (level+1) lexbuf}
+  | "/;" {comment (level+1) lexbuf}
   | _ {comment level lexbuf}
