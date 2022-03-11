@@ -1,1 +1,6 @@
-val x y z = 1 2 3
+pub val stack = mod
+
+  val x y z = 7 8 9
+  val w = 2
+
+end
