@@ -1,0 +1,4 @@
+fn ~acc(0) fac = {
+  0 -> acc,
+  n -> ~acc(n*acc) (n-1) fac
+}
