@@ -58,7 +58,7 @@ spec: spec_t {$1, $loc}
 %inline spec_t: 
   | SPEC ID MINUS ty    {SPSp ($2, $4)}
   | TYPE ID ASSIGN ty   {SPTy ($2, $4)}
-  | TYPE ID             {SPAbst_ty ($2, $loc)}
+  | TYPE ID             {SPAbst_ty $2}
   | DATA ID ASSIGN data {SPData ($2, $4)}
 
 ty: ty_t {$1, $loc}

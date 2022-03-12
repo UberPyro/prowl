@@ -21,7 +21,7 @@ module T(M : Meta) = struct
   and sp_t = 
     | SPSp of string * ty
     | SPTy of string * ty
-    | SPAbst_ty of string m
+    | SPAbst_ty of string
     | SPData of string * data
     [@@deriving sexp]
 
