@@ -108,6 +108,10 @@ s: s_t {$1, $loc}
     {Fn (filter_id [$1; $2], $4, $6)}
   | ioption(pub) ioption(use_mods) VAL p ASSIGN e
     {Val (filter_id [$1; $2], $4, $6)}
+  // | pub ioption(use_mods) p ASSIGN e
+  //   {Val ($1 :: filter_id [$2], $3, $5)}
+  // | use_mods p ASSIGN e
+  //   {Val ([$1], $2, $4)}
   | OPEN e {Open $2}
   | USE e {Use $2}
   | MIX ioption(inst) e {Mix (filter_id [$2], $3)}
@@ -171,7 +175,7 @@ term:
   | grouped(bop)          {Sect $1}
   | grouped(pair(bop, e)) {let b, e = $1 in Sect_left (b, e)}
   | grouped(pair(e, bop)) {let e, b = $1 in Sect_right (e, b)}
-  | quoted(e)             {Quoted $1}
+  | quoted(bop)           {Quoted (Sect $1, $loc)}
   | quoted(pair(bop, e))  {let b, e = $1 in Quoted (Sect_left (b, e), $loc)}
   | quoted(pair(e, bop))  {let e, b = $1 in Quoted (Sect_right (e, b), $loc)}
   
@@ -180,6 +184,7 @@ term:
   | record_like(LBRACE, e)  {Prod $1}
   | record_like(PBRACE, e)  {Rows $1}
   | tuple_like(e)           {Tup $1}
+  | quoted(e)               {Quoted $1}
 
   | arr_like(e)     {Arr $1}
   | func_like(p, e) {Fun $1}

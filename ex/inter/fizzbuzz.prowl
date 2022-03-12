@@ -1,0 +1,15 @@
+pub vl fizzbuzz = mod
+
+  vl rules = Tbl:{
+    3 -> "fizz",
+    5 -> "buzz",
+    7 -> "bizz"
+  }
+
+  pub fn rules fizzbuzz = 
+    (1..) <rules <{(n, s) -> n 7 rem (==0) s $}> ?$ %> $
+
+  pub fn io main = 
+    argv io 1 ^ to (i32) fizzbuzz
+
+end

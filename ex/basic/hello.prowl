@@ -1,0 +1,5 @@
+pub vl hello = mod
+
+  pub fn main = "Hello, World!"
+
+end
