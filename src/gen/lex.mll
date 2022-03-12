@@ -30,7 +30,7 @@ let string_body = ([^ '"'] | "\\\"")*
 
 rule token = parse
   | "fn"    {FN}
-  | "val"   {VAL}
+  | "vl"   {VAL}
   | "let"   {LET}
   | "in"    {IN}
   | "open"  {OPEN}
