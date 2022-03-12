@@ -7,7 +7,7 @@ vl fizzbuzz = mod
   }
 
   pub fn rules fizzbuzz = 
-    (1..) <as (n) rules <as ((m, s)) n m rem (==0) s $> ?$ <==[]> <> <n-<> | %> $
+    (1..) <as (n) rules <as ((m, s)) n m rem (==0) <_ s> $> ?$ <==[]> <> <n-<> | %> $
 
   pub fn main = 
     argv 1 ^ to (i32) fizzbuzz
