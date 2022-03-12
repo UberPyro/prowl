@@ -162,6 +162,7 @@ term:
   | SUM               {Sum $1}
   | ATOM              {Atom $1}
   
+  | delimited(LET, list(s), IN)             {Let $1}
   | to_like(UPDATE, record_like(LBRACE, e)) {Rec_upd $1}
 
   | STR   {Str $1}
@@ -178,8 +179,7 @@ term:
   | quoted(bop)           {Quoted (Sect $1, $loc)}
   | quoted(pair(bop, e))  {let b, e = $1 in Quoted (Sect_left (b, e), $loc)}
   | quoted(pair(e, bop))  {let e, b = $1 in Quoted (Sect_right (e, b), $loc)}
-  
-  | delimited(LET, s, IN)   {Let $1}
+
   | mod_like(MOD, s)        {Mod $1}
   | record_like(LBRACE, e)  {Prod $1}
   | record_like(PBRACE, e)  {Rows $1}

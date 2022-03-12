@@ -75,7 +75,7 @@ module T(M : Meta) = struct
   and e_t = 
     | Sq of e list
     | Id of string
-    | Let of s
+    | Let of s list
     | To of e
     | As of p
     | With of ty
