@@ -1,5 +1,5 @@
 pub vl hello = mod
 
-  pub fn main = "Hello, World!"
+  pub fn main = "Hello, World!" putln
 
 end
