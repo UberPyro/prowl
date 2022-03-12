@@ -171,6 +171,9 @@ term:
   | grouped(bop)          {Sect $1}
   | grouped(pair(bop, e)) {let b, e = $1 in Sect_left (b, e)}
   | grouped(pair(e, bop)) {let e, b = $1 in Sect_right (e, b)}
+  | quoted(e)             {Quoted $1}
+  | quoted(pair(bop, e))  {let b, e = $1 in Quoted (Sect_left (b, e), $loc)}
+  | quoted(pair(e, bop))  {let e, b = $1 in Quoted (Sect_right (e, b), $loc)}
   
   | delimited(LET, s, IN)   {Let $1}
   | mod_like(MOD, s)        {Mod $1}
@@ -180,7 +183,6 @@ term:
 
   | arr_like(e)     {Arr $1}
   | func_like(p, e) {Fun $1}
-  | quoted(e)       {Quoted $1}
 
 %inline func_like(key, value): delimited(
     LBRACE, 
