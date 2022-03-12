@@ -8,7 +8,7 @@ vl fizzbuzzHum = mod
 
   pub fn rules fizzbuzz = let
     fn isDiv = rem (==0)
-    fn (m, s) getDivList = m isDiv <zap s> map
+    fn (m, s) n getDivList = n m isDiv <zap s> map
     fn n numOrWord = <empty> <> <n cons> either
     fn n fizzbuzzOfN = rules <n getDivList> filterMap numOrWord fold
   in (1..) <fizzbuzzOfN> map
