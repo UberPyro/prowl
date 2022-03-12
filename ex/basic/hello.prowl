@@ -1,4 +1,4 @@
-pub vl hello = mod
+vl hello = mod
 
   pub fn main = "Hello, World!" putln
 

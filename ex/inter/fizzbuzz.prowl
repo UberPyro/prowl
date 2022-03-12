@@ -1,4 +1,4 @@
-pub vl fizzbuzz = mod
+vl fizzbuzz = mod
 
   vl rules = Tbl:{
     3 -> "fizz",
