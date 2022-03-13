@@ -13,10 +13,10 @@ vl fizzbuzz = mod
       (_, y) -> y
     }> map
     fn m appendedList = m divList fold        /; join all the words together ;/
-    fn m adjustedList = m appendedList {      /; replace empty strings with number ;/
+    fn m adjustedList = m appendedList <{     /; replace empty strings with number ;/
       "" -> m to (str),
       s -> s
-    }
+    }> map
   in (1..n) <adjustedList> map                /; map on every number ;/
 
   pub fn main = 100 rules fizzbuzz cons
