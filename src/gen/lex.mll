@@ -20,7 +20,7 @@ let any_id = id | cap_id
 
 let sym = ';' | [
         '~' '!' '@' '#' '$' '%' '^' '&' '*' '-' '=' '+'
-        '.' '/' '?' '|' '\\'
+        '.' '/' '?' ':' '|' '\\'
 ]+
 
 let integer = '0' | sig_digits
@@ -58,8 +58,8 @@ rule token = parse
   
   | "**"  {EXP}
   | ".."  {RANGE}
-  | "+%"  {CONS}
-  | "%+"  {SNOC}
+  | "+:"  {CONS}
+  | ":+"  {SNOC}
   | "++"  {APPEND}
 
   | "="   {ASSIGN}
