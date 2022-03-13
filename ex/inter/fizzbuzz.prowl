@@ -11,6 +11,6 @@ vl fizzbuzz = mod
   > ?$ <==[]> <> <n to (str) +%> | %> $
 
   pub fn main = 
-    argv 1 ^ to (i32) fizzbuzz (+%)
+    argv 1 ^ to (i32) fizzbuzz (+:)
 
 end
