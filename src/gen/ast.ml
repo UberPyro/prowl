@@ -53,7 +53,6 @@ module T(M : Meta) = struct
   and accop = [
     | `access
     | `poly_access
-    | `macro
   ] [@@deriving sexp]
 
   (* statements *)
