@@ -36,9 +36,9 @@
 
 %left CMP
 %left EQ NEQ
-%left SNOC
-%right APPEND
-%right CONS
+%right SNOC
+%left APPEND
+%left CONS
 %right RANGE
 %left PLUS MINUS
 %left TIMES DIV
