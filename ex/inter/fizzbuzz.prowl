@@ -6,11 +6,19 @@ vl fizzbuzz = mod
     7 -> "bizz"
   }
 
-  pub fn rules fizzbuzz = (1..) <as (n) rules <
-    as ((m, s)) n m rem (==0) <_ s> $
-  > ?$ <==[]> <> <n to (str) +%> | %> $
+  pub fn n rules fizzbuzz = let
+    fn n m isDiv = n m rem (== 0)             /; n is divisible by m ;/
+    fn m divList = rules <m isDiv> filter     /; list of rules that apply ;/
+    fn m wordList = m divList <{              /; just fizz, buzz; no numbers ;/
+      (_, y) -> y
+    }> fold
+    fn m appendedList = m <divList> fold      /; join all the words together ;/
+    fn m adjustedList = m appendedList {      /; replace empty strings with number ;/
+      "" -> m to (str),
+      s -> s
+    }
+  in (1..n) <adjustedList> map                /; map on every number ;/
 
-  pub fn main = 
-    argv 1 ^ to (i32) fizzbuzz (+:)
+  pub fn main = 100 rules fizzbuzz cons
 
 end
