@@ -12,7 +12,7 @@ let ast ch =
 
 let string_of_token : Parse.token -> string = function
   | WITH -> "WITH"
-  | VAL -> "VAL"
+  | VAL -> "VL"
   | USE -> "USE"
   | USCORE -> "USCORE"
   | UPDATE -> "UPDATE"
@@ -23,7 +23,7 @@ let string_of_token : Parse.token -> string = function
   | SUM s -> Printf.sprintf "SUM <%s>" s
   | STR s -> Printf.sprintf "STR <%s>" s
   | SPEC -> "SPEC"
-  | SNOC -> "SNOC"
+  | SNOC -> "%+"
   | SIG -> "SIG"
   | RPAREN -> ")"
   | RBRACKET -> "]"
@@ -59,7 +59,7 @@ let string_of_token : Parse.token -> string = function
   | DIV -> "DIV"
   | DCOLON -> "::"
   | DATA -> "DATA"
-  | CONS -> "-<"
+  | CONS -> "+%"
   | COMMA -> ","
   | COLON -> ":"
   | CMP -> "?="

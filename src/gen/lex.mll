@@ -58,8 +58,8 @@ rule token = parse
   
   | "**"  {EXP}
   | ".."  {RANGE}
-  | "-<"  {CONS}
-  | ">-"  {SNOC}
+  | "+%"  {CONS}
+  | "%+"  {SNOC}
   | "++"  {APPEND}
 
   | "="   {ASSIGN}
