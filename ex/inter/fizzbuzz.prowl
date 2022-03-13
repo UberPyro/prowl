@@ -11,8 +11,8 @@ vl fizzbuzz = mod
     fn m divList = rules <m isDiv> filter     /; list of rules that apply ;/
     fn m wordList = m divList <{              /; just fizz, buzz; no numbers ;/
       (_, y) -> y
-    }> fold
-    fn m appendedList = m <divList> fold      /; join all the words together ;/
+    }> map
+    fn m appendedList = m divList fold        /; join all the words together ;/
     fn m adjustedList = m appendedList {      /; replace empty strings with number ;/
       "" -> m to (str),
       s -> s
