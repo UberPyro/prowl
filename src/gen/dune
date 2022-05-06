@@ -1,0 +1,4 @@
+; (ocamllex lex lex_word)
+; (menhir
+;   (modules parse parse_word)
+;   (flags --explain --strict))
