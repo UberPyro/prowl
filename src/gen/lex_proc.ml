@@ -2,6 +2,7 @@ open Batteries
 open Lexing
 
 open Util
+open Ast
 
 let tabsize = ref 2
 
@@ -41,3 +42,18 @@ let decode_char =
   decode
   >> String.to_seq
   >> Seq.hd
+
+let parse_comb = Comb_parse.comb (Comb_lex.comb (from_string s))
+
+let parse_quant q g =
+  begin match q with
+    | "?" -> Opt
+    | "+" -> Plus
+    | "*" -> Star
+    | _ -> failwith (Printf.sprintf "Unknown quantifier %s" q)
+  end, begin match g with
+    | "" -> Gre
+    | "?" -> Rel
+    | "+" -> Cut
+    | _ -> failwith (Printf.sprintf "Unknown greediness %s" g)
+  end
