@@ -44,7 +44,7 @@ rule token = parse
   | "and" (infix as s) {AND s}
 
   | stack_comb as s {set_regex(); STACK_COMB (parse_comb s)}
-  | ((suffix greed) as s) {is_cat (SYMBOL s) (set_cat(); parse_suffix s)}
+  | ((suffix greed) as s) {is_cat (SYMBOL s) (parse_suffix s)}
 
   | "def"   {DEF}
   | "open"  {OPEN}
