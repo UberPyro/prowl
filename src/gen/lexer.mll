@@ -91,8 +91,8 @@ rule token = parse
   | "="  {ASSIGN}
   | "->" {ARROW}
 
-  | ","  {COMMA}
-  | ";"  {SEMICOLON}
+  | ","  {set_cat(); COMMA}
+  | ";"  {set_cat(); SEMICOLON}
 
   | "(" {set_cat(); LPAREN}
   | "[" {set_cat(); LBRACK}
