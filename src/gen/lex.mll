@@ -86,9 +86,11 @@ rule token = parse
   | ">=" {GE}
 
   | ":"  {COLON}
-  | "~"  {TILDE}
   | "="  {ASSIGN}
+  | "--" {EFFECT}
+  | "~~" {CONSTRAINT}
   | "->" {ARROW}
+  | "."  {DOT}
   | ","  {set_cat(); COMMA}
   | ";"  {set_cat(); SEMICOLON}
 
