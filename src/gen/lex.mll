@@ -72,7 +72,8 @@ rule token = parse
   | "++"   {APPEND}
   | ">>="  {BIND}
   | "|"    {ALT}
-  | ">>-"  {CAT}
+  | "&"    {CAT}
+  | "&&"   {INTERSECT}
 
   | '_'         {USCORE}
   | '_' id_tail {BLANK}
