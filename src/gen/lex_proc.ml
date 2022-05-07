@@ -13,8 +13,8 @@ let advance lexbuf =
   lexbuf.lex_curr_p <-
     {lcp with pos_cnum = lcp.pos_cnum + !tabsize - 1}
 
-let set_cat = mode := Cat
-let set_regex = mode := Regex
+let set_cat () = mode := Cat
+let set_regex () = mode := Regex
 let is_cat a b = 
   if !mode == Cat
   then a else b
