@@ -94,6 +94,9 @@ rule token = parse
   | ","  {set_cat(); COMMA}
   | ";"  {set_cat(); SEMICOLON}
 
+  | "(?:" {set_cat(); NONCAP_BRACK}
+  | "(?>" {set_cat(); ATOM_BRACK}
+
   | "(" {set_cat(); LPAREN}
   | "[" {set_cat(); LBRACK}
   | "{" {set_cat(); is_cat LBRACE TIMES_BRACK}
