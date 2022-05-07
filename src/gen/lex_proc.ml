@@ -46,7 +46,7 @@ let decode_char =
 let parse_comb = Comb_parse.comb (Comb_lex.comb (from_string s))
 
 let parse_quant q g =
-  begin match q with
+  Quant (begin match q with
     | "?" -> Opt
     | "+" -> Plus
     | "*" -> Star
@@ -56,7 +56,7 @@ let parse_quant q g =
     | "?" -> Rel
     | "+" -> Cut
     | _ -> failwith (Printf.sprintf "Unknown greediness %s" g)
-  end
+  end)
 
 let parse_brack_quant = function
   | "" -> Gre

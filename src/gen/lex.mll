@@ -33,7 +33,7 @@ let float = sig_digits '.' digit* | '.' digit+
 let char_body = [^ '\'']
 let string_body = ([^ '"'] | "\\\"")*
 
-let stack_comb = (['^' '_' '%' '$'] integer?)+
+let comb = (['^' '_' '%' '$'] integer?)+
 
 let suffix = ['?' '+' '*']
 let greed = ['?' '+']?
@@ -43,8 +43,8 @@ rule token = parse
   | "let" (infix as s) {LET s}
   | "and" (infix as s) {AND s}
 
-  | stack_comb as s {set_regex(); STACK_COMB (parse_comb s)}
-  | ((suffix greed) as s) {is_cat (SYMBOL s) (parse_quant s)}
+  | comb as s {set_regex(); COMB (parse_comb s)}
+  | ((suffix greed) as s) {is_cat (SYMBOL s) (QUANT (parse_quant s))}
 
   | "def"   {DEF}
   | "open"  {OPEN}
@@ -71,7 +71,6 @@ rule token = parse
 
   | "++"   {APPEND}
   | ">>="  {BIND}
-
   | "|"    {ALT}
   | ">>-"  {CAT}
 
@@ -90,7 +89,6 @@ rule token = parse
   | "~"  {TILDE}
   | "="  {ASSIGN}
   | "->" {ARROW}
-
   | ","  {set_cat(); COMMA}
   | ";"  {set_cat(); SEMICOLON}
 
@@ -115,9 +113,10 @@ rule token = parse
   | '\'' '\\' (_ as c) '\''    {set_regex(); CHAR (c, t)}
   | "<>" {set_regex(); UNIT}
 
+  | id     as s {ID s}
   | cap_id as s {CAP s}
   | symbol as s {SYMBOL s}
-  | infix as s  {INFIX s}
+  | infix  as s {INFIX s}
 
   | "/*" {comment 0 lexbuf}
   | eof  {EOF}
