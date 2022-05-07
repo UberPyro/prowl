@@ -78,7 +78,8 @@ ty_term:
   | LBRACE RBRACE {assert $2 == Rel; TCapture []}
   | LBRACE ty_eff RBRACE {assert $3 == Rel; TCapture $2}
   | LBRACK separated_list(COMMA, ty_eff) RBRACK {TList $2}
-  // | LBRACK separated_list(
-  //   COMMA, 
-  //   separated_pair
-  // )
+  | LBRACK separated_list(
+    COMMA, 
+    separated_pair(ty_term, ASSIGN, ty_eff)
+  ) RBRACK {TMap (fst $2, snd $2)}
+
