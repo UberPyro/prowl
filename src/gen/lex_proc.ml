@@ -57,3 +57,9 @@ let parse_quant q g =
     | "+" -> Cut
     | _ -> failwith (Printf.sprintf "Unknown greediness %s" g)
   end
+
+let parse_brack_quant = function
+  | "" -> Gre
+  | "?" -> Rel
+  | "+" -> Cut
+  | _ -> failwith (Printf.sprintf "Unknown greediness %s" g)

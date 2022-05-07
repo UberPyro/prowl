@@ -102,7 +102,7 @@ rule token = parse
   | "{" {set_cat(); is_cat LBRACE TIMES_BRACK}
   | ")" {set_regex(); RPAREN}
   | "]" {set_regex(); RBRACK}
-  | "}" (greed as g) {set_regex(); RBRACE g}
+  | "}" (greed as g) {set_regex(); RBRACE (parse_brack_quant g)}
   | "do"  {set_cat(); DO}
   | "mod" {set_cat(); MOD}
   | "end" {set_regex(); END}
