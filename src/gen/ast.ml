@@ -64,6 +64,7 @@ and e =
   | Data of string
   | Prod of e list
   | Mod of s list
+  | Capture of e
 
   | Sect of string
   | SectLeft of string * e
@@ -106,6 +107,7 @@ and p =
   | PBin of int * p list * int
   | PData of string
   | PProd of p list
+  | PCapture of p
 
   | PBop of p * string * p
   | PSym of string

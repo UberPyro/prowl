@@ -46,6 +46,7 @@
 %token<greed> SEMICOLON RBRACE
 
 %left CAT
+%left COLON
 %left ALT
 %left BIND
 %left RANGE
@@ -88,20 +89,27 @@ ty_eff:
     semi, 
     pair(nonempty_list(ty_term), CAP)
   ) {TData (let+ x = $1 in [x])}
-  | LBRACE separated_nonempty_list(
-    semi, 
+  | LBRACE sep_pop_list_ge_2(  // consider removing this one
+    semi,                      // so it lines up with exprs
     separated_nonempty_list(
       COMMA, 
       pair(nonempty_list(ty_term), CAP)
     )
-  ) RBRACE {assert $3 == Rel; TData $2}
+  ) rbrace {TData $2}
+  | LBRACE separated_nonempty_list(
+    semi, 
+    sep_pop_list_ge_2(
+      COMMA, 
+      pair(nonempty_list(ty_term), CAP)
+    )
+  ) rbrace {TData $2}
 
 ty_term: 
   | ID {TId $1}
   | CAP {TGen $1}
   | ty_term DOT ID {TAccess ($1, $3)}
-  | LBRACE RBRACE {assert $2 == Rel; TCapture []}
-  | LBRACE ty_eff RBRACE {assert $3 == Rel; TCapture $2}
+  | LBRACE rbrace {TCapture []}
+  | LBRACE ty_eff rbrace {TCapture $2}
   | LBRACK separated_list(COMMA, ty_eff) RBRACK {TList $2}
   | LBRACK separated_list(
     COMMA, 
@@ -145,11 +153,11 @@ e:
 
 bexp: 
   | e bop e {Bop ($1, $2, $3)}
-  | stack {$1}
-
-stack: 
-  | pop_list_ge_2(e) {Cat $1}
-  | term {$1}
+  | nonempty_list(term) {
+    match $1 with
+    | [h] -> h
+    | lst -> Cat lst
+  }
 
 term: 
   | ID {Id $1}
@@ -184,8 +192,9 @@ term:
     nonempty_list(semi) RPAREN {Bin (List.length $2, $3, List.length $4)}
   
   | CAP {Data $1}
-  | LBRACE separated_nonempty_list(COMMA, e) RBRACE {Prod $2}
+  | LBRACE sep_pop_list_ge_2(COMMA, e) rbrace {Prod $2}
   | MOD list(s) END {Mod $2}
+  | LBRACE e rbrace {Capture $2}
 
   | SYMBOL {Sym $1}
   | COMB {$1}
@@ -202,6 +211,52 @@ term:
   | PLUS {"+"} | MINUS {"-"} | TIMES {"*"} | DIVIDE {"/"} 
   | EXP {"**"} | RANGE {".."} | SNOC {">-"} | CONS {"-<"}
   | APPEND {"++"} | BIND {">>="} | ALT {"|"} | CAT {"&"}
-  | INTERSECT {"&&"}
+  | INTERSECT {"&&"} | INFIX {$1}
 
 %inline semi: SEMICOLON {assert $1 == Gre; ";"}
+%inline rbrace: RBRACE {assert $1 == Gre}
+
+p: 
+  | p p_bop p {PBop ($1, $2, $3)}
+  | p COLON ty {PAsc ($1, $3)}
+  | nonempty_list(p_term) {
+    match $1 with
+    | [h] -> h
+    | lst -> PCat lst
+  }
+
+p_term: 
+  | ID {PId $1}
+  | p_term DOT ID {PAccess ($1, $3)}
+  | USCORE {PBlank}
+  | BLANK {PBlank}
+  | OPEN {POpen}
+  | USE {PUse}
+
+  | INT {PInt $1}
+  | FLOAT {PFlo $1}
+  | STR {PStr $1}
+  | CHAR {PChar $1}
+  | LT GT {PUnit $1}
+  
+  | LBRACK separated_list(COMMA, p) RBRACK {PList $2}
+  | LBRACK separated_list(
+    COMMA, 
+    separated_pair(e, ASSIGN, p)
+  ) RBRACK {PMap $2}
+  | LPAREN list(semi) sep_pop_list_ge_2(COMMA, p)
+    list(semi) RPAREN {PBin (List.length $2, $3, List.length $4)}
+  | LPAREN nonempty_list(semi) separated_nonempty_list(COMMA, p)
+    list(semi) RPAREN {PBin (List.length $2, $3, List.length $4)}
+  | LPAREN list(semi) separated_nonempty_list(COMMA, p)
+    nonempty_list(list) RPAREN {PBin (List.length $2, $3, List.length $4)}
+  
+  | CAP {PData $1}
+  | LBRACE sep_pop_list_ge_2(COMMA, e) RBRACE {$2}
+  | LBRACE p RBRACE {PCapture $2}
+
+  | LBRACK SYMBOL RBRACK {PSym $2}  // consider condensing
+  | LPAREN bop RPAREN {PSym $2}
+
+%inline p_bop: 
+  | PLUS {"+"} | TIMES {"*"} | CAT {"&"}
