@@ -23,12 +23,12 @@ and ty_term =
   | TMod of sp list
 
 and s = 
-  | Def of access_mod * p * e * ty option
+  | Def of access_mod * [`def | `impl] * p * e * ty option
   | Open of e
   | Use of e
-  | Mix of e
-  | MixImpl of e
-  | Ty of access_mod * string * (string list * ty) option
+  | Mix of [`impl] option * e
+  | Ty of access_mod * [`name | `alias | `class_]
+    * string * (string list * ty) option
 
 and greed = Gre | Rel | Cut
 and quant = 

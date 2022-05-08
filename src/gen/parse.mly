@@ -132,14 +132,22 @@ ty_term:
   | entry sep separated_nonempty_list(entry) {$1 :: $3}
 
 s: 
-  | access DEF p ioption(preceded(COLON, ty)) ASSIGN e
+  | access s_kw p ioption(preceded(COLON, ty)) ASSIGN e
     {Def ($1, $3, $6, $4)}
   | OPEN e {Open $2}
   | USE e {Use $2}
-  | MIX e {Mix $2}
-  | IMPL MIX e {MixImpl $3}
-  | access TYPE ID separated_pair(list(CAP), ASSIGN, ty_eff)
-    {Ty ($1, $3, $4)}
+  | ioption(IMPL) MIX e {Mix (Option.map (fun _ -> `impl) $1, $3)}
+  | access ty_kw ID ioption(separated_pair(list(CAP), ASSIGN, ty))
+    {Ty ($1, $2, $3, $4)}
+
+%inline s_kw: 
+  | DEF {`def}
+  | IMPL {`impl}
+
+%inline ty_kw: 
+  | TYPE {`ty}
+  | ALIAS {`alias}
+  | CLASS {`class_}
 
 e: 
   | bop {Sect $1}
