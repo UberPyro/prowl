@@ -4,6 +4,10 @@
 
   open Lex_proc
   open Util
+
+  let ty_conv = function
+    | Some st -> st
+    | None -> TCat []
 %}
 
 %token
@@ -69,8 +73,24 @@ sp:
 %inline constr_list: ID list(CAP) CONSTRAINT {$1, $2}
 
 ty_eff: 
-  | list(ty_term) EFFECT list(ty_term) {$1, $3}
-  | nonempty_list(ty_term) {[], $1}
+  | ioption(ty_stack) EFFECT ioption(ty_stack)
+    {ty_conv $1, ty_conv $3}
+  | ty_stack {TCat [], $1}
+
+%inline ty_stack: 
+  | ty_term {$1}
+  | pop_list_ge_2(ty_term) {TCat $1}
+  | separated_nonempty_list(
+    SEMICOLON, 
+    pair(nonempty_list(ty_term), CAP)
+  ) {TData (let+ x = $1 in [x])}
+  | LBRACE separated_nonempty_list(
+    SEMICOLON, 
+    separated_nonempty_list(
+      COMMA, 
+      pair(nonempty_list(ty_term), CAP)
+    )
+  ) RBRACE {assert $3 == Rel; TData $2}
 
 ty_term: 
   | ID {TId $1}
@@ -81,6 +101,19 @@ ty_term:
   | LBRACK separated_list(COMMA, ty_eff) RBRACK {TList $2}
   | LBRACK separated_list(
     COMMA, 
-    separated_pair(ty_term, ASSIGN, ty_eff)
+    separated_pair(ty_stack, ASSIGN, ty_eff)
   ) RBRACK {TMap (fst $2, snd $2)}
+  | LT GT {TUnit}
+  | LT SEMICOLON GT {TVoid}
+  | separated_nonempty_list(
+    SEMICOLON, 
+    separated_nonempty_list(COMMA, ty_eff)
+  ) {TBin $1}
+  | MOD list(sp) END {TMod $2}
+  | SIG list(sp) END {TSig $2}
 
+%inline pop_list_ge_2(entry): 
+  | entry nonempty_list(entry) {$1 :: $2}
+
+%inline sep_pop_list_ge_2(sep, entry): 
+  | entry sep separated_nonempty_list(sep, entry) {$1 :: $3}
