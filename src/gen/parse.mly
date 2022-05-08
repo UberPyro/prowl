@@ -1,8 +1,7 @@
 %{
   open Batteries
-  open AST
+  open Ast
 
-  open Lex_proc
   open Util
 
   let ty_conv = function
@@ -42,9 +41,9 @@
 %token<float> FLOAT
 %token<char> CHAR
 
-%token<e> COMB
-%token<quant * greed> QUANT
-%token<greed> SEMICOLON RBRACE
+%token<Ast.e> COMB
+%token<Ast.quant * Ast.greed> QUANT
+%token<Ast.greed> SEMICOLON RBRACE
 
 %left CAT
 %left COLON
@@ -61,7 +60,7 @@
 %left TILDE
 %left DOT
 
-%start<program> program
+%start<Ast.program> program
 
 %%
 
@@ -73,10 +72,11 @@ program: access e EOF {$1, $2}
 
 sp: 
   | DEF ID ASSIGN ty {SDef ($2, $4)}
-  | DEF ID ioption(preceded(ASSIGN, ty)) {STy ($2, $3)}
+  | DEF ID ioption(separated_pair(list(CAP), ASSIGN, ty)) {STy ($2, $3)}
 
-%inline ty: constr_list ty_eff {$1, $2}
-%inline constr_list: ID list(CAP) CONSTRAINT {$1, $2}
+%inline ty: ioption(constr_list) ty_eff {Option.default [] $1, $2}
+%inline constr_list: list(constr) CONSTRAINT {$1}
+%inline constr: ID list(CAP) {$1, $2}
 
 ty_eff: 
   | ioption(ty_stack) EFFECT ioption(ty_stack)
@@ -109,19 +109,16 @@ ty_term:
   | ID {TId $1}
   | CAP {TGen $1}
   | ty_term DOT ID {TAccess ($1, $3)}
-  | LBRACE rbrace {TCapture []}
+  | LBRACE rbrace {TCapture (TCat [], TCat [])}
   | LBRACE ty_eff rbrace {TCapture $2}
-  | LBRACK separated_list(COMMA, ty_eff) RBRACK {TList $2}
-  | LBRACK separated_list(
-    COMMA, 
-    separated_pair(ty_stack, ASSIGN, ty_eff)
-  ) RBRACK {TMap (fst $2, snd $2)}
+  | LBRACK ty_eff RBRACK {TList $2}
+  | LBRACK ty_stack ASSIGN ty_eff RBRACK {TMap ($2, $4)}
   | LT GT {TUnit}
   | LT semi GT {TVoid}
-  | separated_nonempty_list(
+  | LPAREN separated_nonempty_list(
     semi, 
     separated_nonempty_list(COMMA, ty_eff)
-  ) {TBin $1}
+  ) RPAREN {TBin $2}
   | MOD list(sp) END {TMod $2}
   | SIG list(sp) END {TSig $2}
 
@@ -129,11 +126,11 @@ ty_term:
   | entry nonempty_list(entry) {$1 :: $2}
 
 %inline sep_pop_list_ge_2(sep, entry): 
-  | entry sep separated_nonempty_list(entry) {$1 :: $3}
+  | entry sep separated_nonempty_list(sep, entry) {$1 :: $3}
 
 s: 
   | access s_kw p ioption(preceded(COLON, ty)) ASSIGN e
-    {Def ($1, $3, $6, $4)}
+    {Def ($1, $2, $3, $6, $4)}
   | OPEN e {Open $2}
   | USE e {Use $2}
   | ioption(IMPL) MIX e {Mix (Option.map (fun _ -> `impl) $1, $3)}
@@ -145,7 +142,7 @@ s:
   | IMPL {`impl}
 
 %inline ty_kw: 
-  | TYPE {`ty}
+  | TYPE {`name}
   | ALIAS {`alias}
   | CLASS {`class_}
 
@@ -182,10 +179,10 @@ term:
   | UNIT {Unit}
 
   | LPAREN RPAREN {Cat []}
-  | LPAREN e RPAREN {Cap e}
-  | DO e END {e}
+  | LPAREN e RPAREN {Cap $2}
+  | DO e END {$2}
   | LPAREN semi RPAREN {Inv []}
-  | LBRACK e nonempty_list(pair(SEMICOLON, e)) RBRACK {Case ($1, $2)}
+  | LBRACK e nonempty_list(pair(SEMICOLON, e)) RBRACK {Case ($2, $3)}
   | INV_BRACK separated_list(semi, e) RBRACK {Inv $2}
 
   | LBRACK separated_list(COMMA, e) RBRACK {List $2}
@@ -208,10 +205,10 @@ term:
   | SYMBOL {Sym $1}
   | COMB {$1}
   | e QUANT {Quant ($1, fst $2, snd $2)}
-  | e TIMES_BRACK e RBRACE {$1, Num $3, $4}
-  | e TIMES_BRACK e COMMA RBRACE {$1, Min $3, $5}
-  | e TIMES_BRACK COMMA e RBRACE {$1, Max $4, $5}
-  | e TIMES_BRACK e COMMA e RBRACE {$1, Range ($3, $5), $6}
+  | e TIMES_BRACK e RBRACE {Quant ($1, Num $3, $4)}
+  | e TIMES_BRACK e COMMA RBRACE {Quant ($1, Min $3, $5)}
+  | e TIMES_BRACK COMMA e RBRACE {Quant ($1, Max $4, $5)}
+  | e TIMES_BRACK e COMMA e RBRACE {Quant ($1, Range ($3, $5), $6)}
 
   | NONCAP_BRACK e RPAREN {Noncap $2}
   | ATOM_BRACK e RPAREN {Atomic $2}
@@ -223,8 +220,8 @@ term:
   | APPEND {"++"} | BIND {">>="} | ALT {"|"} | CAT {"&"}
   | INTERSECT {"&&"} | INFIX {$1}
 
-%inline semi: SEMICOLON {assert $1 == Gre; ";"}
-%inline rbrace: RBRACE {assert $1 == Gre}
+%inline semi: SEMICOLON {assert ($1 == Gre); ";"}
+%inline rbrace: RBRACE {assert ($1 == Gre)}
 
 p: 
   | p p_bop p {PBop ($1, $2, $3)}
@@ -247,7 +244,7 @@ p_term:
   | FLOAT {PFlo $1}
   | STR {PStr $1}
   | CHAR {PChar $1}
-  | LT GT {PUnit $1}
+  | LT GT {PUnit}
   
   | LBRACK separated_list(COMMA, p) RBRACK {PList $2}
   | LBRACK separated_list(
@@ -259,10 +256,10 @@ p_term:
   | LPAREN nonempty_list(semi) separated_nonempty_list(COMMA, p)
     list(semi) RPAREN {PBin (List.length $2, $3, List.length $4)}
   | LPAREN list(semi) separated_nonempty_list(COMMA, p)
-    nonempty_list(list) RPAREN {PBin (List.length $2, $3, List.length $4)}
+    nonempty_list(semi) RPAREN {PBin (List.length $2, $3, List.length $4)}
   
   | CAP {PData $1}
-  | LBRACE sep_pop_list_ge_2(COMMA, e) RBRACE {$2}
+  | LBRACE sep_pop_list_ge_2(COMMA, p) RBRACE {PProd $2}
   | LBRACE p RBRACE {PCapture $2}
 
   | LBRACK SYMBOL RBRACK {PSym $2}  // consider condensing

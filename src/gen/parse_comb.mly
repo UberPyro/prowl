@@ -4,7 +4,8 @@
   open Ast
 %}
 
-%token<int> DUP ZAP ROT RUN EOF
+%token<int> DUP ZAP ROT RUN
+%token EOF
 
 %start<e> parse
 

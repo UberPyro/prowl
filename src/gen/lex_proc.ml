@@ -43,7 +43,9 @@ let decode_char =
   >> String.to_seq
   >> Seq.hd
 
-let parse_comb = Parse_comb.parse (Lex_comb.token (from_string s))
+let parse_comb = 
+  from_string
+  >> Parse_comb.parse Lex_comb.token
 
 let parse_quant q g =
   begin match q with
@@ -62,4 +64,4 @@ let parse_greed = function
   | "" -> Gre
   | "?" -> Rel
   | "+" -> Cut
-  | _ -> failwith (Printf.sprintf "Unknown greediness %s" g)
+  | g -> failwith (Printf.sprintf "Unknown greediness %s" g)
