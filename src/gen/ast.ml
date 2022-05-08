@@ -77,8 +77,9 @@ and e =
   | Let of (string * p * e) list * e
   | As of string * p * e
 
-  | Quant of quant * greed
-  | Case of e list * bool
+  | Quant of e * quant * greed
+  | Case of e * (greed * e) list
+  | Inv of e list
   | Span of e * e
 
   | Noncap of e

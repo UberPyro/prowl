@@ -91,19 +91,21 @@ rule token = parse
   | "--" {EFFECT}
   | "~~" {CONSTRAINT}
   | "->" {ARROW}
+  | "~"  {TILDE}
   | "."  {DOT}
   | ","  {set_cat(); COMMA}
-  | ";"  {set_cat(); SEMICOLON}
+  | ";" (greed as g) {set_cat(); SEMICOLON (parse_greed g)}
 
   | "(?:" {set_cat(); NONCAP_BRACK}
   | "(?>" {set_cat(); ATOM_BRACK}
+  | "[^"  {set_cat(); INV_BRACK}
 
   | "(" {set_cat(); LPAREN}
   | "[" {set_cat(); LBRACK}
   | "{" {set_cat(); is_cat LBRACE TIMES_BRACK}
   | ")" {set_regex(); RPAREN}
   | "]" {set_regex(); RBRACK}
-  | "}" (greed as g) {set_regex(); RBRACE (parse_brack_quant g)}
+  | "}" (greed as g) {set_regex(); RBRACE (parse_greed g)}
   | "do"  {set_cat(); DO}
   | "mod" {set_cat(); MOD}
   | "end" {set_regex(); END}
