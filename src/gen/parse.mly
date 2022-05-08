@@ -18,7 +18,7 @@
   EXP RANGE SNOC CONS
   APPEND BIND ALT CAT
 
-  CMP EQ NEQ LT LE GT GE
+  EQ NEQ LT LE GT GE
 
   COLON TILDE ASSIGN ARROW
   COMMA DOT INTERSECT
@@ -219,6 +219,7 @@ term:
 %inline bop: 
   | PLUS {"+"} | MINUS {"-"} | TIMES {"*"} | DIVIDE {"/"} 
   | EXP {"**"} | RANGE {".."} | SNOC {">-"} | CONS {"-<"}
+  | GT {">"} | GE {">="} | LT {"<"} | LE {"<="} | EQ {"=="} | NEQ {"/="}
   | APPEND {"++"} | BIND {">>="} | ALT {"|"} | CAT {"&"}
   | INTERSECT {"&&"} | INFIX {$1}
 

@@ -78,7 +78,6 @@ rule token = parse
   | '_'         {USCORE}
   | '_' id_tail {BLANK}
 
-  | "?=" {CMP}
   | "==" {EQ}
   | "/=" {NEQ}
   | "<"  {LT}
