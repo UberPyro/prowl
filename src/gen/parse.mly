@@ -127,4 +127,3 @@ s:
   | IMPL MIX e {MixImpl $3}
   | access TYPE ID separated_pair(list(GENERIC), ASSIGN, ty_eff)
     {Ty ($1, $3, $4)}
-  
