@@ -117,3 +117,14 @@ ty_term:
 
 %inline sep_pop_list_ge_2(sep, entry): 
   | entry sep separated_nonempty_list(sep, entry) {$1 :: $3}
+
+s: 
+  | access DEF p ioption(preceded(COLON, ty)) ASSIGN e
+    {Def ($1, $3, $6, $4)}
+  | OPEN e {Open $2}
+  | USE e {Use $2}
+  | MIX e {Mix $2}
+  | IMPL MIX e {MixImpl $3}
+  | access TYPE ID separated_pair(list(GENERIC), ASSIGN, ty_eff)
+    {Ty ($1, $3, $4)}
+  
