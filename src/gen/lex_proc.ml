@@ -43,7 +43,7 @@ let decode_char =
   >> String.to_seq
   >> Seq.hd
 
-let parse_comb = Comb_parse.comb (Comb_lex.comb (from_string s))
+let parse_comb = Parse_comb.parse (Lex_comb.token (from_string s))
 
 let parse_quant q g =
   begin match q with

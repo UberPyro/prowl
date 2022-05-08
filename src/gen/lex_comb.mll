@@ -1,10 +1,10 @@
 { open Batteries
   open Lexing     }
 
-num = 0 | [1-9][0-9]*
+let num = 0 | [1-9][0-9]*
 
 (* Lexes the stack combinators *)
-rule comb = parse
+rule token = parse
   | "^" (num as n) {DUP n}
   | "_" (num as n) {ZAP n}
   | "%" (num as n) {ROT n}
@@ -13,3 +13,4 @@ rule comb = parse
   | "_" {ZAP 1}
   | "%" {ROT 1}
   | "$" {RUN 1}
+  | eof {EOF}

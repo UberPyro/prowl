@@ -4,9 +4,9 @@
   open Ast
 %}
 
-%token<int> DUP ZAP ROT RUN
+%token<int> DUP ZAP ROT RUN EOF
 
-%start<e> comb
+%start<e> parse
 
 %%
 
@@ -16,4 +16,4 @@
   | ROT {Rot $1}
   | RUN {Run $1}
 
-comb: nonempty_list(op) {Comb $1}
+parse: nonempty_list(op) EOF {StackComb $1}

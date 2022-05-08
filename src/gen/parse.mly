@@ -24,6 +24,7 @@
   COMMA DOT INTERSECT
 
   USCORE BLANK EOF
+  CONSTRAINT EFFECT
 
   LPAREN RPAREN
   LBRACK RBRACK
@@ -64,7 +65,7 @@
 
 %%
 
-program: access e {$1, $2}
+program: access e EOF {$1, $2}
 
 %inline access: 
   | PUB {Pub}
@@ -127,7 +128,7 @@ ty_term:
 %inline pop_list_ge_2(entry): 
   | entry nonempty_list(entry) {$1 :: $2}
 
-%inline sep_pop_list_ge_2(entry): 
+%inline sep_pop_list_ge_2(sep, entry): 
   | entry sep separated_nonempty_list(entry) {$1 :: $3}
 
 s: 
@@ -137,7 +138,7 @@ s:
   | USE e {Use $2}
   | MIX e {Mix $2}
   | IMPL MIX e {MixImpl $3}
-  | access TYPE ID separated_pair(list(GENERIC), ASSIGN, ty_eff)
+  | access TYPE ID separated_pair(list(CAP), ASSIGN, ty_eff)
     {Ty ($1, $3, $4)}
 
 e: 
