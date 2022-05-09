@@ -20,9 +20,10 @@
   EQ NEQ LT LE GT GE
 
   COLON TILDE ASSIGN ARROW
+  WIDE_ARROW BACKARROW
   COMMA DOT INTERSECT
 
-  USCORE BLANK EOF
+  USCORE BLANK EOF ALL
   CONSTRAINT EFFECT
 
   LPAREN RPAREN
@@ -46,7 +47,6 @@
 %token<Ast.greed> SEMICOLON RBRACE
 
 %left CAT
-%left COLON
 %left ALT
 %left BIND
 %left RANGE
@@ -75,14 +75,15 @@ sp:
   | DEF ID ioption(separated_pair(list(CAP), ASSIGN, ty)) {STy ($2, $3)}
 
 %inline ty: ioption(constr_list) ty_eff {Option.default [] $1, $2}
-%inline constr_list: list(constr) CONSTRAINT {$1}
-%inline constr: ID list(CAP) {$1, $2}
+%inline constr_list: ALL nonempty_list(constr) CONSTRAINT {$2}
+%inline constr: ID nonempty_list(CAP) {$1, $2}
 
 ty_eff: 
   | ioption(ty_stack) EFFECT ioption(ty_stack)
     {ty_conv $1, ty_conv $3}
   | ty_stack {TCat [], $1}
 
+// problem: generics and data constructors are ambiguous
 %inline ty_stack: 
   | ty_term {$1}
   | pop_list_ge_2(ty_term) {TCat $1}
@@ -112,7 +113,7 @@ ty_term:
   | LBRACE rbrace {TCapture (TCat [], TCat [])}
   | LBRACE ty_eff rbrace {TCapture $2}
   | LBRACK ty_eff RBRACK {TList $2}
-  | LBRACK ty_stack ASSIGN ty_eff RBRACK {TMap ($2, $4)}
+  | LBRACK ty_stack WIDE_ARROW ty_eff RBRACK {TMap ($2, $4)}
   | LT GT {TUnit}
   | LT semi GT {TVoid}
   | LPAREN separated_nonempty_list(
@@ -158,7 +159,7 @@ e:
   | kw p ASSIGN e {$1, $2, $4}
 
 bexp: 
-  | e bop e {Bop ($1, $2, $3)}
+  | bexp bop bexp {Bop ($1, $2, $3)}
   | nonempty_list(term) {
     match $1 with
     | [h] -> h
@@ -186,16 +187,11 @@ term:
   | INV_BRACK separated_list(semi, e) RBRACK {Inv $2}
 
   | LBRACK separated_list(COMMA, e) RBRACK {List $2}
-  | LBRACK separated_list(
+  | LBRACK separated_nonempty_list(
     COMMA, 
-    separated_pair(e, ASSIGN, e)
+    separated_pair(e, WIDE_ARROW, e)
   ) RBRACK {Map $2}
-  | LPAREN list(semi) sep_pop_list_ge_2(COMMA, e)
-    list(semi) RPAREN {Bin (List.length $2, $3, List.length $4)}
-  | LPAREN nonempty_list(semi) separated_nonempty_list(COMMA, e)
-    list(semi) RPAREN {Bin (List.length $2, $3, List.length $4)}
-  | LPAREN list(semi) separated_nonempty_list(COMMA, e)
-    nonempty_list(semi) RPAREN {Bin (List.length $2, $3, List.length $4)}
+  | bin(e) {let l, lst, r = $1 in Bin (l, lst, r)}
   
   | CAP {Data $1}
   | LBRACE sep_pop_list_ge_2(COMMA, e) rbrace {Prod $2}
@@ -204,11 +200,11 @@ term:
 
   | SYMBOL {Sym $1}
   | COMB {$1}
-  | e QUANT {Quant ($1, fst $2, snd $2)}
-  | e TIMES_BRACK e RBRACE {Quant ($1, Num $3, $4)}
-  | e TIMES_BRACK e COMMA RBRACE {Quant ($1, Min $3, $5)}
-  | e TIMES_BRACK COMMA e RBRACE {Quant ($1, Max $4, $5)}
-  | e TIMES_BRACK e COMMA e RBRACE {Quant ($1, Range ($3, $5), $6)}
+  | term QUANT {Quant ($1, fst $2, snd $2)}
+  | term TIMES_BRACK e RBRACE {Quant ($1, Num $3, $4)}
+  | term TIMES_BRACK e COMMA RBRACE {Quant ($1, Min $3, $5)}
+  | term TIMES_BRACK COMMA e RBRACE {Quant ($1, Max $4, $5)}
+  | term TIMES_BRACK e COMMA e RBRACE {Quant ($1, Range ($3, $5), $6)}
 
   | NONCAP_BRACK e RPAREN {Noncap $2}
   | ATOM_BRACK e RPAREN {Atomic $2}
@@ -223,9 +219,15 @@ term:
 %inline semi: SEMICOLON {assert ($1 == Gre); ";"}
 %inline rbrace: RBRACE {assert ($1 == Gre)}
 
+bin(entry): 
+  | LPAREN list(semi) sep_pop_list_ge_2(COMMA, entry) list(semi) RPAREN
+    {List.length $2, $3, List.length $4}
+  | LPAREN semi separated_nonempty_list(COMMA, entry) RPAREN {1, $3, 0}
+  | LPAREN separated_nonempty_list(COMMA, entry) semi RPAREN {0, $2, 1}
+
 p: 
   | p p_bop p {PBop ($1, $2, $3)}
-  | p COLON ty {PAsc ($1, $3)}
+  | LPAREN p COLON ty RPAREN {PAsc ($2, $4)}
   | nonempty_list(p_term) {
     match $1 with
     | [h] -> h
@@ -247,16 +249,11 @@ p_term:
   | LT GT {PUnit}
   
   | LBRACK separated_list(COMMA, p) RBRACK {PList $2}
-  | LBRACK separated_list(
+  | LBRACK separated_nonempty_list(
     COMMA, 
-    separated_pair(e, ASSIGN, p)
-  ) RBRACK {PMap $2}
-  | LPAREN list(semi) sep_pop_list_ge_2(COMMA, p)
-    list(semi) RPAREN {PBin (List.length $2, $3, List.length $4)}
-  | LPAREN nonempty_list(semi) separated_nonempty_list(COMMA, p)
-    list(semi) RPAREN {PBin (List.length $2, $3, List.length $4)}
-  | LPAREN list(semi) separated_nonempty_list(COMMA, p)
-    nonempty_list(semi) RPAREN {PBin (List.length $2, $3, List.length $4)}
+    separated_pair(p, BACKARROW, e)
+  ) RBRACK {PMap (let+ x, y = $2 in y, x)}
+  | bin(p) {let l, lst, r = $1 in PBin (l, lst, r)}
   
   | CAP {PData $1}
   | LBRACE sep_pop_list_ge_2(COMMA, p) RBRACE {PProd $2}

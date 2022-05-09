@@ -58,6 +58,7 @@ rule token = parse
   | "class" {CLASS}
   | "sig"   {SIG}
   | "do"    {DO}
+  | "all"   {ALL}
 
   | "+"  {PLUS}
   | "-"  {MINUS}
@@ -91,6 +92,8 @@ rule token = parse
   | "~~" {CONSTRAINT}
   | "->" {ARROW}
   | "~"  {TILDE}
+  | "=>" {WIDE_ARROW}
+  | "<-" {BACKARROW}
   | "."  {DOT}
   | ","  {set_cat(); COMMA}
   | ";" (greed as g) {set_cat(); SEMICOLON (parse_greed g)}
