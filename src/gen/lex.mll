@@ -3,7 +3,7 @@
   open Lex_proc
   open Parse    }
 
-let whitespace = [' ' '\r' '\n'] | '\r' '\n'
+let whitespace = ([' ' '\r' '\n'] | '\r' '\n')+
 
 let digit = ['0'-'9']
 let sig_digits = ['1'-'9'] digit*
