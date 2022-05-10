@@ -84,6 +84,7 @@ ty_eff:
   | ty_stack {TCat [], $1}
 
 // problem: generics and data constructors are ambiguous
+// suggestion: introduce data keyword and make alias behave similar to it
 %inline ty_stack: 
   | ty_term {$1}
   | pop_list_ge_2(ty_term) {TCat $1}
