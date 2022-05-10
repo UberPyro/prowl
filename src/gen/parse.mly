@@ -241,7 +241,8 @@ bin(entry):
 
 p: 
   | p p_bop p {PBop ($1, $2, $3)}
-  | LPAREN p COLON ty RPAREN {PAsc ($2, $4)}
+  | LPAREN list(semi) p COLON ty RPAREN
+    {assert (List.length $2 == 0); PAsc ($3, $5)}
   | nonempty_list(p_term) {
     match $1 with
     | [h] -> h
