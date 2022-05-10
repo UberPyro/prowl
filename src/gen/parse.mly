@@ -52,6 +52,8 @@
 %left ALT
 %left BIND
 %left KLEISLI
+%left EQ NEQ
+%left LT GT LE GE
 %left RANGE
 %left SNOC
 %left APPEND
