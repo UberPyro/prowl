@@ -76,7 +76,12 @@ sp:
   | DATA ID list(CAP) ASSIGN data {SData ($2, $3, $5)}
 
 %inline ty: ioption(constr) ty_eff {Option.default (TCat []) $1, $2}
-%inline constr: ty_stack CONSTRAINT {$1}
+%inline constr: ty_eff CONSTRAINT {
+  match $1 with
+  | (TCat [], v) -> v
+  | (TCat _, _) -> failwith "Constraints cannot have an input"
+  | _ -> failwith "Not a constraint"
+}
 
 %inline data: ioption(constr) data_term {Option.default (TCat []) $1, $2}
 %inline data_term: 
