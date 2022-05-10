@@ -120,6 +120,7 @@ rule token = parse
   | '\'' ("\\x" hex) as s '\'' {set_regex(); CHAR ((decode s).[0], t)}
   | '\'' '\\' (_ as c) '\''    {set_regex(); CHAR (c, t)}
   | "<>" {set_regex(); UNIT}
+  | "<;>" {set_regex(); VOID}
 
   | id     as s {ID s}
   | cap_id as s {CAP s}

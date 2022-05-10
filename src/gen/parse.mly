@@ -34,7 +34,7 @@
 
   NONCAP_BRACK ATOM_BRACK
   INV_BRACK TIMES_BRACK
-  DO MOD END UNIT
+  DO MOD END UNIT VOID
 
 %token<string>
   LET AND AS STR
@@ -122,8 +122,8 @@ ty_term:
   | LBRACE ty_eff rbrace {TCapture $2}
   | LBRACK ty_eff RBRACK {TList $2}
   | LBRACK ty_stack WIDE_ARROW ty_eff RBRACK {TMap ($2, $4)}
-  | LT GT {TUnit}
-  | LT semi GT {TVoid}
+  | UNIT {TUnit}
+  | VOID {TVoid}
   | LPAREN separated_nonempty_list(
     semi, 
     separated_nonempty_list(COMMA, ty_eff)
@@ -260,7 +260,7 @@ p_term:
   | FLOAT {PFlo $1}
   | STR {PStr $1}
   | CHAR {PChar $1}
-  | LT GT {PUnit}
+  | UNIT {PUnit}
   
   | LBRACK separated_list(COMMA, p) RBRACK {PList $2}
   | LBRACK separated_nonempty_list(
