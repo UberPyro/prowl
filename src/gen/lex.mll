@@ -40,9 +40,9 @@ let suffix = ['?' '+' '*']
 let greed = ['?' '+']?
 
 rule token = parse
-  | "as"  (infix as s) {AS s}
-  | "let" (infix as s) {LET s}
-  | "and" (infix as s) {AND s}
+  | "as"  (infix? as s) {AS s}
+  | "let" (infix? as s) {LET s}
+  | "and" (infix? as s) {AND s}
 
   | comb as s {set_regex(); COMB (parse_comb s)}
   | (((suffix as s) (greed as g)) as z)
