@@ -25,7 +25,7 @@
   WIDE_ARROW BACKARROW
   COMMA DOT INTERSECT
 
-  USCORE BLANK EOF
+  BLANK EOF
   CONSTRAINT EFFECT
 
   LPAREN RPAREN
@@ -253,7 +253,11 @@ p:
 p_term: 
   | ID {PId $1}
   | p_term DOT ID {PAccess ($1, $3)}
-  | USCORE {PBlank}
+  | COMB {
+    match $1 with
+    | StackComb [Dup _]  -> PBlank
+    | _ -> failwith "Stack Combinator in Pattern"
+  }
   | BLANK {PBlank}
   | OPEN {POpen}
   | USE {PUse}

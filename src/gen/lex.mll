@@ -16,7 +16,8 @@ let hex =
   | hex_digit hex_digit hex_digit
   | hex_digit hex_digit hex_digit hex_digit
 
-let id_tail = ('-'? ['A'-'Z' 'a'-'z' '0'-'9' '_' '\''])*
+let id_char = ['A'-'Z' 'a'-'z' '0'-'9' '_' '\'']
+let id_tail = ('-'? id_char)*
 let id = ['a'-'z'] id_tail
 let cap_id = ['A'-'Z'] id_tail
 
@@ -49,6 +50,7 @@ rule token = parse
   | "let" (infix? as s) {LET s}
   | "and" (infix? as s) {AND s}
 
+  | '_' id_char id_tail {BLANK}
   | comb as s {set_regex(); COMB (parse_comb s)}  (* modify to exclude _? *)
   | (((suffix as s) (greed as g)) as z)
     {if !mode == Cat then SYMBOL z else QUANT (parse_quant s g)}
@@ -83,9 +85,6 @@ rule token = parse
   | "|"    {ALT}
   | "&"    {CAT}
   | "&&"   {INTERSECT}
-
-  | '_'         {USCORE} (* FIXME: unreachable *)
-  | '_' id_tail {BLANK}  (* unreachable *)
 
   | "==" {EQ}
   | "/=" {NEQ}

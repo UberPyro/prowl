@@ -46,7 +46,6 @@ let string_of_token = function
   | WIDE_ARROW -> "=>"
   | VOID -> "<;>"
   | USE -> "USE"
-  | USCORE -> "_"
   | UNIT -> "<>"
   | TYPE -> "TYPE"
   | TIMES_BRACK -> "{ (regex)"
