@@ -1,4 +1,4 @@
-type access_mod = Pub | Opaq
+type access_mod = Pub | Opaq | Priv
 
 type sp = 
   | SDef of string * ty

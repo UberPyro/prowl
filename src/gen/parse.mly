@@ -76,6 +76,7 @@ program: access e EOF {$1, $2}
 %inline access: 
   | PUB {Pub}
   | OPAQ {Opaq}
+  | {Priv}
 
 sp: 
   | DEF ID ASSIGN ty {SDef ($2, $4)}
