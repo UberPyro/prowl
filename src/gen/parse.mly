@@ -235,8 +235,9 @@ term:
 bin(entry): 
   | LPAREN list(semi) sep_pop_list_ge_2(COMMA, entry) list(semi) RPAREN
     {List.length $2, $3, List.length $4}
-  | LPAREN semi separated_nonempty_list(COMMA, entry) RPAREN {1, $3, 0}
-  | LPAREN separated_nonempty_list(COMMA, entry) semi RPAREN {0, $2, 1}
+  | LPAREN nonempty_list(semi) entry list(semi) RPAREN
+    {List.length $2, [$3], List.length $4}
+  | LPAREN entry nonempty_list(semi) RPAREN {0, [$2], List.length $3}
 
 p: 
   | p p_bop p {PBop ($1, $2, $3)}
