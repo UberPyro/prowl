@@ -40,6 +40,11 @@ let suffix = ['?' '+' '*']
 let greed = ['?' '+']?
 
 rule token = parse
+  | "/*"        {comment 0 lexbuf}
+  | eof         {EOF}
+  | whitespace  {set_cat(); token lexbuf}
+  | '\t'        {set_cat(); advance lexbuf; token lexbuf}
+
   | "as"  (infix? as s) {AS s}
   | "let" (infix? as s) {LET s}
   | "and" (infix? as s) {AND s}
@@ -79,8 +84,8 @@ rule token = parse
   | "&"    {CAT}
   | "&&"   {INTERSECT}
 
-  | '_'         {USCORE}
-  | '_' id_tail {BLANK}
+  | '_'         {USCORE} (* FIXME: unreachable *)
+  | '_' id_tail {BLANK}  (* unreachable *)
 
   | "==" {EQ}
   | "/=" {NEQ}
@@ -123,11 +128,6 @@ rule token = parse
   | '\'' '\\' (_ as c) '\''    {set_regex(); CHAR c}
   | "<>"  {set_regex(); UNIT}
   | "<;>" {set_regex(); VOID}
-  
-  | "/*"        {comment 0 lexbuf}
-  | eof         {EOF}
-  | whitespace  {set_cat(); token lexbuf}
-  | '\t'        {set_cat(); advance lexbuf; token lexbuf}
 
   | id     as s {ID s}
   | cap_id as s {CAP s}
