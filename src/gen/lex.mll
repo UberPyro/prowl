@@ -14,7 +14,7 @@ let hex =
   | hex_digit hex_digit hex_digit
   | hex_digit hex_digit hex_digit hex_digit
 
-let id_tail = ['A'-'Z' 'a'-'z' '0'-'9' '_' '\'' '-' '.']*
+let id_tail = ('-'? ['A'-'Z' 'a'-'z' '0'-'9' '_' '\''])*
 let id = ['a'-'z'] id_tail
 let cap_id = ['A'-'Z'] id_tail
 
