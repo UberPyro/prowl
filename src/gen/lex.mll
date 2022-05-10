@@ -1,5 +1,4 @@
 { open Batteries
-  open Lexing
   
   open Lex_proc
   open Parse    }
@@ -44,7 +43,8 @@ rule token = parse
   | "and" (infix as s) {AND s}
 
   | comb as s {set_regex(); COMB (parse_comb s)}
-  | ((suffix greed) as s) {is_cat (SYMBOL s) (QUANT (parse_quant s))}
+  | (((suffix as s) (greed as g)) as z)
+    {if !mode == Cat then SYMBOL z else QUANT (parse_quant s g)}
 
   | "def"   {DEF}
   | "open"  {OPEN}
@@ -115,10 +115,10 @@ rule token = parse
 
   | (integer as i) {set_regex(); INT (int_of_string i)}
   | (float   as f) {set_regex(); FLOAT (float_of_string f)}
-  | '"' (string_body as s) '"' {set_regex(); STR (decode s, t)}
-  | '\'' (char_body as s) '\'' {set_regex(); CHAR (s.[0], t)}
-  | '\'' ("\\x" hex) as s '\'' {set_regex(); CHAR ((decode s).[0], t)}
-  | '\'' '\\' (_ as c) '\''    {set_regex(); CHAR (c, t)}
+  | '"' (string_body as s) '"' {set_regex(); STR (decode s)}
+  | '\'' (char_body as s) '\'' {set_regex(); CHAR s}
+  | '\'' ("\\x" hex) as s '\'' {set_regex(); CHAR (decode s).[0]}
+  | '\'' '\\' (_ as c) '\''    {set_regex(); CHAR c}
   | "<>" {set_regex(); UNIT}
   | "<;>" {set_regex(); VOID}
 

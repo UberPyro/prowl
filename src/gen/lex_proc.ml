@@ -49,10 +49,10 @@ let parse_comb =
 
 let parse_quant q g =
   begin match q with
-    | "?" -> Opt
-    | "+" -> Plus
-    | "*" -> Star
-    | _ -> failwith (Printf.sprintf "Unknown quantifier %s" q)
+    | '?' -> Opt
+    | '+' -> Plus
+    | '*' -> Star
+    | _ -> failwith (Printf.sprintf "Unknown quantifier %c" q)
   end, begin match g with
     | "" -> Gre
     | "?" -> Rel
