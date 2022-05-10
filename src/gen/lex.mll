@@ -58,7 +58,7 @@ rule token = parse
   | "class" {CLASS}
   | "sig"   {SIG}
   | "do"    {DO}
-  | "all"   {ALL}
+  | "data"  {DATA}
 
   | "+"  {PLUS}
   | "-"  {MINUS}

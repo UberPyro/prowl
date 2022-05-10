@@ -23,7 +23,7 @@
   WIDE_ARROW BACKARROW
   COMMA DOT INTERSECT
 
-  USCORE BLANK EOF ALL
+  USCORE BLANK EOF DATA
   CONSTRAINT EFFECT
 
   LPAREN RPAREN
@@ -72,11 +72,25 @@ program: access e EOF {$1, $2}
 
 sp: 
   | DEF ID ASSIGN ty {SDef ($2, $4)}
-  | DEF ID ioption(separated_pair(list(CAP), ASSIGN, ty)) {STy ($2, $3)}
+  | TYPE ID ioption(separated_pair(list(CAP), ASSIGN, ty)) {STy ($2, $3)}
+  | DATA ID list(CAP) ASSIGN data {SData ($2, $3, $5)}
 
-%inline ty: ioption(constr_list) ty_eff {Option.default [] $1, $2}
-%inline constr_list: ALL nonempty_list(constr) CONSTRAINT {$2}
-%inline constr: ID nonempty_list(CAP) {$1, $2}
+%inline ty: ioption(constr) ty_eff {Option.default (TCat []) $1, $2}
+%inline constr: ty_stack CONSTRAINT {$1}
+
+%inline data: ioption(constr) data_term {Option.default (TCat []) $1, $2}
+%inline data_term: 
+  | separated_nonempty_list(
+    semi, 
+    pair(nonempty_list(ty_term), CAP)
+  ) {let+ x = $1 in [x]}
+  | LBRACE separated_nonempty_list(
+    semi, 
+    sep_pop_list_ge_2(
+      COMMA, 
+      pair(nonempty_list(ty_term), CAP)
+    )
+  ) rbrace {$2}
 
 ty_eff: 
   | ioption(ty_stack) EFFECT ioption(ty_stack)
@@ -88,24 +102,6 @@ ty_eff:
 %inline ty_stack: 
   | ty_term {$1}
   | pop_list_ge_2(ty_term) {TCat $1}
-  | separated_nonempty_list(
-    semi, 
-    pair(nonempty_list(ty_term), CAP)
-  ) {TData (let+ x = $1 in [x])}
-  | LBRACE sep_pop_list_ge_2(  // consider removing this one
-    semi,                      // so it lines up with exprs
-    separated_nonempty_list(
-      COMMA, 
-      pair(nonempty_list(ty_term), CAP)
-    )
-  ) rbrace {TData $2}
-  | LBRACE separated_nonempty_list(
-    semi, 
-    sep_pop_list_ge_2(
-      COMMA, 
-      pair(nonempty_list(ty_term), CAP)
-    )
-  ) rbrace {TData $2}
 
 ty_term: 
   | ID {TId $1}
@@ -138,15 +134,20 @@ s:
   | ioption(IMPL) MIX e {Mix (Option.map (fun _ -> `impl) $1, $3)}
   | access ty_kw ID ioption(separated_pair(list(CAP), ASSIGN, ty))
     {Ty ($1, $2, $3, $4)}
+  | access data_kw ID list(CAP) ASSIGN data
+    {Data ($1, $2, $3, $4, $6)}
 
 %inline s_kw: 
   | DEF {`def}
   | IMPL {`impl}
 
 %inline ty_kw: 
-  | TYPE {`name}
-  | ALIAS {`alias}
+  | TYPE {`ty}
   | CLASS {`class_}
+
+%inline data_kw: 
+  | DATA {`data}
+  | ALIAS {`alias}
 
 e: 
   | bop {Sect $1}
@@ -194,7 +195,7 @@ term:
   ) RBRACK {Map $2}
   | bin(e) {let l, lst, r = $1 in Bin (l, lst, r)}
   
-  | CAP {Data $1}
+  | CAP {EData $1}
   | LBRACE sep_pop_list_ge_2(COMMA, e) rbrace {Prod $2}
   | MOD list(s) END {Mod $2}
   | LBRACE e rbrace {Capture $2}

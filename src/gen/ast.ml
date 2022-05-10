@@ -3,9 +3,10 @@ type access_mod = Pub | Opaq
 type sp = 
   | SDef of string * ty
   | STy of string * (string list * ty) option
+  | SData of string * string list * data
 
-and ty = constr list * ty_eff
-and constr = string * string list
+      (* constraints *)
+and ty = ty_term * ty_eff
 and ty_eff = ty_term * ty_term
 and ty_term = 
   | TId of string
@@ -18,17 +19,21 @@ and ty_term =
   | TUnit
   | TVoid
   | TBin of ty_eff list list
-  | TData of (ty_term list * string) list list
   | TSig of sp list
   | TMod of sp list
+
+and data = ty_term * data_term
+and data_term = (ty_term list * string) list list
 
 and s = 
   | Def of access_mod * [`def | `impl] * p * e * ty option
   | Open of e
   | Use of e
   | Mix of [`impl] option * e
-  | Ty of access_mod * [`name | `alias | `class_]
+  | Ty of access_mod * [`ty | `class_]
     * string * (string list * ty) option
+  | Data of access_mod * [`data | `alias]
+    * string * string list * data
 
 and greed = Gre | Rel | Cut
 and quant = 
@@ -61,7 +66,7 @@ and e =
   | List of e list
   | Map of (e * e) list
   | Bin of int * e list * int
-  | Data of string
+  | EData of string
   | Prod of e list
   | Mod of s list
   | Capture of e
