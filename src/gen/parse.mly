@@ -50,6 +50,7 @@
 
 %left CAT
 %left ALT
+%left INTERSECT
 %left BIND
 %left KLEISLI
 %left EQ NEQ
