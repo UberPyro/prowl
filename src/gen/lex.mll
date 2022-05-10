@@ -123,16 +123,16 @@ rule token = parse
   | '\'' '\\' (_ as c) '\''    {set_regex(); CHAR c}
   | "<>"  {set_regex(); UNIT}
   | "<;>" {set_regex(); VOID}
+  
+  | "/*"        {comment 0 lexbuf}
+  | eof         {EOF}
+  | whitespace  {set_cat(); token lexbuf}
+  | '\t'        {set_cat(); advance lexbuf; token lexbuf}
 
   | id     as s {ID s}
   | cap_id as s {CAP s}
   | symbol as s {SYMBOL s}
   | infix  as s {INFIX s}
-
-  | "/*"        {comment 0 lexbuf}
-  | eof         {EOF}
-  | whitespace  {set_cat(); token lexbuf}
-  | '\t'        {set_cat(); advance lexbuf; token lexbuf}
 
 and comment level = parse
   | "*/" {if level = 0 then token lexbuf
