@@ -12,10 +12,12 @@
 %token
   DEF OPEN MIX USE IMPL SIG
   PUB OPAQ TYPE ALIAS CLASS
+  DATA
 
   PLUS MINUS TIMES DIVIDE
   EXP RANGE SNOC CONS
-  APPEND BIND ALT CAT
+  APPEND BIND KLEISLI
+  ALT CAT
 
   EQ NEQ LT LE GT GE
 
@@ -23,7 +25,7 @@
   WIDE_ARROW BACKARROW
   COMMA DOT INTERSECT
 
-  USCORE BLANK EOF DATA
+  USCORE BLANK EOF
   CONSTRAINT EFFECT
 
   LPAREN RPAREN
@@ -49,6 +51,7 @@
 %left CAT
 %left ALT
 %left BIND
+%left KLEISLI
 %left RANGE
 %left SNOC
 %left APPEND
@@ -220,8 +223,8 @@ term:
   | PLUS {"+"} | MINUS {"-"} | TIMES {"*"} | DIVIDE {"/"} 
   | EXP {"**"} | RANGE {".."} | SNOC {">-"} | CONS {"-<"}
   | GT {">"} | GE {">="} | LT {"<"} | LE {"<="} | EQ {"=="} | NEQ {"/="}
-  | APPEND {"++"} | BIND {">>="} | ALT {"|"} | CAT {"&"}
-  | INTERSECT {"&&"} | INFIX {$1}
+  | APPEND {"++"} | BIND {">>="} | KLEISLI {">=>"}
+  | ALT {"|"} | CAT {"&"} | INTERSECT {"&&"} | INFIX {$1}
 
 %inline semi: SEMICOLON {assert ($1 == Gre); ";"}
 %inline rbrace: RBRACE {assert ($1 == Gre)}

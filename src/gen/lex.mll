@@ -72,6 +72,7 @@ rule token = parse
 
   | "++"   {APPEND}
   | ">>="  {BIND}
+  | ">=>"  {KLEISLI}
   | "|"    {ALT}
   | "&"    {CAT}
   | "&&"   {INTERSECT}
