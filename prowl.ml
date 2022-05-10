@@ -7,8 +7,12 @@ open Cli
 let lex_out = flag "output lexemes" "lex"
 (* let ast_out = flag "output ast as ocaml ADTs" "ast" *)
 
-let compile = List.map begin fun file -> 
+let compile = List.iter begin fun file -> 
   if O.get lex_out then File.open_in file |> Gen.lex;
-  let ast = Gen.parse (File.open_in file) in
-  ignore ast
+  let (* ast *) _ = Gen.parse (File.open_in file) in
+  ()
 end
+
+let () = match P.parse_argv op with
+  | [] -> P.usage op ()
+  | lst -> compile lst

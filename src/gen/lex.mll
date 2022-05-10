@@ -3,6 +3,9 @@
   open Lex_proc
   open Parse    }
 
+let eol = '\r' | '\n' | '\r' '\n'
+let whitespace = eol | [' ']
+
 let digit = ['0'-'9']
 let sig_digits = ['1'-'9'] digit*
 
@@ -129,7 +132,7 @@ rule token = parse
 
   | "/*" {comment 0 lexbuf}
   | eof  {EOF}
-  | ' '  {set_cat(); token lexbuf}
+  | whitespace {set_cat(); token lexbuf}
   | '\t' {set_cat(); advance lexbuf; token lexbuf}
 
 and comment level = parse
