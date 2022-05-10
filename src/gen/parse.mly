@@ -193,7 +193,6 @@ term:
   | UNIT {Unit}
 
   | LPAREN RPAREN {Cat []}
-  | LPAREN e RPAREN {Cap $2}
   | DO e END {$2}
   | LPAREN semi RPAREN {Inv []}
   | LBRACK e nonempty_list(pair(SEMICOLON, e)) RBRACK {Case ($2, $3)}
@@ -204,7 +203,11 @@ term:
     COMMA, 
     separated_pair(e, WIDE_ARROW, e)
   ) RBRACK {Map $2}
-  | bin(e) {let l, lst, r = $1 in Bin (l, lst, r)}
+  | bin(e) {
+    match $1 with
+    | 0, [x], 0 -> Cap x
+    | l, lst, r -> Bin (l, lst, r)
+  }
   
   | CAP {EData $1}
   | LBRACE sep_pop_list_ge_2(COMMA, e) rbrace {Prod $2}
@@ -233,11 +236,8 @@ term:
 %inline rbrace: RBRACE {assert ($1 == Gre)}
 
 bin(entry): 
-  | LPAREN list(semi) sep_pop_list_ge_2(COMMA, entry) list(semi) RPAREN
+  | LPAREN list(semi) separated_nonempty_list(COMMA, entry) list(semi) RPAREN
     {List.length $2, $3, List.length $4}
-  | LPAREN nonempty_list(semi) entry list(semi) RPAREN
-    {List.length $2, [$3], List.length $4}
-  | LPAREN entry nonempty_list(semi) RPAREN {0, [$2], List.length $3}
 
 p: 
   | p p_bop p {PBop ($1, $2, $3)}
@@ -267,7 +267,11 @@ p_term:
     COMMA, 
     separated_pair(p, BACKARROW, e)
   ) RBRACK {PMap (let+ x, y = $2 in y, x)}
-  | bin(p) {let l, lst, r = $1 in PBin (l, lst, r)}
+  | bin(p) {
+    match $1 with
+    | 0, [x], 0 -> x
+    | l, lst, r -> PBin (l, lst, r)
+  }
   
   | CAP {PData $1}
   | LBRACE sep_pop_list_ge_2(COMMA, p) RBRACE {PProd $2}
