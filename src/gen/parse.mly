@@ -57,6 +57,7 @@
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right EXP
+%nonassoc TIMES_BRACK QUANT
 %left TILDE
 %left DOT
 
