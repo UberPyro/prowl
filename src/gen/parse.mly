@@ -196,6 +196,8 @@ term:
   | LPAREN RPAREN {Cat []}
   | DO e END {$2}
   | LPAREN semi RPAREN {Inv []}
+  | LBRACE rbrace {Capture (Cat [])}
+  | LBRACE semi rbrace {Capture (Inv [])}
   | LBRACK e nonempty_list(pair(SEMICOLON, e)) RBRACK {Case ($2, $3)}
   | INV_BRACK separated_list(semi, e) RBRACK {Inv $2}
 
