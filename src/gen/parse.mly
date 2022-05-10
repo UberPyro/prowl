@@ -85,17 +85,18 @@ sp:
 
 %inline data: ioption(constr) data_term {Option.default (TCat []) $1, $2}
 %inline data_term: 
-  | separated_nonempty_list(
-    semi, 
-    pair(nonempty_list(ty_term), CAP)
-  ) {let+ x = $1 in [x]}
+  | separated_nonempty_list(semi, constructor) {let+ x = $1 in [x]}
   | LBRACE separated_nonempty_list(
     semi, 
-    sep_pop_list_ge_2(
-      COMMA, 
-      pair(nonempty_list(ty_term), CAP)
-    )
+    sep_pop_list_ge_2(COMMA, constructor)
   ) rbrace {$2}
+
+%inline constructor: 
+  | nonempty_list(ty_term) {
+    match List.rev $1 with    
+    | (TGen s) :: t -> List.rev t, s
+    | _ -> failwith "Rightmost term is not a constructor"
+  }
 
 ty_eff: 
   | ioption(ty_stack) EFFECT ioption(ty_stack)
