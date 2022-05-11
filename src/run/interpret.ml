@@ -1,6 +1,6 @@
 open Batteries
 module Dict = Map.Make(struct type t = string let compare = compare end)
-open Dict.Infix
+open! Dict.Infix
 
 open Ast
 open Util
@@ -16,11 +16,15 @@ type ty_val =
 type e_val = 
   | VInt of int
   | VStr of string
-  | EBin of (e_val, e_val) Either.t
-  | ECapture of e
+  | VBin of (e_val, e_val) Either.t
+  | VCapture of e
                           (* is impl *)
-  | EMod of ty_val Dict.t * (bool * ty_val) Dict.t
+  | VMod of ty_val Dict.t * (bool * ty_val) Dict.t
 
-(* type st = {
-  tyctx: 
-} *)
+type st = {
+  tyctx: ty_val Dict.t;
+  ctx: e_val Dict.t;
+  stk: e_val list;
+}
+
+(* let program st (_, expr) = e st expr *)
