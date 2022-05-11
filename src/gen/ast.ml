@@ -12,7 +12,7 @@ let multispan_of_pos (p1, p2) =
 let pp_loc c f (a, loc) = 
   c f a; 
   let x1, y1, x2, y2 = multispan_of_pos loc in
-  Printf.sprintf "[%d:%d] => [%d:%d]" x1 y1 x2 y2
+  Printf.sprintf " [%d:%d] => [%d:%d]" x1 y1 x2 y2
   |> pp_print_string f
 
 type access_mod = Pub | Opaq | Priv [@@deriving show]
