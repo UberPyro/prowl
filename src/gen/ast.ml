@@ -1,13 +1,18 @@
+type 'a loc = 'a * (Lexing.position * Lexing.position)
+
 type access_mod = Pub | Opaq | Priv
 
-type sp = 
+and sp = sp_t loc
+and sp_t = 
   | SDef of string * ty
   | STy of string * (string list * ty) option
   | SData of string * string list * data
 
-and ty = ty_term * ty_eff
+and ty = ty_t loc
+and ty_t = ty_term * ty_eff
 and ty_eff = ty_term * ty_term
-and ty_term = 
+and ty_term = ty_term_t loc
+and ty_term_t = 
   | TId of string
   | TGen of string
   | TAccess of ty_term * string
@@ -21,10 +26,13 @@ and ty_term =
   | TSig of sp list
   | TMod of sp list
 
-and data = ty_term * data_term
-and data_term = (ty_term list * string) list list
+and data = data_t loc
+and data_t = ty_term * data_term
+and data_term = data_term_t loc
+and data_term_t = (ty_term list * string) list list
 
-and s = 
+and s = s_t loc
+and s_t = 
   | Def of access_mod * [`def | `impl] * p * e * ty option
   | Open of e
   | Use of e
@@ -44,13 +52,15 @@ and quant =
   | Max of e
   | Range of e * e
 
-and stack_comb = 
+and stack_comb = stack_comb_t loc
+and stack_comb_t = 
   | Dup of int
   | Zap of int
   | Rot of int
   | Run of int
 
-and e = 
+and e = e_t loc
+and e_t = 
   | Id of string
   | Access of e * string
   | Get of e * e
@@ -91,7 +101,8 @@ and e =
   | Cap of e
   | Atomic of e
 
-and p = 
+and p = p_t loc
+and p_t = 
   | PId of string
   | PAccess of p * string
   | PBlank

@@ -3,13 +3,9 @@
   open Ast
 
   open Util
-
-  let ty_conv = function
-    | Some st -> st
-    | None -> TCat []
   
-  let e_of_lst = function
-    | [h] -> h
+  let e_t_of_lst : e list -> e_t = function
+    | [h, _] -> h
     | lst -> Cat lst
 %}
 
@@ -48,7 +44,7 @@
 %token<float> FLOAT
 %token<char> CHAR
 
-%token<Ast.e> COMB
+%token<Ast.e_t> COMB
 %token<Ast.quant * Ast.greed> QUANT
 %token<Ast.greed> SEMICOLON RBRACE
 
@@ -82,12 +78,14 @@ program: access e EOF {$1, $2}
   | OPAQ {Opaq}
   | {Priv}
 
-sp: 
+sp: sp_t {$1, $loc}
+%inline sp_t: 
   | DEF ID ASSIGN ty {SDef ($2, $4)}
   | TYPE ID ioption(separated_pair(list(CAP), ASSIGN, ty)) {STy ($2, $3)}
   | DATA ID list(CAP) ASSIGN data {SData ($2, $3, $5)}
 
-%inline ty: ioption(constr) ty_eff {Option.default (TCat []) $1, $2}
+%inline ty: ty_t {$1, $loc}
+%inline ty_t: ioption(constr) ty_eff {(Option.default (TCat []) $1, $loc), $2}
 %inline constr: ty_eff CONSTRAINT {
   match $1 with
   | (TCat [], v) -> v
@@ -95,8 +93,10 @@ sp:
   | _ -> failwith "Not a constraint"
 }
 
-%inline data: ioption(constr) data_term {Option.default (TCat []) $1, $2}
-%inline data_term: 
+%inline data: data_t {$1, $loc}
+%inline data_t: ioption(constr) data_term {Option.default (TCat []) $1, $2}
+%inline data_term: data_term_t {$1, $loc}
+%inline data_term_t: 
   | separated_nonempty_list(semi, constructor) {let+ x = $1 in [x]}
   | LBRACE separated_nonempty_list(
     semi, 
@@ -111,19 +111,25 @@ sp:
   }
 
 ty_eff: 
-  | ioption(ty_stack) EFFECT ioption(ty_stack)
-    {ty_conv $1, ty_conv $3}
-  | ty_stack {TCat [], $1}
+  | ioption(ty_stack) EFFECT ioption(ty_stack) {
+    let ty_conv = function
+    | Some st -> st
+    | None -> TCat [], $loc in
+    ty_conv $1, 
+    ty_conv $3
+  }
+  | ty_stack {(TCat [], $loc), $1}
 
 %inline ty_stack: 
   | ty_term {$1}
-  | pop_list_ge_2(ty_term) {TCat $1}
+  | pop_list_ge_2(ty_term) {TCat $1, $loc}
 
-ty_term: 
+ty_term: ty_term_t {$1, $loc}
+%inline ty_term_t: 
   | ID {TId $1}
   | CAP {TGen $1}
   | ty_term DOT ID {TAccess ($1, $3)}
-  | LBRACE rbrace {TCapture (TCat [], TCat [])}
+  | LBRACE rbrace {TCapture ((TCat [], $loc), (TCat [], $loc))}
   | LBRACE ty_eff rbrace {TCapture $2}
   | LBRACK ty_eff RBRACK {TList $2}
   | LBRACK ty_stack WIDE_ARROW ty_eff RBRACK {TMap ($2, $4)}
@@ -142,7 +148,8 @@ ty_term:
 %inline sep_pop_list_ge_2(sep, entry): 
   | entry sep separated_nonempty_list(sep, entry) {$1 :: $3}
 
-s: 
+s: s_t {$1, $loc}
+%inline s_t: 
   | access s_kw p ioption(preceded(COLON, ty)) ASSIGN e
     {Def ($1, $2, $3, $6, $4)}
   | OPEN e {Open $2}
@@ -165,27 +172,31 @@ s:
   | DATA {`data}
   | ALIAS {`alias}
 
-e: 
+e: e_t {$1, $loc}
+%inline e_t: 
   | bop {Sect $1}
   | bop bexp {SectLeft ($1, $2)}
   | bexp bop {SectRight ($1, $2)}
-  | bexp {$1}
-  | bind_e {$1}
+  | bexp {let b, _ = $1 in b}
+  | bind_e {let b, _ = $1 in b}
   | bexp bind_e {Cat [$1; $2]}
   | bexp bop bind_e {Bop ($1, $2, $3)}
 
-%inline bind_e: 
+%inline bind_e: bind_e_t {$1, $loc}
+%inline bind_e_t: 
   | let_body(LET) list(let_body(AND)) ARROW e {Let ($1 :: $2, $4)}
   | AS p ARROW e {As ($1, $2, $4)}
 
 %inline let_body(kw): 
   | kw p ASSIGN e {$1, $2, $4}
 
-bexp: 
+bexp: bexp_t {$1, $loc}
+%inline bexp_t: 
   | bexp bop bexp {Bop ($1, $2, $3)}
-  | nonempty_list(term) {e_of_lst $1}
+  | nonempty_list(term) {e_t_of_lst $1}
 
-term: 
+term: term_t {$1, $loc}
+%inline term_t: 
   | ID {Id $1}
 
   | term DOT ID {Access ($1, $3)}
@@ -199,10 +210,10 @@ term:
   | UNIT {Unit}
 
   | LPAREN RPAREN {Cat []}
-  | DO e END {$2}
+  | DO e END {let (d, _) = $2 in d}
   | LPAREN semi RPAREN {Inv []}
-  | LBRACE rbrace {Capture (Cat [])}
-  | LBRACE semi rbrace {Capture (Inv [])}
+  | LBRACE rbrace {Capture (Cat [], $loc)}
+  | LBRACE semi rbrace {Capture (Inv [], $loc)}
   | LBRACK e nonempty_list(pair(SEMICOLON, e)) RBRACK {Case ($2, $3)}
   | INV_BRACK separated_list(semi, e) RBRACK {Inv $2}
 
@@ -247,22 +258,24 @@ bin(entry):
   | LPAREN list(semi) separated_nonempty_list(COMMA, entry) list(semi) RPAREN
     {List.length $2, $3, List.length $4}
 
-p: 
+p: p_t {$1, $loc}
+%inline p_t: 
   | p p_bop p {PBop ($1, $2, $3)}
   | LPAREN list(semi) p COLON ty RPAREN
     {assert (List.length $2 == 0); PAsc ($3, $5)}
   | nonempty_list(p_term) {
     match $1 with
-    | [h] -> h
+    | [h, _] -> h
     | lst -> PCat lst
   }
 
-p_term: 
+p_term: p_term_t {$1, $loc}
+%inline p_term_t: 
   | ID {PId $1}
   | p_term DOT ID {PAccess ($1, $3)}
   | COMB {
     match $1 with
-    | StackComb [Dup _]  -> PBlank
+    | StackComb [Dup _, _]  -> PBlank
     | _ -> failwith "Stack Combinator in Pattern"
   }
   | BLANK {PBlank}
@@ -282,7 +295,7 @@ p_term:
   ) RBRACK {PMap (let+ x, y = $2 in y, x)}
   | bin(p) {
     match $1 with
-    | 0, [x], 0 -> x
+    | 0, [x, _], 0 -> x
     | l, lst, r -> PBin (l, lst, r)
   }
   

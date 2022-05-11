@@ -7,7 +7,7 @@
 %token<int> DUP ZAP ROT RUN
 %token EOF
 
-%start<e> parse
+%start<e_t> parse
 
 %%
 
