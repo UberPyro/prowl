@@ -5,7 +5,6 @@ type sp =
   | STy of string * (string list * ty) option
   | SData of string * string list * data
 
-      (* constraints *)
 and ty = ty_term * ty_eff
 and ty_eff = ty_term * ty_term
 and ty_term = 
