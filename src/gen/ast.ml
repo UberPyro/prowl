@@ -1,4 +1,19 @@
-type 'a loc = 'a * (Lexing.position * Lexing.position)
+open Format
+open Lexing
+
+type 'a loc = 'a * (position * position)
+
+let span_of_pos p = p.pos_lnum, p.pos_cnum - p.pos_bol
+let multispan_of_pos (p1, p2) = 
+  let x1, y1 = span_of_pos p1 in
+  let x2, y2 = span_of_pos p2 in
+  x1, y1, x2, y2
+
+let pp_loc c f (a, loc) = 
+  c f a; 
+  let x1, y1, x2, y2 = multispan_of_pos loc in
+  Printf.sprintf "[%d:%d] => [%d:%d]" x1 y1 x2 y2
+  |> pp_print_string f
 
 type access_mod = Pub | Opaq | Priv
 
