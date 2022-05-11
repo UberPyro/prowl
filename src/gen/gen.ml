@@ -30,12 +30,14 @@ let c_str s = function
   | n -> sprintf "%s %d" s n
 
 let string_of_comb = function
-  | StackComb lst -> List.map begin function
+  | StackComb lst -> 
+    List.map fst lst
+    |> List.map begin function
       | Dup n -> c_str "DUP" n
       | Zap n -> c_str "ZAP" n
       | Rot n -> c_str "ROT" n
       | Run n -> c_str "RUN" n
-    end lst |> String.concat "; "
+    end |> String.concat "; "
   | _ -> failwith "Not a stack combinator"
 
 let string_of_bindop op = function

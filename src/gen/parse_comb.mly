@@ -11,7 +11,8 @@
 
 %%
 
-%inline op: 
+%inline op: op_t {$1, $loc}
+%inline op_t: 
   | DUP {Dup $1}
   | ZAP {Zap $1}
   | ROT {Rot $1}

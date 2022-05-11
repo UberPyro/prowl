@@ -88,13 +88,14 @@ sp: sp_t {$1, $loc}
 %inline ty_t: ioption(constr) ty_eff {(Option.default (TCat []) $1, $loc), $2}
 %inline constr: ty_eff CONSTRAINT {
   match $1 with
-  | (TCat [], v) -> v
-  | (TCat _, _) -> failwith "Constraints cannot have an input"
+  | ((TCat [], _), (v, _)) -> v
+  | ((TCat _, _), _) -> failwith "Constraints cannot have an input"
   | _ -> failwith "Not a constraint"
 }
 
 %inline data: data_t {$1, $loc}
-%inline data_t: ioption(constr) data_term {Option.default (TCat []) $1, $2}
+%inline data_t: 
+  | ioption(constr) data_term {(Option.default (TCat []) $1, $loc), $2}
 %inline data_term: data_term_t {$1, $loc}
 %inline data_term_t: 
   | separated_nonempty_list(semi, constructor) {let+ x = $1 in [x]}
@@ -106,7 +107,7 @@ sp: sp_t {$1, $loc}
 %inline constructor: 
   | nonempty_list(ty_term) {
     match List.rev $1 with    
-    | (TGen s) :: t -> List.rev t, s
+    | (TGen s, _) :: t -> List.rev t, s
     | _ -> failwith "Rightmost term is not a constructor"
   }
 
