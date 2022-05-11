@@ -7,6 +7,10 @@
   let ty_conv = function
     | Some st -> st
     | None -> TCat []
+  
+  let e_of_lst = function
+    | [h] -> h
+    | lst -> Cat lst
 %}
 
 %token
@@ -166,6 +170,11 @@ e:
   | bop bexp {SectLeft ($1, $2)}
   | bexp bop {SectRight ($1, $2)}
   | bexp {$1}
+  | bind_e {$1}
+  | bexp bind_e {Cat [$1; $2]}
+  | bexp bop bind_e {Bop ($1, $2, $3)}
+
+%inline bind_e: 
   | let_body(LET) list(let_body(AND)) ARROW e {Let ($1 :: $2, $4)}
   | AS p ARROW e {As ($1, $2, $4)}
 
@@ -174,11 +183,7 @@ e:
 
 bexp: 
   | bexp bop bexp {Bop ($1, $2, $3)}
-  | nonempty_list(term) {
-    match $1 with
-    | [h] -> h
-    | lst -> Cat lst
-  }
+  | nonempty_list(term) {e_of_lst $1}
 
 term: 
   | ID {Id $1}

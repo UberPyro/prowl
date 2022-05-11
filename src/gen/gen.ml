@@ -10,8 +10,8 @@ let parse ch =
   | _ ->
     let p = lexbuf.lex_curr_p in
     Printf.sprintf
-      "Invalid Token at [%d,%d]"
-      p.pos_lnum p.pos_cnum
+      "Unexpected Token at [%d,%d]"
+      p.pos_lnum (p.pos_cnum - p.pos_bol)
     |> failwith
 
 let string_of_quant = function

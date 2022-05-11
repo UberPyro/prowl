@@ -1,9 +1,11 @@
 { open Batteries
+  open Lexing
   
   open Lex_proc
   open Parse    }
 
-let whitespace = ([' ' '\r' '\n'] | '\r' '\n')+
+let eol = ['\r' '\n'] | '\r' '\n'
+let whitespace = ' '+
 
 let digit = ['0'-'9']
 let sig_digits = ['1'-'9'] digit*
@@ -43,6 +45,7 @@ let greed = ['?' '+']?
 rule token = parse
   | "/*"        {comment 0 lexbuf}
   | eof         {EOF}
+  | eol         {new_line lexbuf; set_cat(); token lexbuf}
   | whitespace  {set_cat(); token lexbuf}
   | '\t'        {set_cat(); advance lexbuf; token lexbuf}
 
