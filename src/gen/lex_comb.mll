@@ -12,6 +12,6 @@ rule token = parse
   | "$" (num as n) {RUN (int_of_string n)}
   | "^" {DUP 1}
   | "_" {ZAP 1}
-  | "%" {ROT 1}
+  | "%" {ROT 2}
   | "$" {RUN 1}
   | eof {EOF}
