@@ -1,5 +1,4 @@
-let nfib n m = 
-  let nfib-step = ^ m take sum push ->
-  [0, 1] nfib-step{n} hd -> 
+let nfib n m =
+  [0, 1] (^ m take sum push){n} hd -> 
 
 to-int % to-int % nfib
