@@ -15,18 +15,19 @@ let pp_loc c f (a, loc) =
   Printf.sprintf "[%d:%d] => [%d:%d]" x1 y1 x2 y2
   |> pp_print_string f
 
-type access_mod = Pub | Opaq | Priv
+type access_mod = Pub | Opaq | Priv [@@deriving show]
 
-and sp = sp_t loc
+and sp = sp_t loc [@@deriving show]
 and sp_t = 
   | SDef of string * ty
   | STy of string * (string list * ty) option
   | SData of string * string list * data
+  [@@deriving show]
 
-and ty = ty_t loc
-and ty_t = ty_term * ty_eff
-and ty_eff = ty_term * ty_term
-and ty_term = ty_term_t loc
+and ty = ty_t loc [@@deriving show]
+and ty_t = ty_term * ty_eff [@@deriving show]
+and ty_eff = ty_term * ty_term [@@deriving show]
+and ty_term = ty_term_t loc [@@deriving show]
 and ty_term_t = 
   | TId of string
   | TGen of string
@@ -40,13 +41,14 @@ and ty_term_t =
   | TBin of ty_eff list list
   | TSig of sp list
   | TMod of sp list
+  [@@deriving show]
 
-and data = data_t loc
-and data_t = ty_term * data_term
-and data_term = data_term_t loc
-and data_term_t = (ty_term list * string) list list
+and data = data_t loc [@@deriving show]
+and data_t = ty_term * data_term [@@deriving show]
+and data_term = data_term_t loc [@@deriving show]
+and data_term_t = (ty_term list * string) list list [@@deriving show]
 
-and s = s_t loc
+and s = s_t loc [@@deriving show]
 and s_t = 
   | Def of access_mod * [`def | `impl] * p * e * ty option
   | Open of e
@@ -56,8 +58,9 @@ and s_t =
     * string * (string list * ty) option
   | Data of access_mod * [`data | `alias]
     * string * string list * data
+  [@@deriving show]
 
-and greed = Gre | Rel | Cut
+and greed = Gre | Rel | Cut [@@deriving show]
 and quant = 
   | Opt
   | Plus
@@ -66,15 +69,17 @@ and quant =
   | Min of e
   | Max of e
   | Range of e * e
+  [@@deriving show]
 
-and stack_comb = stack_comb_t loc
+and stack_comb = stack_comb_t loc [@@deriving show]
 and stack_comb_t = 
   | Dup of int
   | Zap of int
   | Rot of int
   | Run of int
+  [@@deriving show]
 
-and e = e_t loc
+and e = e_t loc [@@deriving show]
 and e_t = 
   | Id of string
   | Access of e * string
@@ -115,8 +120,9 @@ and e_t =
   | Noncap of e
   | Cap of e
   | Atomic of e
+  [@@deriving show]
 
-and p = p_t loc
+and p = p_t loc [@@deriving show]
 and p_t = 
   | PId of string
   | PAccess of p * string
@@ -141,5 +147,6 @@ and p_t =
 
   | PBop of p * string * p
   | PSym of string
+  [@@deriving show]
 
-and program = access_mod * e
+and program = access_mod * e [@@deriving show]
