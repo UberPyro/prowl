@@ -100,7 +100,9 @@ and e st (expr, _) = match expr with
     | _ -> failwith "Bad arg in quantifier"
     end
   
-  | _ -> failwith "Unimplemented - expression"
+  | _ ->
+    print_endline (show_e_t expr);
+    failwith "Unimplemented - expression"
 
 and arith_bop st0 e1 op e2 = 
   let st1 = e st0 e1 in
@@ -110,6 +112,28 @@ and arith_bop st0 e1 op e2 =
       Some {st with stk = VInt (op i1 i2) :: t}
     | _ -> failwith "Type Error: Expected integer"
   end
+
+(* maybe abstract over the stack update *)
+and comb st0 (c, _) = List.fold_left begin fun st1 -> function
+  | Dup i -> Option.bind st1 begin
+    fun stx -> Some {stx with stk = List.at stx.stk i :: stx.stk}
+  end
+  | Zap i -> Option.bind st1 begin
+    fun stx -> Some {stx with stk = List.remove_at i stx.stk}
+  end
+  | Rot 2 -> Option.bind st1 begin function 
+    | ({stk = h1 :: h2 :: t; _} as stx) -> 
+      Some {stx with stk = h2 :: h1 :: t}
+    | _ -> failwith "Stack underflow (swap)"
+  end
+  | Run i -> Option.bind st1 begin
+    fun stx -> 
+      match List.at stx.stk i with
+      | VCapture ex -> e {stx with stk = List.remove_at i stx.stk} ex
+      | _ -> failwith "Type Error: Cannot call nonclosure"
+  end
+  | Rot _ -> failwith "Unimplemented - rot n"
+end st0 c
 
 and p (st : st) (px, _ : p) : st option = match px with
   | PId s -> begin match st.stk with
