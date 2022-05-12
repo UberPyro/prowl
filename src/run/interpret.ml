@@ -33,7 +33,23 @@ let string_of_v = function
   | _ -> failwith "Unimplemented"
 
 let null_st = {(* tyctx=Dict.empty; *) ctx=Dict.empty; stk=[]}
+
+let init_ctx = [
+
+] |> List.enum |> Dict.of_enum
+
 let lit st v = Some {st with stk = v :: st.stk}
+let bop st op = 
+  match st.stk with
+  | h2 :: h1 :: t -> Some {st with stk = op h1 h2 :: t}
+  | _ -> failwith "Stack underflow"
+let arith_bop st op = bop st begin function
+    | VInt i1 -> begin function
+        | VInt i2 -> VInt (op i1 i2)
+        | _ -> failwith "Type Error: Expected int"
+      end
+    | _ -> failwith "Type Error: Expected int"
+  end
 
 let rec program st (_, expr) = e st expr
 
@@ -43,6 +59,10 @@ and e st (expr, _) = match expr with
   | Bin (i1, v, i2) -> lit st (VBin (i1, v, i2))
   | Capture ast -> lit st (VCapture ast)
 
+  | Sym "+" -> arith_bop st (+)
+  | Sym "-" -> arith_bop st (-)
+  | Sym "*" -> arith_bop st ( * )
+  | Sym "/" -> arith_bop st (/)
   | Sym s -> e st (st.ctx --> s)
   
   | _ -> failwith "Unimplemented"
