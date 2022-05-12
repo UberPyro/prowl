@@ -19,6 +19,7 @@ type e_val =
   | VCapture of e
                           (* is impl *)
   (* | VMod of ty_val Dict.t * (bool * ty_val) Dict.t *)
+  [@@deriving show]
 
 type st = {
   (* tyctx: ty_val Dict.t; *)
@@ -44,11 +45,11 @@ let bop st op =
   | h2 :: h1 :: t -> Some {st with stk = op h1 h2 :: t}
   | _ -> failwith "Stack underflow"
 let arith_bop st op = bop st begin function
-    | VInt i1 -> begin function
-        | VInt i2 -> VInt (op i1 i2)
+    | VCapture (Int i1, _) -> begin function
+        | VCapture (Int i2, _) -> VInt (op i1 i2)
         | _ -> failwith "Type Error: Expected int"
       end
-    | _ -> failwith "Type Error: Expected int"
+    | v -> failwith ("Type Error: Expected int, value is " ^ show_e_val v)
   end
 
 let rec program st (_, expr) = e st expr
@@ -64,5 +65,15 @@ and e st (expr, _) = match expr with
   | Sym "*" -> arith_bop st ( * )
   | Sym "/" -> arith_bop st (/)
   | Sym s -> e st (st.ctx --> s)
+
+  (* TODO: Generalize, improve errors *)
+  | Bop ((_, p1) as e1, "+", e2) -> 
+    e st (Cat [Capture e1, p1; Capture e2, p1; Sym "+", p1], p1)
+  | Bop ((_, p1) as e1, "*", e2) -> 
+    e st (Cat [Capture e1, p1; Capture e2, p1; Sym "*", p1], p1)
+
+  | Cat lst -> List.fold_left begin fun a x -> 
+      Option.bind a (fun y -> e y x)
+    end (Some st) lst
   
   | _ -> failwith "Unimplemented"
