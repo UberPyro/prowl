@@ -73,6 +73,8 @@ and e st (expr, _) = match expr with
   end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
     | "", (PId s, _), ex -> a <-- (s, VImm ex)
+    | "", (PCat ((PId s, z) :: t), y), ex ->
+      a <-- (s, VImm (As ("", (PCat t, y), ex), z))
     | "", px, ex -> 
     begin match Option.bind (e st ex) (fun st2 -> p st2 px) with
       | None -> failwith "Failing Let expression"
