@@ -1,16 +1,16 @@
 open Batteries
 module Dict = Map.Make(struct type t = string let compare = compare end)
-open! Dict.Infix
+open Dict.Infix
 
 open Ast
 
-type ty_val = 
+(* type ty_val = 
   | YInt
   | YStr
   | YBin of ty_val list list
   | YCapture of ty_eff
          (* is class?     type ctx *)  (* data ctx *)
-  | YSig of (bool * ty_val) Dict.t * ty_val Dict.t
+  | YSig of (bool * ty_val) Dict.t * ty_val Dict.t *)
 
 type e_val = 
   | VInt of int
@@ -18,11 +18,11 @@ type e_val =
   | VBin of int * e list * int
   | VCapture of e
                           (* is impl *)
-  | VMod of ty_val Dict.t * (bool * ty_val) Dict.t
+  (* | VMod of ty_val Dict.t * (bool * ty_val) Dict.t *)
 
 type st = {
-  tyctx: ty_val Dict.t;
-  ctx: e_val Dict.t;
+  (* tyctx: ty_val Dict.t; *)
+  ctx: e Dict.t;
   stk: e_val list;
 }
 
@@ -32,7 +32,7 @@ let string_of_v = function
   
   | _ -> failwith "Unimplemented"
 
-let null_st = {tyctx=Dict.empty; ctx=Dict.empty; stk=[]}
+let null_st = {(* tyctx=Dict.empty; *) ctx=Dict.empty; stk=[]}
 let lit st v = Some {st with stk = v :: st.stk}
 
 let rec program st (_, expr) = e st expr
@@ -42,5 +42,7 @@ and e st (expr, _) = match expr with
   | Str s -> lit st (VStr s)
   | Bin (i1, v, i2) -> lit st (VBin (i1, v, i2))
   | Capture ast -> lit st (VCapture ast)
+
+  | Sym s -> e st (st.ctx --> s)
   
   | _ -> failwith "Unimplemented"
