@@ -16,7 +16,8 @@ type ty_val =
 type e_val = 
   | VInt of int
   | VStr of string
-  | VBin of (e_val, e_val) Either.t
+  | VEith of (e_val, e_val) Either.t
+  | VPair of e_val * e_val
   | VCapture of e
                           (* is impl *)
   | VMod of ty_val Dict.t * (bool * ty_val) Dict.t
@@ -27,4 +28,24 @@ type st = {
   stk: e_val list;
 }
 
-(* let program st (_, expr) = e st expr *)
+let rec eith_of_ints i1 v i2 = match i1, i2 with
+  | 0, 0 -> v
+  | n, 0 -> eith_of_ints (n - 1) (VEith (Either.R v)) 0
+  | n, m -> eith_of_ints n (VEith (Either.L v)) (m - 1)
+
+let rec pair_of_lst = function
+  | h1 :: h2 :: t -> pair_of_lst (VPair (h1, h2) :: t)
+  | h :: [] -> h
+  | [] -> failwith "Monoples are banned"
+
+let rec program st (_, expr) = e st expr
+
+and e st (expr, _) = match expr with
+  | Int i -> VInt i
+  | Str s -> VStr s
+  | Bin (i1, lst, i2) -> 
+    let prod = List.map (e st) lst |> pair_of_lst in
+    eith_of_ints i1 prod i2
+  | Capture ast -> VCapture ast
+  
+  | _ -> failwith "Todo"
