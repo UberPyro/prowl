@@ -74,6 +74,7 @@ and e st (expr, _) = match expr with
   | Id s -> begin match st.ctx --> s with
     | VImm ex -> e st ex
     | x -> lit st x (* incomplete? *)
+    | exception Not_found -> failwith ("Unbound id: " ^ s)
 
     (* | x -> 
       print_endline s;
