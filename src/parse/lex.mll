@@ -119,7 +119,7 @@ rule token = parse
 
   | "(" {set_cat(); LPAREN}
   | "[" {set_cat(); LBRACK}
-  | "{" {set_cat(); is_cat LBRACE TIMES_BRACK}
+  | "{" {if !mode == Cat then LBRACE else TIMES_BRACK}
   | ")" {set_regex(); RPAREN}
   | "]" {set_regex(); RBRACK}
   | "}" (greed as g) {set_regex(); RBRACE (parse_greed g)}
@@ -136,7 +136,7 @@ rule token = parse
   | "<>"  {set_regex(); UNIT}
   | "<;>" {set_regex(); VOID}
 
-  | id     as s {ID s}
+  | id     as s {set_regex(); ID s}
   | cap_id as s {CAP s}
   | symbol as s {SYMBOL s}
   | infix  as s {INFIX s}

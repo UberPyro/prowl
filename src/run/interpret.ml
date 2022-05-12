@@ -91,7 +91,7 @@ and e st (expr, _) = match expr with
 
   | Quant (e1, Num e2, Gre) -> 
     Option.bind (e st e2) begin function
-    | {stk = VInt i :: []; _} -> 
+    | {stk = VInt i :: _; _} -> 
       if i < 0 then None
       else let rec loop a = function
         | 0 -> a

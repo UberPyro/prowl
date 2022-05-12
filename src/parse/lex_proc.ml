@@ -16,9 +16,6 @@ let advance lexbuf =
 
 let set_cat () = mode := Cat
 let set_regex () = mode := Regex
-let is_cat a b = 
-  if !mode == Cat
-  then a else b
 
 let utf8encode s =
   let prefs = [|0x0; 0xc0; 0xe0|] in
