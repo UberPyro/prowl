@@ -14,17 +14,16 @@ let interpret = flags "interpret sources" "interpret" 'i'
 let compile = List.iter begin fun file -> 
   if O.get lex_out then File.open_in file |> lex;
   let ast = parse (File.open_in file) in
-  if O.get ast_out then
+  begin if O.get ast_out then
     let str = show_program ast in
     String.nreplace ~str ~sub:"Ast." ~by:""
-    |> print_endline;
-  if O.get interpret then
-    begin match Interpret.(program null_st) ast with
+    |> print_endline end;
+  begin if O.get interpret then
+    match Interpret.(program null_st) ast with
       | Some v -> 
         List.rev_map Interpret.string_of_v v.stk
         |> List.iter print_endline
-      | None -> print_endline "rejected"
-    end
+      | None -> print_endline "rejected" end
 end
 
 let () = match P.parse_argv op with
