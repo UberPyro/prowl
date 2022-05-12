@@ -3,7 +3,6 @@ module Dict = Map.Make(struct type t = string let compare = compare end)
 open! Dict.Infix
 
 open Ast
-open Util
 
 type ty_val = 
   | YInt
@@ -27,6 +26,12 @@ type st = {
   stk: e_val list;
 }
 
+let string_of_v = function
+  | VInt i -> string_of_int i
+  | VStr s -> s
+  
+  | _ -> failwith "Unimplemented"
+
 let null_st = {tyctx=Dict.empty; ctx=Dict.empty; stk=[]}
 let lit st v = Some {st with stk = v :: st.stk}
 
@@ -38,4 +43,4 @@ and e st (expr, _) = match expr with
   | Bin (i1, v, i2) -> lit st (VBin (i1, v, i2))
   | Capture ast -> lit st (VCapture ast)
   
-  | _ -> failwith "Todo"
+  | _ -> failwith "Unimplemented"

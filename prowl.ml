@@ -18,8 +18,13 @@ let compile = List.iter begin fun file ->
     let str = show_program ast in
     String.nreplace ~str ~sub:"Ast." ~by:""
     |> print_endline;
-  (* if O.get interpret then
-    Interpret.program *)
+  if O.get interpret then
+    begin match Interpret.(program null_st) ast with
+      | Some v -> 
+        List.rev_map Interpret.string_of_v v.stk
+        |> List.iter print_endline
+      | None -> print_endline "rejected"
+    end
 end
 
 let () = match P.parse_argv op with
