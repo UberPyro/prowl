@@ -1,1 +1,1 @@
-let x = 5 -> x + 1
+let x = 5 in x + 1

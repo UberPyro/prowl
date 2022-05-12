@@ -54,6 +54,7 @@ and e st (expr, _) = match expr with
   | Bop (e1, "-", e2) -> arith_bop st e1 (-) e2
   | Bop (e1, "*", e2) -> arith_bop st e1 ( * ) e2
   | Bop (e1, "/", e2) -> arith_bop st e1 (/) e2
+  | Bop (e1, "**", e2) -> arith_bop st e1 Int.pow e2
 
   | Bop (e1, "&", e2) -> Option.bind (e st e1) (fun st2 -> e st2 e2)
 
@@ -67,7 +68,7 @@ and e st (expr, _) = match expr with
   end
   | Id s -> begin match st.ctx --> s with
     | VImm ex -> e st ex
-    
+
     | _ -> failwith "Unimplemented - id"
   end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
