@@ -56,7 +56,7 @@ rule token = parse
   | '_' id_char id_tail {BLANK}
   | comb as s {set_regex(); COMB (parse_comb s)}  (* modify to exclude _? *)
   | (((suffix as s) (greed as g)) as z)
-    {if !mode == Cat then SYMBOL z else QUANT (parse_quant s g)}
+    {if !mode == Cat then INFIX z else QUANT (parse_quant s g)}
 
   | "def"   {DEF}
   | "open"  {OPEN}
