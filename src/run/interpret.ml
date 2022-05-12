@@ -1,6 +1,6 @@
 open Batteries
 module Dict = Map.Make(struct type t = string let compare = compare end)
-(* open Dict.Infix *)
+open Dict.Infix
 
 open Ast
 
@@ -23,7 +23,7 @@ type e_val =
 
 type st = {
   (* tyctx: ty_val Dict.t; *)
-  ctx: e Dict.t;
+  ctx: e_val Dict.t;
   stk: e_val list;
 }
 
@@ -74,3 +74,14 @@ and arith_bop st0 e1 op e2 =
       Some {st with stk = VInt (op i1 i2) :: t}
     | _ -> failwith "Type Error: Expected integer"
   end
+
+and p st = function
+  | PId s -> begin match st.stk with
+    | h :: t -> Some {stk = t; ctx = st.ctx <-- (s, h)}
+    | _ -> failwith "Stack Underflow"
+  end
+  | PCat lst -> List.rev lst |> List.fold_left begin fun a (p1, _) -> 
+    Option.bind a (fun st -> p st p1)
+  end (Some st)
+
+  | _ -> failwith "Unimplemented"
