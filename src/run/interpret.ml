@@ -28,6 +28,9 @@ type st = {
   stk: e_val list;
 }
 
+let null_st = {tyctx=Dict.empty; ctx=Dict.empty; stk=[]}
+let lit st v = Some {st with stk = v :: st.stk}
+
 let rec eith_of_ints i1 v i2 = match i1, i2 with
   | 0, 0 -> v
   | n, 0 -> eith_of_ints (n - 1) (VEith (Either.R v)) 0
@@ -41,11 +44,14 @@ let rec pair_of_lst = function
 let rec program st (_, expr) = e st expr
 
 and e st (expr, _) = match expr with
-  | Int i -> VInt i
-  | Str s -> VStr s
+  | Int i -> lit st (VInt i)
+  | Str s -> lit st (VStr s)
+  | Bin (i1, [o], i2) -> 
+    Option.bind (e st o) (fun v -> lit st (eith_of_ints i1 v i2))
+    
   | Bin (i1, lst, i2) -> 
     let prod = List.map (e st) lst |> pair_of_lst in
-    eith_of_ints i1 prod i2
-  | Capture ast -> VCapture ast
+    lit st (eith_of_ints i1 prod i2)
+  (* | Capture ast -> VCapture ast *)
   
   | _ -> failwith "Todo"
