@@ -17,6 +17,7 @@ type e_val =
   | VStr of string
   | VBin of int * e list * int
   | VCapture of e
+  | VImm of e
                           (* is impl *)
   (* | VMod of ty_val Dict.t * (bool * ty_val) Dict.t *)
   [@@deriving show]
@@ -65,10 +66,17 @@ and e st (expr, _) = match expr with
     | _ -> failwith "Type Error: Expected string"
   end
 
-  (* | Let (lst, e1) -> List.fold_left begin fun a -> function
-    | "", px, ex -> Option.map (p st px) (fun st2 -> e st2 e1)
+  | Let (lst, e1) -> List.fold_left begin fun a -> function
+    | "", (PId s, _), ex -> a <-- (s, VImm ex)
+    | "", px, ex -> 
+    begin match Option.bind (e st ex) (fun st2 -> p st2 px) with
+      | None -> failwith "Failing Let expression"
+      | Some c -> c.ctx
+    end
     | _ -> failwith "Unimplemented"
-  end (Some st) lst *)
+  end st.ctx lst |> fun ctx -> e {st with ctx} e1
+
+  | As ("", p1, e1) -> Option.bind (p st p1) (fun st2 -> e st2 e1)
 
   | _ -> failwith "Unimplemented"
 
