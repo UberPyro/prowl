@@ -68,8 +68,12 @@ and e st (expr, _) = match expr with
   end
   | Id s -> begin match st.ctx --> s with
     | VImm ex -> e st ex
+    | x -> lit st x (* incomplete? *)
 
-    | _ -> failwith "Unimplemented - id"
+    (* | x -> 
+      print_endline s;
+      print_endline (show_e_val x); 
+      failwith "Unimplemented - id" *)
   end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
     | "", (PId s, _), ex -> a <-- (s, VImm ex)
