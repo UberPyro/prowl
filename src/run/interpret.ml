@@ -32,7 +32,7 @@ let string_of_v = function
   | VInt i -> string_of_int i
   | VStr s -> s
   
-  | _ -> failwith "Unimplemented"
+  | _ -> failwith "Unimplemented - string_of_v"
 
 let null_st = {(* tyctx=Dict.empty; *) ctx=Dict.empty; stk=[]}
 
@@ -73,12 +73,12 @@ and e st (expr, _) = match expr with
       | None -> failwith "Failing Let expression"
       | Some c -> c.ctx
     end
-    | _ -> failwith "Unimplemented"
+    | _ -> failwith "Unimplemented - let op"
   end st.ctx lst |> fun ctx -> e {st with ctx} e1
 
   | As ("", p1, e1) -> Option.bind (p st p1) (fun st2 -> e st2 e1)
 
-  | _ -> failwith "Unimplemented"
+  | _ -> failwith "Unimplemented - expression"
 
 and arith_bop st0 e1 op e2 = 
   let st1 = e st0 e1 in
@@ -98,4 +98,4 @@ and p (st : st) (px, _ : p) : st option = match px with
     Option.bind a (fun st -> p st p1)
   end (Some st) (List.rev lst)
 
-  | _ -> failwith "Unimplemented"
+  | _ -> failwith "Unimplemented - pattern"

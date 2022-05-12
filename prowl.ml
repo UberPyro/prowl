@@ -9,12 +9,14 @@ open Ast
 
 let lex_out = flag "output lexemes" "lex"
 let ast_out = flag "output ast as ocaml ADTs" "ast"
+let span_out = flag "output code spans with ast" "span"
 let interpret = flags "interpret sources" "interpret" 'i'
 
 let compile = List.iter begin fun file -> 
   if O.get lex_out then File.open_in file |> lex;
   let ast = parse (File.open_in file) in
   begin if O.get ast_out then
+    (if O.get span_out then span_flag := true);
     let str = show_program ast in
     String.nreplace ~str ~sub:"Ast." ~by:""
     |> print_endline end;
