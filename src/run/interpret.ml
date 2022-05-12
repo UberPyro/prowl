@@ -49,6 +49,7 @@ and e st (expr, _) = match expr with
   | Str s -> lit st (VStr s)
   | Bin (i1, v, i2) -> lit st (VBin (i1, v, i2))
   | Capture ast -> lit st (VCapture ast)
+  | StackComb c -> comb st c
 
   | Bop (e1, "+", e2) -> arith_bop st e1 (+) e2
   | Bop (e1, "-", e2) -> arith_bop st e1 (-) e2
@@ -114,26 +115,26 @@ and arith_bop st0 e1 op e2 =
   end
 
 (* maybe abstract over the stack update *)
-and comb st0 (c, _) = List.fold_left begin fun st1 -> function
-  | Dup i -> Option.bind st1 begin
+and comb st0 = List.fold_left begin fun st1 -> function
+  | Dup i, _ -> Option.bind st1 begin
     fun stx -> Some {stx with stk = List.at stx.stk i :: stx.stk}
   end
-  | Zap i -> Option.bind st1 begin
+  | Zap i, _ -> Option.bind st1 begin
     fun stx -> Some {stx with stk = List.remove_at i stx.stk}
   end
-  | Rot 2 -> Option.bind st1 begin function 
+  | Rot 2, _ -> Option.bind st1 begin function 
     | ({stk = h1 :: h2 :: t; _} as stx) -> 
       Some {stx with stk = h2 :: h1 :: t}
     | _ -> failwith "Stack underflow (swap)"
   end
-  | Run i -> Option.bind st1 begin
+  | Run i, _ -> Option.bind st1 begin
     fun stx -> 
       match List.at stx.stk i with
       | VCapture ex -> e {stx with stk = List.remove_at i stx.stk} ex
       | _ -> failwith "Type Error: Cannot call nonclosure"
   end
-  | Rot _ -> failwith "Unimplemented - rot n"
-end st0 c
+  | Rot _, _ -> failwith "Unimplemented - rot n"
+end (Some st0)
 
 and p (st : st) (px, _ : p) : st option = match px with
   | PId s -> begin match st.stk with
