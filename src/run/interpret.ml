@@ -117,10 +117,10 @@ and arith_bop st0 e1 op e2 =
 (* maybe abstract over the stack update *)
 and comb st0 = List.fold_left begin fun st1 -> function
   | Dup i, _ -> Option.bind st1 begin
-    fun stx -> Some {stx with stk = List.at stx.stk i :: stx.stk}
+    fun stx -> Some {stx with stk = List.at stx.stk (i-1) :: stx.stk}
   end
   | Zap i, _ -> Option.bind st1 begin
-    fun stx -> Some {stx with stk = List.remove_at i stx.stk}
+    fun stx -> Some {stx with stk = List.remove_at (i-1) stx.stk}
   end
   | Rot 2, _ -> Option.bind st1 begin function 
     | ({stk = h1 :: h2 :: t; _} as stx) -> 
@@ -129,8 +129,8 @@ and comb st0 = List.fold_left begin fun st1 -> function
   end
   | Run i, _ -> Option.bind st1 begin
     fun stx -> 
-      match List.at stx.stk i with
-      | VCapture ex -> e {stx with stk = List.remove_at i stx.stk} ex
+      match List.at stx.stk (i-1) with
+      | VCapture ex -> e {stx with stk = List.remove_at (i-1) stx.stk} ex
       | _ -> failwith "Type Error: Cannot call nonclosure"
   end
   | Rot _, _ -> failwith "Unimplemented - rot n"
