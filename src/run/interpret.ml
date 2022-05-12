@@ -65,7 +65,11 @@ and e st (expr, _) = match expr with
     | VStr h :: t -> Some {st with stk = VInt (int_of_string h) :: t}
     | _ -> failwith "Type Error: Expected string"
   end
-
+  | Id s -> begin match st.ctx --> s with
+    | VImm ex -> e st ex
+    
+    | _ -> failwith "Unimplemented - id"
+  end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
     | "", (PId s, _), ex -> a <-- (s, VImm ex)
     | "", px, ex -> 
