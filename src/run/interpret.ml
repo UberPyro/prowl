@@ -54,6 +54,8 @@ and e st (expr, _) = match expr with
   | Bop (e1, "*", e2) -> arith_bop st e1 ( * ) e2
   | Bop (e1, "/", e2) -> arith_bop st e1 (/) e2
 
+  | Bop (e1, "&", e2) -> Option.bind (e st e1) (fun st2 -> e st2 e2)
+
   | Cat lst -> List.fold_left begin fun a x -> 
       Option.bind a (fun y -> e y x)
     end (Some st) lst
