@@ -89,6 +89,17 @@ and e st (expr, _) = match expr with
 
   | As ("", p1, e1) -> Option.bind (p st p1) (fun st2 -> e st2 e1)
 
+  | Quant (e1, Num e2, Gre) -> 
+    Option.bind (e st e2) begin function
+    | {stk = VInt i :: []; _} -> 
+      if i < 0 then None
+      else let rec loop a = function
+        | 0 -> a
+        | j -> loop (Option.bind a (fun stx -> e stx e1)) (j - 1)
+      in loop (Some st) i
+    | _ -> failwith "Bad arg in quantifier"
+    end
+  
   | _ -> failwith "Unimplemented - expression"
 
 and arith_bop st0 e1 op e2 = 
