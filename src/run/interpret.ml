@@ -60,6 +60,9 @@ and e st (expr, _) = match expr with
       Option.bind a (fun y -> e y x)
     end (Some st) lst
   
+  | Id "to-int" -> begin match st.stk with
+    | VStr h :: t -> Some {st with stk = VInt (int_of_string h) :: t}
+    | _ -> failwith "Type Error: Expected string" end
   | _ -> failwith "Unimplemented"
 
 and arith_bop st0 e1 op e2 = 
