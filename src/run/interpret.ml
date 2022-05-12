@@ -64,6 +64,12 @@ and e st (expr, _) = match expr with
     | VStr h :: t -> Some {st with stk = VInt (int_of_string h) :: t}
     | _ -> failwith "Type Error: Expected string"
   end
+
+  (* | Let (lst, e1) -> List.fold_left begin fun a -> function
+    | "", px, ex -> Option.map (p st px) (fun st2 -> e st2 e1)
+    | _ -> failwith "Unimplemented"
+  end (Some st) lst *)
+
   | _ -> failwith "Unimplemented"
 
 and arith_bop st0 e1 op e2 = 
@@ -75,13 +81,13 @@ and arith_bop st0 e1 op e2 =
     | _ -> failwith "Type Error: Expected integer"
   end
 
-and p st = function
+and p (st : st) (px, _ : p) : st option = match px with
   | PId s -> begin match st.stk with
     | h :: t -> Some {stk = t; ctx = st.ctx <-- (s, h)}
     | _ -> failwith "Stack Underflow"
   end
-  | PCat lst -> List.rev lst |> List.fold_left begin fun a (p1, _) -> 
+  | PCat lst -> List.fold_left begin fun a p1 -> 
     Option.bind a (fun st -> p st p1)
-  end (Some st)
+  end (Some st) (List.rev lst)
 
   | _ -> failwith "Unimplemented"
