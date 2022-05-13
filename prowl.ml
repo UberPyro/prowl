@@ -22,8 +22,8 @@ let compile file args =
     String.nreplace ~str ~sub:"Ast." ~by:""
     |> print_endline end;
   begin if O.get interpret then
-    match Interpret.(program {null_st with stk=args}) ast with
-      | Some v -> 
+    match Interpret.(program {null_st with stk=args}) ast |> LazyList.get with
+      | Some (v, _) -> 
         List.rev_map Interpret.string_of_v v.stk
         |> List.iter print_endline
       | None -> print_endline "rejected" end
