@@ -1,3 +1,5 @@
+(* TODO: Reimplement alternation with backtracking semantics! *)
+
 open Batteries
 module Dict = Map.Make(struct type t = string let compare = compare end)
 open Dict.Infix
