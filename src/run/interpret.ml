@@ -66,11 +66,19 @@ and e (expr, _) st = match expr with
   | Bop (e1, "/", e2) -> arith_bop st e1 (/) e2
   | Bop (e1, "**", e2) -> arith_bop st e1 Int.pow e2
 
+  | Bop (e1, "==", e2) -> cmp_bop st e1 (=) e2
+  | Bop (e1, "/=", e2) -> cmp_bop st e1 (<>) e2
+  | Bop (e1, ">", e2) -> cmp_bop st e1 (>) e2
+  | Bop (e1, "<", e2) -> cmp_bop st e1 (<) e2
+  | Bop (e1, ">=", e2) -> cmp_bop st e1 (>=) e2
+  | Bop (e1, "<=", e2) -> cmp_bop st e1 (<=) e2
+
   | Bop (e1, "&", e2) -> (e e1 st) >>= e e2
   | Bop (e1, "|", e2) -> pure st >>= (e e1 <|> e e2)
   | Bop (e1, "&&", e2) -> (e e1 st) *> (e e2 st)
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
+  | Cap e1 -> e e1 st
   
   | Id "to-int" -> begin match st.stk with
     | VStr h :: t -> pure {st with stk = VInt (int_of_string h) :: t}
@@ -114,7 +122,7 @@ and e (expr, _) st = match expr with
     let rec loop lst st1 =
       let st2 = st1 >>= e e1 in
       match LazyList.get st2 with
-      | Some (stx, _) -> loop (LazyList.cons stx lst) st2
+      | Some _ -> loop (st2^@^lst) st2
       | None -> lst in
       loop (pure st) (pure st)
   
@@ -126,6 +134,12 @@ and arith_bop st0 e1 op e2 =
   e e1 st0 >>= e e2 >>= fun st -> match st.stk with
     | VInt i2 :: VInt i1 :: t -> 
       pure {st with stk = VInt (op i1 i2) :: t}
+    | _ -> failwith "Type Error: Expected integer"
+
+and cmp_bop st0 e1 op e2 = 
+  e e1 st0 >>= e e2 >>= fun st -> match st.stk with
+    | VInt i2 :: VInt i1 :: stk -> 
+      if op i1 i2 then pure {st with stk} else LazyList.nil
     | _ -> failwith "Type Error: Expected integer"
 
 (* maybe abstract over the stack update *)

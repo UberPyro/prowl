@@ -53,7 +53,7 @@ rule token = parse
   | "let" (infix? as s) {LET s}
   | "and" (infix? as s) {AND s}
 
-  | '_' id_char id_tail {BLANK}
+  | '_' ['A'-'Z' 'a'-'z'] id_tail {BLANK}
   | comb as s {set_regex(); COMB (parse_comb s)}  (* modify to exclude _? *)
   | (((suffix as s) (greed as g)) as z) {
     if !mode == Cat then begin match z with
