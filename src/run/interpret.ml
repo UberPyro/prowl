@@ -175,5 +175,19 @@ and p (px, _) st = match px with
   end
   | PCat lst ->
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
-
+  | PCapture (PId s, _) -> begin match st.stk with
+    | VCapture vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm vc)}
+    | _ -> failwith "Type Error: matching capture against non-capture (direct)"
+  end
+  | PCapture px -> begin match st.stk with
+    | VCapture vc :: t -> e vc {st with stk = t} >>= p px
+    | _ -> failwith "Type Error: matching capture against non-capture (indirect)"
+  end
+  (* | PBin (i1, plst, i2) -> begin match st.stk with
+    | VBin (j1, elst, j2) :: t
+      when i1 == j1 && List.(length plst == length elst) && i2 == j2 -> 
+      List.fold_left begin fun a (px, ex) -> 
+        st.ctx <-- ()
+      end st.ctx List.(cartesian_product plst elst)
+  end *)
   | _ -> failwith "Unimplemented - pattern"
