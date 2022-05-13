@@ -104,7 +104,7 @@ and e (expr, _) st = match expr with
       if i < 0 then LazyList.nil
       else let rec loop a = function
         | 0 -> a
-        | j -> loop (a >>= (e e1)) (j - 1)
+        | j -> loop (a >>= e e1) (j - 1)
       in loop (pure st) i
     | _ -> failwith "Bad arg in quantifier"
     end
@@ -114,13 +114,10 @@ and e (expr, _) st = match expr with
     failwith "Unimplemented - expression"
 
 and arith_bop st0 e1 op e2 = 
-  let st1 = e e1 st0 in
-  let st2 = st1 >>= (e e2) in
-  st2 >>= begin fun st -> match st.stk with
+  e e1 st0 >>= e e2 >>= fun st -> match st.stk with
     | VInt i2 :: VInt i1 :: t -> 
       pure {st with stk = VInt (op i1 i2) :: t}
     | _ -> failwith "Type Error: Expected integer"
-  end
 
 (* maybe abstract over the stack update *)
 and comb st0 = List.fold_left begin fun st1 -> function
