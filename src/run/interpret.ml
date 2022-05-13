@@ -177,17 +177,20 @@ and p (px, _) st = match px with
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
   | PCapture (PId s, _) -> begin match st.stk with
     | VCapture vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm vc)}
-    | _ -> failwith "Type Error: matching capture against non-capture (direct)"
+    | _ -> failwith "Type Error: matching non-capture against capture (direct)"
   end
   | PCapture px -> begin match st.stk with
     | VCapture vc :: t -> e vc {st with stk = t} >>= p px
-    | _ -> failwith "Type Error: matching capture against non-capture (indirect)"
+    | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
   end
-  (* | PBin (i1, plst, i2) -> begin match st.stk with
+  | PBin (i1, plst, i2) -> begin match st.stk with
     | VBin (j1, elst, j2) :: t
       when i1 == j1 && List.(length plst == length elst) && i2 == j2 -> 
-      List.fold_left begin fun a (px, ex) -> 
-        st.ctx <-- ()
-      end st.ctx List.(cartesian_product plst elst)
-  end *)
+      List.fold_left begin fun a -> function
+        | ((PId s, _), ex) -> 
+          LazyList.map (fun k -> {stk = t; ctx = k.ctx <-- (s, VImm ex)}) a
+        | (px, ex) -> a >>= (fun k -> e ex {k with stk = t} >>= p px)
+      end (pure st) List.(cartesian_product plst elst)
+    | _ -> failwith "Matching non-bindata against bindata"
+  end
   | _ -> failwith "Unimplemented - pattern"
