@@ -6,7 +6,7 @@ let rules = [
 
 and fizzbuzz = 
   (1 ..) as+ n -> 
-  rules <?> (n % div) <&> snd
+  rules <?> n % div <&> snd
   & fold (null n to-str)? -> 
 
 to-int fizzbuzz <#> put
