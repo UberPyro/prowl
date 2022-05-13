@@ -187,10 +187,10 @@ and p (px, _) st = match px with
     | VBin (j1, elst, j2) :: t
       when i1 == j1 && List.(length plst == length elst) && i2 == j2 -> 
       List.fold_left begin fun a -> function
-        | ((PId s, _), ex) -> 
+        | (PId s, _), ex -> 
           LazyList.map (fun k -> {stk = t; ctx = k.ctx <-- (s, VImm ex)}) a
-        | (px, ex) -> a >>= (fun k -> e ex {k with stk = t} >>= p px)
-      end (pure st) List.(cartesian_product plst elst)
+        | px, ex -> a >>= (fun k -> e ex {k with stk = t} >>= p px)
+      end (pure st) List.(combine plst elst)
     | _ -> failwith "Matching non-bindata against bindata"
   end
   | _ -> failwith "Unimplemented - pattern"
