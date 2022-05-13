@@ -125,6 +125,13 @@ and e (expr, _) st = match expr with
       | Some _ -> loop (st2^@^lst) st2
       | None -> lst in
       loop (pure st) (pure st)
+  | Quant (e1, Plus, Gre) -> 
+    let rec loop lst st1 =
+      let st2 = st1 >>= e e1 in
+      match LazyList.get st2 with
+      | Some _ -> loop (st2^@^lst) st2
+      | None -> lst in
+      loop (e e1 st) (pure st)
   
   | _ ->
     print_endline (show_e_t expr);
