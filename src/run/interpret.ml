@@ -8,7 +8,8 @@ open Ast
 let (>>=) x f = LazyList.(map f x |> concat)
 let (>=>) f g x = x >>= f >>= g
 let pure a = LazyList.(cons a nil)
-let (<|>) f g x = (pure x >>= f)^@^(pure x >>= g) 
+let (<|>) f g x = (pure x >>= f)^@^(pure x >>= g)
+let ( *> ) x c = x >>= fun _ -> c
 
 let g ex st l r = st >>= ex l >>= ex r
 
@@ -67,6 +68,7 @@ and e (expr, _) st = match expr with
 
   | Bop (e1, "&", e2) -> (e e1 st) >>= e e2
   | Bop (e1, "|", e2) -> pure st >>= (e e1 <|> e e2)
+  | Bop (e1, "&&", e2) -> (e e1 st) *> (e e2 st)
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   
@@ -108,6 +110,13 @@ and e (expr, _) st = match expr with
       in loop (pure st) i
     | _ -> failwith "Bad arg in quantifier"
     end
+  | Quant (e1, Star, Gre) -> 
+    let rec loop lst st1 =
+      let st2 = st1 >>= e e1 in
+      match LazyList.get st2 with
+      | Some (stx, _) -> loop (LazyList.cons stx lst) st2
+      | None -> lst in
+      loop (pure st) (pure st)
   
   | _ ->
     print_endline (show_e_t expr);
@@ -143,8 +152,7 @@ and p (px, _) st = match px with
     | h :: t -> pure {stk = t; ctx = st.ctx <-- (s, h)}
     | _ -> failwith "Stack Underflow"
   end
-  | PCat lst -> List.fold_left begin fun a p1 -> 
-    a >>= (p p1)
-  end (pure st) (List.rev lst)
+  | PCat lst ->
+    List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
 
   | _ -> failwith "Unimplemented - pattern"
