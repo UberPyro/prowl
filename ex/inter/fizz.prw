@@ -9,4 +9,4 @@ and fizzbuzz =
   rules <?> n % div <&> snd
   & fold (null n to-str)? -> 
 
-to-int fizzbuzz <#> put
+to-int fizzbuzz {put} iter
