@@ -80,7 +80,7 @@ and e (expr, _) st = match expr with
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
-    List.fold_left (fun a x -> a <|> e x) (e e1) (List.rev_map snd elst) st
+    List.fold_left (fun a x -> a <|> e x) (e e1) (List.map snd elst) st
   
   | Id "to-int" -> begin match st.stk with
     | VStr h :: t -> pure {st with stk = VInt (int_of_string h) :: t}
