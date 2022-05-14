@@ -184,13 +184,17 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
   end
   | PBin (i1, plst, i2) -> begin match st.stk with
-    | VBin (j1, elst, j2) :: t
-      when i1 == j1 && List.(length plst == length elst) && i2 == j2 -> 
+    | VBin (0, elst, 0) :: t
+      when List.(length plst == length elst) -> 
       List.fold_left begin fun a -> function
         | (PId s, _), ex -> 
           LazyList.map (fun k -> {stk = t; ctx = k.ctx <-- (s, VImm ex)}) a
         | px, ex -> a >>= (fun k -> e ex {k with stk = t} >>= p px)
       end (pure st) List.(combine plst elst)
+    | VBin (j1, elst, j2) :: t when i2 == j2 && i1 <= j1 -> 
+      pure {st with stk = VBin (j1 - i1, elst, 0) :: t}
+    | VBin (j1, elst, j2) :: t when i1 == 0 && j1 == 0 && i2 <= j2 -> 
+      pure {st with stk = VBin (0, elst, j2 - i2) :: t}
     | _ -> failwith "Matching non-bindata against bindata"
   end
   | _ -> failwith "Unimplemented - pattern"
