@@ -27,6 +27,7 @@ type e_val =
   | VBin of int * e list * int
   | VCapture of e
   | VImm of e
+  | VUnit
                           (* is impl *)
   (* | VMod of ty_val Dict.t * (bool * ty_val) Dict.t *)
   [@@deriving show]
@@ -49,13 +50,18 @@ let init_ctx = [
 
 ] |> List.enum |> Dict.of_enum
 
+let encode_lst loc = List.fold_left begin fun a ex -> 
+  Bin (1, [a, loc; ex], 0)
+end (Bin (0, [Unit, loc], 1))
+
 let lit st v = pure {st with stk = v :: st.stk}
 
 let rec program st (_, expr) = e expr st
 
-and e (expr, _) st = match expr with
+and e (expr, loc) st = match expr with
   | Int i -> lit st (VInt i)
   | Str s -> lit st (VStr s)
+  | Unit -> lit st VUnit
   | Bin (i1, v, i2) -> lit st (VBin (i1, v, i2))
   | Capture ast -> lit st (VCapture ast)
   | StackComb c -> comb st c
@@ -81,6 +87,8 @@ and e (expr, _) st = match expr with
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
     List.fold_left (fun a x -> a <|> e x) (e e1) (List.map snd elst) st
+  
+  | List elst -> e (encode_lst loc elst, loc) st
   
   | Id "to-int" -> begin match st.stk with
     | VStr h :: t -> pure {st with stk = VInt (int_of_string h) :: t}
