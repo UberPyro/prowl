@@ -98,7 +98,9 @@ and e_t =
 
   | List of e list
   | Map of (e * e) list
-  | Bin of int * e list * int
+  | Pair of e * e
+  | Left of e
+  | Right of e
   | EData of string
   | Prod of e list
   | Mod of s list
@@ -144,7 +146,9 @@ and p_t =
 
   | PList of p list
   | PMap of (e * p) list
-  | PBin of int * p list * int
+  | PPair of p * p
+  | PLeft of p
+  | PRight of p
   | PData of string
   | PProd of p list
   | PCapture of p

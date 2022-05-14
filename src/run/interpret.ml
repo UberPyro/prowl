@@ -24,7 +24,9 @@ let g ex st l r = st >>= ex l >>= ex r
 type e_val = 
   | VInt of int
   | VStr of string
-  | VBin of int * e list * int
+  | VPair of e * e
+  | VLeft of e
+  | VRight of e
   | VCapture of e
   | VImm of e
   | VUnit
@@ -47,11 +49,10 @@ let string_of_v = function
   | VInt i -> string_of_int i
   | VStr s -> s
   | VUnit -> "<>"
-  | VBin (i1, ex, i2) -> 
-    Printf.sprintf "(%s%s%s)"
-      (String.repeat ";" i1)
-      (String.concat ", " (List.map enhanced_show_e ex))
-      (String.repeat ";" i2)
+  | VPair (e1, e2) -> 
+    Printf.sprintf "(%s, %s)" (enhanced_show_e e1) (enhanced_show_e e2)
+  | VLeft ex -> Printf.sprintf "(;%s)" (enhanced_show_e ex)
+  | VRight ex -> Printf.sprintf "(%s;)" (enhanced_show_e ex)
   
   | _ -> failwith "Unimplemented - string_of_v"
 
@@ -62,8 +63,8 @@ let init_ctx = [
 ] |> List.enum |> Dict.of_enum
 
 let encode_lst loc = List.fold_left begin fun a ex -> 
-  Bin (1, [a, loc; ex], 0)
-end (Bin (0, [Unit, loc], 1))
+  Right (Pair ((a, loc), ex), loc)
+end (Left (Unit, loc))
 
 let lit st v = pure {st with stk = v :: st.stk}
 
@@ -73,7 +74,9 @@ and e (expr, loc) st = match expr with
   | Int i -> lit st (VInt i)
   | Str s -> lit st (VStr s)
   | Unit -> lit st VUnit
-  | Bin (i1, v, i2) -> lit st (VBin (i1, v, i2))
+  | Pair (e1, e2) -> lit st (VPair (e1, e2))
+  | Left e1 -> lit st (VLeft e1)
+  | Right e1 -> lit st (VRight e1)
   | Capture ast -> lit st (VCapture ast)
   | StackComb c -> comb st c
   | Cap e1 -> e e1 st
@@ -204,7 +207,27 @@ and p (px, loc) st = match px with
     | VCapture vc :: t -> e vc {st with stk = t} >>= p px
     | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
   end
-  | PBin (i1, plst, i2) -> begin match st.stk with
+  | PLeft (PId s, _) -> begin match st.stk with
+    | VLeft vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm vc)}
+    | VRight _ :: _ -> LazyList.nil
+    | _ -> failwith "Type Error: matching non-either on either (direct)"
+  end
+  | PLeft px -> begin match st.stk with
+    | VLeft vc :: t -> e vc {st with stk = t} >>= p px
+    | VRight _ :: _ -> LazyList.nil
+    | _ -> failwith "Type Error: matching non-either on either (indirect)"
+  end
+  | PRight (PId s, _) -> begin match st.stk with
+    | VRight vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm vc)}
+    | VLeft _ :: _ -> LazyList.nil
+    | _ -> failwith "Type Error: matching non-either on either (direct)"
+  end
+  | PRight px -> begin match st.stk with
+    | VRight vc :: t -> e vc {st with stk = t} >>= p px
+    | VLeft _ :: _ -> LazyList.nil
+    | _ -> failwith "Type Error: matching non-either on either (indirect)"
+  end
+  (* | PBin (i1, plst, i2) -> begin match st.stk with
     | VBin (0, elst, 0) :: t
       when List.(length plst == length elst) -> 
       List.fold_left begin fun a -> function
@@ -218,5 +241,5 @@ and p (px, loc) st = match px with
       p (PBin (0, plst, 0), loc) {st with stk = VBin (0, elst, j2 - i2) :: t}
     | VBin _ :: _ -> LazyList.nil
     | _ -> failwith "Matching non-bindata against bindata"
-  end
+  end *)
   | _ -> failwith "Unimplemented - pattern"

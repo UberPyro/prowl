@@ -3,6 +3,7 @@
   open Ast
 
   open Util
+  open Parse_proc
   
   let e_t_of_lst : e list -> e_t = function
     | [h, _] -> h
@@ -226,7 +227,7 @@ term: term_t {$1, $loc}
   | bin(e) {
     match $1 with
     | 0, [x], 0 -> Cap x
-    | l, lst, r -> Bin (l, lst, r)
+    | l, lst, r -> proc_ebin (l, lst, r) |> fst
   }
   
   | CAP {EData $1}
@@ -297,7 +298,7 @@ p_term: p_term_t {$1, $loc}
   | bin(p) {
     match $1 with
     | 0, [x, _], 0 -> x
-    | l, lst, r -> PBin (l, lst, r)
+    | l, lst, r -> proc_pbin (l, lst, r) |> fst
   }
   
   | CAP {PData $1}
