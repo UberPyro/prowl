@@ -185,6 +185,11 @@ and comb st0 = List.fold_left begin fun st1 -> function
       pure {stx with stk = h2 :: h1 :: t}
     | _ -> failwith "Stack underflow (swap)"
   end
+  | Rot 3, _ -> st1 >>= begin function 
+    | ({stk = h1 :: h2 :: h3 :: t; _} as stx) -> 
+      pure {stx with stk = h3 :: h2 :: h1 :: t}
+    | _ -> failwith "Stack underflow (rot)"
+  end
   | Run i, _ -> st1 >>= begin fun stx -> 
     match List.at stx.stk (i-1) with
     | VCapture ex -> e ex {stx with stk = List.remove_at (i-1) stx.stk}
