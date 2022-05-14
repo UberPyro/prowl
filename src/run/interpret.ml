@@ -16,13 +16,16 @@ let (<&>) x f = LazyList.map f x
 
 let g ex st l r = st >>= ex l >>= ex r
 
-(* type ty_val = 
+type ty_val = 
   | YInt
   | YStr
-  | YBin of ty_val list list
-  | YCapture of ty_eff
-         (* is class?     type ctx *)  (* data ctx *)
-  | YSig of (bool * ty_val) Dict.t * ty_val Dict.t *)
+  | YPair of ty_val * ty_val
+  | YLeft of ty_val
+  | YRight of ty_val
+  | YCapture of ty_val
+  | YUnit
+  | YVoid
+  [@@deriving show]
 
 type e_val = 
   | VInt of int
