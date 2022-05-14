@@ -2,11 +2,11 @@ open Batteries
 module O = BatOptParse.Opt
 
 open Lib
+open Interpret
 open Cli
 
 open Gen
 open Ast
-open Interpret
 
 let lex_out = flag "output lexemes" "lex"
 let ast_out = flag "output ast as ocaml ADTs" "ast"

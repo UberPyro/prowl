@@ -67,6 +67,8 @@ let encode_lst loc = List.fold_left begin fun a ex ->
 end (Left (Unit, loc))
 
 let lit st v = pure {st with stk = v :: st.stk}
+let op st stk v = pure {st with stk = v :: stk}
+let cap st stk ex = pure {st with stk = VImm ex :: stk}
 
 let rec program st (_, expr) = e expr st
 
@@ -105,7 +107,7 @@ and e (expr, loc) st = match expr with
   | List elst -> e (encode_lst loc elst, loc) st
   
   | Id "to-int" -> begin match st.stk with
-    | VStr h :: t -> pure {st with stk = VInt (int_of_string h) :: t}
+    | VStr h :: t -> op st t (VInt (int_of_string h))
     | _ -> failwith "Type Error: Expected string"
   end
   | Id s -> begin match st.ctx --> s with
@@ -161,10 +163,9 @@ and e (expr, loc) st = match expr with
     print_endline (show_e_t expr);
     failwith "Unimplemented - expression"
 
-and arith_bop st0 e1 op e2 = 
+and arith_bop st0 e1 opx e2 = 
   e e1 st0 >>= e e2 >>= fun st -> match st.stk with
-    | VInt i2 :: VInt i1 :: t -> 
-      pure {st with stk = VInt (op i1 i2) :: t}
+    | VInt i2 :: VInt i1 :: t -> op st t (VInt (opx i1 i2))
     | _ -> failwith "Type Error: Expected integer"
 
 and cmp_bop st0 e1 op e2 = 
@@ -175,8 +176,7 @@ and cmp_bop st0 e1 op e2 =
 
 (* maybe abstract over the stack update *)
 and comb st0 = List.fold_left begin fun st1 -> function
-  | Dup i, _ -> st1 >>= fun stx -> 
-    pure {stx with stk = List.at stx.stk (i-1) :: stx.stk}
+  | Dup i, _ -> st1 >>= fun stx -> op stx stx.stk (List.at stx.stk (i-1))
   | Zap i, _ -> st1 >>= fun stx -> 
     pure {stx with stk = List.remove_at (i-1) stx.stk}
   | Rot 2, _ -> st1 >>= begin function 
@@ -192,7 +192,9 @@ and comb st0 = List.fold_left begin fun st1 -> function
   | Rot _, _ -> failwith "Unimplemented - rot n"
 end (pure st0)
 
-and p (px, loc) st = match px with
+(* and upd_ctx st stk s vc = pure {stk; ctx = st.ctx <-- (s, VImm vc)} *)
+
+and p (px, _) st = match px with
   | PId s -> begin match st.stk with
     | h :: t -> pure {stk = t; ctx = st.ctx <-- (s, h)}
     | _ -> failwith "Stack Underflow"
@@ -206,6 +208,27 @@ and p (px, loc) st = match px with
   | PCapture px -> begin match st.stk with
     | VCapture vc :: t -> e vc {st with stk = t} >>= p px
     | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
+  end
+  | PPair ((PId s1, _), (PId s2, _)) -> begin match st.stk with
+    | VPair (vc1, vc2) :: t -> 
+      pure {stk = t; ctx = st.ctx <-- (s1, VImm vc1) <-- (s2, VImm vc2)}
+    | _ -> failwith "Type Error: matching non-pair on pair (direct) (direct)"
+  end
+  | PPair (px1, (PId s2, _)) -> begin match st.stk with
+    | VPair (vc1, vc2) :: t -> e vc1 {st with stk = t} >>= p px1 >>= begin 
+      fun stx -> pure {stx with ctx = st.ctx <-- (s2, VImm vc2)}
+    end
+    | _ -> failwith "Type Error: matching non-pair on pair (indirect) (direct)"
+  end
+  | PPair ((PId s1, _), px2) -> begin match st.stk with
+    | VPair (vc1, vc2) :: t -> 
+      e vc2 {stk = t; ctx = st.ctx <-- (s1, VImm vc1)} >>= p px2
+    | _ -> failwith "Type Error: matching non-pair on pair (direct) (indirect)"
+  end
+  | PPair (px1, px2)  -> begin match st.stk with
+    | VPair (vc1, vc2) :: t -> 
+      e vc1 {st with stk = t} >>= p px1 >>= e vc2 >>= p px2
+    | _ -> failwith "Type Error: matching non-pair on pair (indirect) (indirect)"
   end
   | PLeft (PId s, _) -> begin match st.stk with
     | VLeft vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm vc)}
@@ -227,19 +250,4 @@ and p (px, loc) st = match px with
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
-  (* | PBin (i1, plst, i2) -> begin match st.stk with
-    | VBin (0, elst, 0) :: t
-      when List.(length plst == length elst) -> 
-      List.fold_left begin fun a -> function
-        | (PId s, _), ex -> 
-          LazyList.map (fun k -> {stk = t; ctx = k.ctx <-- (s, VImm ex)}) a
-        | px, ex -> a >>= (fun k -> e ex {k with stk = t} >>= p px)
-      end (pure st) List.(combine plst elst)
-    | VBin (j1, elst, j2) :: t when i2 == j2 && i1 <= j1 -> 
-      p (PBin (0, plst, 0), loc) {st with stk = VBin (j1 - i1, elst, 0) :: t}
-    | VBin (j1, elst, j2) :: t when i1 == 0 && j1 == 0 && i2 <= j2 -> 
-      p (PBin (0, plst, 0), loc) {st with stk = VBin (0, elst, j2 - i2) :: t}
-    | VBin _ :: _ -> LazyList.nil
-    | _ -> failwith "Matching non-bindata against bindata"
-  end *)
   | _ -> failwith "Unimplemented - pattern"
