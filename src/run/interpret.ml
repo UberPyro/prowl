@@ -1,3 +1,5 @@
+(* The *Lazy* Prowl Interpreter *)
+
 open Batteries
 module Dict = Map.Make(struct type t = string let compare = compare end)
 open Dict.Infix
