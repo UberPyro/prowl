@@ -7,15 +7,6 @@ open LazyList.Infix
 
 open Ast
 
-let (>>=) x f = LazyList.(map f x |> concat)
-let (>=>) f g x = x >>= f >>= g
-let pure a = LazyList.(cons a nil)
-let (<|>) f g x = f x ^@^ g x
-let ( *> ) x c = x >>= fun _ -> c
-let (<&>) x f = LazyList.map f x
-
-let g ex st l r = st >>= ex l >>= ex r
-
 type ty_val = 
   | YInt
   | YStr
@@ -45,6 +36,17 @@ type st = {
   ctx: e_val Dict.t;
   stk: e_val list;
 }
+
+let (<&>) x f = LazyList.map f x
+(* let (>>=) x f = 
+  x <&> (fun st -> f st <&> fun st2 -> {st2 with ctx = st.ctx})
+  |> LazyList.concat *)
+let (>>=) x f = x <&> f |> LazyList.concat
+let pure a = LazyList.(cons a nil)
+let (<|>) f g x = f x ^@^ g x
+let ( *> ) x c = x >>= fun _ -> c
+
+let g ex st l r = st >>= ex l >>= ex r
 
 let enhanced_show_e = function
   | Int i, _ -> string_of_int i
