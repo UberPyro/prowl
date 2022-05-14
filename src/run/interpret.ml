@@ -195,6 +195,7 @@ and p (px, loc) st = match px with
       p (PBin (0, plst, 0), loc) {st with stk = VBin (j1 - i1, elst, 0) :: t}
     | VBin (j1, elst, j2) :: t when i1 == 0 && j1 == 0 && i2 <= j2 -> 
       p (PBin (0, plst, 0), loc) {st with stk = VBin (0, elst, j2 - i2) :: t}
+    (* add backtracking "None" case for eithers *)
     | _ -> failwith "Matching non-bindata against bindata"
   end
   | _ -> failwith "Unimplemented - pattern"
