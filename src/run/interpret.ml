@@ -10,7 +10,7 @@ open Ast
 let (>>=) x f = LazyList.(map f x |> concat)
 let (>=>) f g x = x >>= f >>= g
 let pure a = LazyList.(cons a nil)
-let (<|>) f g x = (pure x >>= f)^@^(pure x >>= g)
+let (<|>) f g x = f x ^@^ g x
 let ( *> ) x c = x >>= fun _ -> c
 let (<&>) x f = LazyList.map f x
 
