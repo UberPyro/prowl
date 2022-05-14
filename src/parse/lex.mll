@@ -74,7 +74,6 @@ rule token = parse
   | "alias" {ALIAS}
   | "class" {CLASS}
   | "sig"   {SIG}
-  | "do"    {DO}
   | "data"  {DATA}
 
   | "+"  {PLUS}
