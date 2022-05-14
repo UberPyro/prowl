@@ -168,7 +168,7 @@ and comb st0 = List.fold_left begin fun st1 -> function
   | Rot _, _ -> failwith "Unimplemented - rot n"
 end (pure st0)
 
-and p (px, _) st = match px with
+and p (px, loc) st = match px with
   | PId s -> begin match st.stk with
     | h :: t -> pure {stk = t; ctx = st.ctx <-- (s, h)}
     | _ -> failwith "Stack Underflow"
@@ -192,9 +192,9 @@ and p (px, _) st = match px with
         | px, ex -> a >>= (fun k -> e ex {k with stk = t} >>= p px)
       end (pure st) List.(combine plst elst)
     | VBin (j1, elst, j2) :: t when i2 == j2 && i1 <= j1 -> 
-      pure {st with stk = VBin (j1 - i1, elst, 0) :: t}
+      p (PBin (0, plst, 0), loc) {st with stk = VBin (j1 - i1, elst, 0) :: t}
     | VBin (j1, elst, j2) :: t when i1 == 0 && j1 == 0 && i2 <= j2 -> 
-      pure {st with stk = VBin (0, elst, j2 - i2) :: t}
+      p (PBin (0, plst, 0), loc) {st with stk = VBin (0, elst, j2 - i2) :: t}
     | _ -> failwith "Matching non-bindata against bindata"
   end
   | _ -> failwith "Unimplemented - pattern"
