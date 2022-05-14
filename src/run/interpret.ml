@@ -38,9 +38,20 @@ type st = {
   stk: e_val list;
 }
 
+let enhanced_show_e = function
+  | Int i, _ -> string_of_int i
+  | Str s, _ -> s
+  | ex -> show_e ex
+
 let string_of_v = function
   | VInt i -> string_of_int i
   | VStr s -> s
+  | VUnit -> "<>"
+  | VBin (i1, ex, i2) -> 
+    Printf.sprintf "(%s%s%s)"
+      (String.repeat ";" i1)
+      (String.concat ", " (List.map enhanced_show_e ex))
+      (String.repeat ";" i2)
   
   | _ -> failwith "Unimplemented - string_of_v"
 
