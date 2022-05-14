@@ -10,6 +10,7 @@ let (>=>) f g x = x >>= f >>= g
 let pure a = LazyList.(cons a nil)
 let (<|>) f g x = (pure x >>= f)^@^(pure x >>= g)
 let ( *> ) x c = x >>= fun _ -> c
+let (<&>) x f = LazyList.map f x
 
 let g ex st l r = st >>= ex l >>= ex r
 
@@ -97,7 +98,7 @@ and e (expr, loc) st = match expr with
   | Bop (e1, "<=", e2) -> cmp_bop st e1 (<=) e2
 
   | Bop (e1, "&", e2) -> (e e1 st) >>= e e2
-  | Bop (e1, "|", e2) -> pure st >>= (e e1 <|> e e2)
+  | Bop (e1, "|", e2) -> (e e1 <|> e e2) st
   | Bop (e1, "&&", e2) -> (e e1 st) *> (e e2 st)
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
@@ -177,8 +178,8 @@ and cmp_bop st0 e1 op e2 =
 (* maybe abstract over the stack update *)
 and comb st0 = List.fold_left begin fun st1 -> function
   | Dup i, _ -> st1 >>= fun stx -> op stx stx.stk (List.at stx.stk (i-1))
-  | Zap i, _ -> st1 >>= fun stx -> 
-    pure {stx with stk = List.remove_at (i-1) stx.stk}
+  | Zap i, _ -> st1 <&> fun stx -> 
+    {stx with stk = List.remove_at (i-1) stx.stk}
   | Rot 2, _ -> st1 >>= begin function 
     | ({stk = h1 :: h2 :: t; _} as stx) -> 
       pure {stx with stk = h2 :: h1 :: t}
