@@ -59,6 +59,7 @@ and e (expr, _) st = match expr with
   | Bin (i1, v, i2) -> lit st (VBin (i1, v, i2))
   | Capture ast -> lit st (VCapture ast)
   | StackComb c -> comb st c
+  | Cap e1 -> e e1 st
 
   | Bop (e1, "+", e2) -> arith_bop st e1 (+) e2
   | Bop (e1, "-", e2) -> arith_bop st e1 (-) e2
@@ -78,7 +79,8 @@ and e (expr, _) st = match expr with
   | Bop (e1, "&&", e2) -> (e e1 st) *> (e e2 st)
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
-  | Cap e1 -> e e1 st
+  | Case (e1, elst) -> 
+    List.fold_left (fun a x -> a <|> e x) (e e1) (List.rev_map snd elst) st
   
   | Id "to-int" -> begin match st.stk with
     | VStr h :: t -> pure {st with stk = VInt (int_of_string h) :: t}
