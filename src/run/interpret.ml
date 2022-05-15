@@ -1,7 +1,11 @@
 (* The *Lazy* Prowl Interpreter *)
 
 open Batteries
-module Dict = Map.Make(struct type t = string let compare = compare end)
+module D0 = Map.Make(struct type t = string let compare = compare end)
+module Dict = struct
+  include D0
+  let pp = failwith "Unimplemented: Printing a Closure"
+end
 open Dict.Infix
 open LazyList.Infix
 
@@ -25,7 +29,7 @@ type e_val =
   | VLeft of e
   | VRight of e
   | VCapture of e
-  | VImm of e
+  | VImm of e * e_val Dict.t
   | VUnit
                           (* is impl *)
   (* | VMod of ty_val Dict.t * (bool * ty_val) Dict.t *)
@@ -73,7 +77,6 @@ end (Left (Unit, loc))
 
 let lit st v = pure {st with stk = v :: st.stk}
 let op st stk v = pure {st with stk = v :: stk}
-let cap st stk ex = pure {st with stk = VImm ex :: stk}
 
 let rec program st (_, expr) = e expr st
 
@@ -116,7 +119,8 @@ and e (expr, loc) st = match expr with
     | _ -> failwith "Type Error: Expected string"
   end
   | Id s -> begin match st.ctx --> s with
-    | VImm ex -> e ex st
+    | VImm (ex, ctx) -> 
+      e ex {st with ctx} <&> fun stx -> {stx with stk = stx.stk}
     | x -> lit st x (* incomplete? *)
     | exception Not_found -> failwith ("Unbound id: " ^ s)
 
@@ -126,16 +130,17 @@ and e (expr, loc) st = match expr with
       failwith "Unimplemented - id" *)
   end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
-    | "", (PId s, _), ex -> a <-- (s, VImm ex)
-    | "", (PCat ((PId s, z) :: t), y), ex ->
-      a <-- (s, VImm (As ("", (PCat t, y), ex), z))
-    | "", px, ex -> 
-    begin match (e ex st) >>= (p px) |> LazyList.get with
-      | None -> failwith "Failing Let expression"
-      | Some (c, _) -> c.ctx
-    end
-    | _ -> failwith "Unimplemented - let op"
-  end st.ctx lst |> fun ctx -> e e1 {st with ctx}
+    | "", (PId s, _), ex -> a <&> begin 
+        fun stx -> {stx with ctx = stx.ctx <-- (s, VImm (e1, stx.ctx))}
+      end >>= e ex 
+    | "", (PCat ((PId s, z) :: t), y), ex -> a <&> begin
+        fun stx -> { stx with 
+          ctx = stx.ctx <-- (s, VImm ((As ("", (PCat t, y), ex), z), stx.ctx))
+        }
+      end
+    | "", px, ex -> a >>= p px >>= e ex
+    | _ -> failwith "Failing Let expression"
+  end (pure st) lst <&> fun stx -> {st with stk = stx.stk}
 
   | As ("", p1, e1) -> 
     (p p1 st) >>= e e1 <&> fun stx -> {st with stk = stx.stk}
@@ -213,7 +218,7 @@ and p (px, _) st = match px with
   | PCat lst ->
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
   | PCapture (PId s, _) -> begin match st.stk with
-    | VCapture vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm vc)}
+    | VCapture vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm (vc, st.ctx))}
     | _ -> failwith "Type Error: matching non-capture against capture (direct)"
   end
   | PCapture px -> begin match st.stk with
@@ -222,18 +227,18 @@ and p (px, _) st = match px with
   end
   | PPair ((PId s1, _), (PId s2, _)) -> begin match st.stk with
     | VPair (vc1, vc2) :: t -> 
-      pure {stk = t; ctx = st.ctx <-- (s1, VImm vc1) <-- (s2, VImm vc2)}
+      pure {stk = t; ctx = st.ctx <-- (s1, VImm (vc1, st.ctx)) <-- (s2, VImm (vc2, st.ctx))}
     | _ -> failwith "Type Error: matching non-pair on pair (direct) (direct)"
   end
   | PPair (px1, (PId s2, _)) -> begin match st.stk with
     | VPair (vc1, vc2) :: t -> e vc1 {st with stk = t} >>= p px1 >>= begin 
-      fun stx -> pure {stx with ctx = st.ctx <-- (s2, VImm vc2)}
+      fun stx -> pure {stx with ctx = st.ctx <-- (s2, VImm (vc2, st.ctx))}
     end
     | _ -> failwith "Type Error: matching non-pair on pair (indirect) (direct)"
   end
   | PPair ((PId s1, _), px2) -> begin match st.stk with
     | VPair (vc1, vc2) :: t -> 
-      e vc2 {stk = t; ctx = st.ctx <-- (s1, VImm vc1)} >>= p px2
+      e vc2 {stk = t; ctx = st.ctx <-- (s1, VImm (vc1, st.ctx))} >>= p px2
     | _ -> failwith "Type Error: matching non-pair on pair (direct) (indirect)"
   end
   | PPair (px1, px2)  -> begin match st.stk with
@@ -242,7 +247,7 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-pair on pair (indirect) (indirect)"
   end
   | PLeft (PId s, _) -> begin match st.stk with
-    | VLeft vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm vc)}
+    | VLeft vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm (vc, st.ctx))}
     | VRight _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (direct)"
   end
@@ -252,7 +257,7 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
   | PRight (PId s, _) -> begin match st.stk with
-    | VRight vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm vc)}
+    | VRight vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm (vc, st.ctx))}
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (direct)"
   end
