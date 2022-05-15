@@ -38,9 +38,6 @@ type st = {
 }
 
 let (<&>) x f = LazyList.map f x
-(* let (>>=) x f = 
-  x <&> (fun st -> f st <&> fun st2 -> {st2 with ctx = st.ctx})
-  |> LazyList.concat *)
 let (>>=) x f = x <&> f |> LazyList.concat
 let pure a = LazyList.(cons a nil)
 let (<|>) f g x = f x ^@^ g x
@@ -140,7 +137,8 @@ and e (expr, loc) st = match expr with
     | _ -> failwith "Unimplemented - let op"
   end st.ctx lst |> fun ctx -> e e1 {st with ctx}
 
-  | As ("", p1, e1) -> (p p1 st) >>= (e e1)
+  | As ("", p1, e1) -> 
+    (p p1 st) >>= e e1 <&> fun stx -> {st with stk = stx.stk}
 
   | Quant (e1, Num e2, Gre) -> 
     (e e2 st) >>= begin function
