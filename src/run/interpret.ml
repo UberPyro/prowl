@@ -174,6 +174,7 @@ and e (expr, loc) st = match expr with
       | Some _ -> loop (st2^@^lst) st2
       | None -> lst in
       loop (e e1 st) (pure st)
+  | Quant (e1, Opt, Gre) -> (e e1 <|> pure) st
   
   | _ ->
     print_endline (show_e_t expr);
