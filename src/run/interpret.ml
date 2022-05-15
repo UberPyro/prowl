@@ -136,17 +136,17 @@ and e (expr, loc) st = match expr with
       failwith "Unimplemented - id" *)
   end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
-    | "", (PId s, _), ex -> a >>= begin 
-        fun stx -> e ex {stx with ctx = stx.ctx <-- (s, VImm (e1, stx.ctx))}
+    | "", (PId s, _), ex -> a <&> begin 
+        fun stx -> {stx with ctx = stx.ctx <-- (s, VImm (ex, stx.ctx))}
       end
-    | "", (PCat ((PId s, z) :: t), y), ex -> a >>= begin
-        fun stx -> e ex {stx with 
+    | "", (PCat ((PId s, z) :: t), y), ex -> a <&> begin
+        fun stx -> {stx with 
           ctx = stx.ctx <-- (s, VImm ((As ("", (PCat t, y), ex), z), stx.ctx))
         }
       end
     | "", px, ex -> a >>= e ex >>= p px
     | _ -> failwith "Failing Let expression"
-  end (pure st) lst <&> fun stx -> {st with stk = stx.stk}
+  end (pure st) lst >>= e e1 <&> fun stx -> {st with stk = stx.stk}
 
   | As ("", p1, e1) -> 
     (p p1 st) >>= e e1 <&> fun stx -> {st with stk = stx.stk}
