@@ -42,7 +42,6 @@ type e_val =
   [@@deriving show]
 
 type st = {
-  (* tyctx: ty_val Dict.t; *)
   ctx: e_val Dict.t;
   stk: e_val list;
 }
