@@ -4,7 +4,13 @@ open Batteries
 module D0 = Map.Make(struct type t = string let compare = compare end)
 module Dict = struct
   include D0
-  let pp = failwith "Unimplemented: Printing a Closure"
+  (* let pp fmt fmtr d = print (String.print) fmt fmtr d *)
+  let pp fmt fmtr d = 
+    enum d
+    |> List.of_enum
+    |> Format.pp_print_list Format.(
+      fun f (a, b) -> pp_print_string f a; fmt f b
+    ) fmtr
 end
 open Dict.Infix
 open LazyList.Infix
@@ -120,7 +126,7 @@ and e (expr, loc) st = match expr with
   end
   | Id s -> begin match st.ctx --> s with
     | VImm (ex, ctx) -> 
-      e ex {st with ctx} <&> fun stx -> {stx with stk = stx.stk}
+      e ex {st with ctx} <&> fun stx -> {stx with ctx = st.ctx}
     | x -> lit st x (* incomplete? *)
     | exception Not_found -> failwith ("Unbound id: " ^ s)
 
@@ -130,15 +136,15 @@ and e (expr, loc) st = match expr with
       failwith "Unimplemented - id" *)
   end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
-    | "", (PId s, _), ex -> a <&> begin 
-        fun stx -> {stx with ctx = stx.ctx <-- (s, VImm (e1, stx.ctx))}
-      end >>= e ex 
-    | "", (PCat ((PId s, z) :: t), y), ex -> a <&> begin
-        fun stx -> { stx with 
+    | "", (PId s, _), ex -> a >>= begin 
+        fun stx -> e ex {stx with ctx = stx.ctx <-- (s, VImm (e1, stx.ctx))}
+      end
+    | "", (PCat ((PId s, z) :: t), y), ex -> a >>= begin
+        fun stx -> e ex {stx with 
           ctx = stx.ctx <-- (s, VImm ((As ("", (PCat t, y), ex), z), stx.ctx))
         }
       end
-    | "", px, ex -> a >>= p px >>= e ex
+    | "", px, ex -> a >>= e ex >>= p px
     | _ -> failwith "Failing Let expression"
   end (pure st) lst <&> fun stx -> {st with stk = stx.stk}
 
