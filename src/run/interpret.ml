@@ -37,9 +37,16 @@ type e_val =
   | VCapture of e
   | VImm of e * e_val Dict.t
   | VUnit
-                          (* is impl *)
-  (* | VMod of ty_val Dict.t * (bool * ty_val) Dict.t *)
+  | VMod of vmod
   [@@deriving show]
+
+and vmod = {
+  spec_map: ty Dict.t; 
+  def_map: e Dict.t;
+  impl_map: e Dict.t;
+  ty_ctx: ty_val Dict.t;
+  e_ctx: e_val Dict.t
+}
 
 type st = {
   ctx: e_val Dict.t;
