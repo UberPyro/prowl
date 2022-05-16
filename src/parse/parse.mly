@@ -13,6 +13,7 @@
 %token
   DEF OPEN MIX IMPL SIG END
   PUB OPAQ MOD TYPE DATA DO
+  SPEC
 
   PLUS MINUS TIMES DIVIDE
   EXP RANGE SNOC CONS
@@ -80,7 +81,7 @@ program: access e EOF {$1, $2}
 
 sp: sp_t {$1, $loc}
 %inline sp_t: 
-  | DEF ID ASSIGN ty {SDef ($2, $4)}
+  | SPEC ID ASSIGN ty {SDef ($2, $4)}
   | TYPE ID list(CAP) ioption(preceded(ASSIGN, ty)) {STy ($2, $3, $4)}
   | DATA ID list(CAP) ASSIGN data {SData ($2, $3, $5)}
 

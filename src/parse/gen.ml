@@ -117,6 +117,7 @@ let string_of_token = function
   | ALT -> "|"
   | IMPL_LBRACK -> "[<"
   | IMPL_RBRACK -> ">]"
+  | SPEC -> "SPEC"
 
 let lex ch = 
   let lexbuf = Lexing.from_channel ch in

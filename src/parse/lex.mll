@@ -64,6 +64,7 @@ rule token = parse
     else QUANT (parse_quant s g)}
 
   | "def"   {DEF}
+  | "spec"  {SPEC}
   | "open"  {OPEN}
   | "mix"   {MIX}
   | "impl"  {IMPL}
