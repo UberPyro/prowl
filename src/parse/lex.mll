@@ -66,13 +66,10 @@ rule token = parse
   | "def"   {DEF}
   | "open"  {OPEN}
   | "mix"   {MIX}
-  | "use"   {USE}
   | "impl"  {IMPL}
   | "pub"   {PUB}
   | "opaq"  {OPAQ}
   | "type"  {TYPE}
-  | "alias" {ALIAS}
-  | "class" {CLASS}
   | "sig"   {SIG}
   | "data"  {DATA}
 
@@ -103,7 +100,6 @@ rule token = parse
   | ":"  {COLON}
   | "="  {ASSIGN}
   | "--" {EFFECT}
-  | "~~" {CONSTRAINT}
   | "->" {ARROW}
   | "~"  {TILDE}
   | "=>" {WIDE_ARROW}
@@ -115,6 +111,9 @@ rule token = parse
   | "(?:" {set_cat(); NONCAP_BRACK}
   | "(?>" {set_cat(); ATOM_BRACK}
   | "[^"  {set_cat(); INV_BRACK}
+  
+  | "[<"  {set_cat(); IMPL_LBRACK}
+  | ">]"  {IMPL_RBRACK}
 
   | "(" {set_cat(); LPAREN}
   | "[" {set_cat(); LBRACK}

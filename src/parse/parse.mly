@@ -11,9 +11,8 @@
 %}
 
 %token
-  DEF OPEN MIX USE IMPL SIG
-  PUB OPAQ TYPE ALIAS CLASS
-  DATA
+  DEF OPEN MIX IMPL SIG END
+  PUB OPAQ MOD TYPE DATA DO
 
   PLUS MINUS TIMES DIVIDE
   EXP RANGE SNOC CONS
@@ -26,16 +25,16 @@
   WIDE_ARROW BACKARROW
   COMMA DOT INTERSECT
 
-  BLANK EOF
-  CONSTRAINT EFFECT
+  BLANK EOF EFFECT
 
   LPAREN RPAREN
   LBRACK RBRACK
   LBRACE
 
+  IMPL_LBRACK IMPL_RBRACK
   NONCAP_BRACK ATOM_BRACK
   INV_BRACK TIMES_BRACK
-  DO MOD END UNIT VOID
+  UNIT VOID
 
 %token<string>
   LET AND AS STR
@@ -82,23 +81,11 @@ program: access e EOF {$1, $2}
 sp: sp_t {$1, $loc}
 %inline sp_t: 
   | DEF ID ASSIGN ty {SDef ($2, $4)}
-  | TYPE ID ioption(separated_pair(list(CAP), ASSIGN, ty)) {STy ($2, $3)}
+  | TYPE ID list(CAP) ioption(preceded(ASSIGN, ty)) {STy ($2, $3, $4)}
   | DATA ID list(CAP) ASSIGN data {SData ($2, $3, $5)}
-
-%inline ty: ty_t {$1, $loc}
-%inline ty_t: ioption(constr) ty_eff {(Option.default (TCat []) $1, $loc), $2}
-%inline constr: ty_eff CONSTRAINT {
-  match $1 with
-  | ((TCat [], _), (v, _)) -> v
-  | ((TCat _, _), _) -> failwith "Constraints cannot have an input"
-  | _ -> failwith "Not a constraint"
-}
 
 %inline data: data_t {$1, $loc}
 %inline data_t: 
-  | ioption(constr) data_term {(Option.default (TCat []) $1, $loc), $2}
-%inline data_term: data_term_t {$1, $loc}
-%inline data_term_t: 
   | separated_nonempty_list(semi, constructor) {let+ x = $1 in [x]}
   | LBRACE separated_nonempty_list(
     semi, 
@@ -112,7 +99,8 @@ sp: sp_t {$1, $loc}
     | _ -> failwith "Rightmost term is not a constructor"
   }
 
-ty_eff: 
+ty: ty_t {$1, $loc}
+ty_t: 
   | ioption(ty_stack) EFFECT ioption(ty_stack) {
     let ty_conv = function
     | Some st -> st
@@ -131,18 +119,19 @@ ty_term: ty_term_t {$1, $loc}
   | ID {TId $1}
   | CAP {TGen $1}
   | ty_term DOT ID {TAccess ($1, $3)}
-  | LBRACE rbrace {TCapture ((TCat [], $loc), (TCat [], $loc))}
-  | LBRACE ty_eff rbrace {TCapture $2}
-  | LBRACK ty_eff RBRACK {TList $2}
-  | LBRACK ty_stack WIDE_ARROW ty_eff RBRACK {TMap ($2, $4)}
+  | LBRACE rbrace {TCapture (((TCat [], $loc), (TCat [], $loc)), $loc)}
+  | LBRACE ty rbrace {TCapture $2}
+  | LBRACK ty RBRACK {TList $2}
+  | LBRACK ty_stack WIDE_ARROW ty RBRACK {TMap ($2, $4)}
   | UNIT {TUnit}
   | VOID {TVoid}
   | LPAREN separated_nonempty_list(
     semi, 
-    separated_nonempty_list(COMMA, ty_eff)
+    separated_nonempty_list(COMMA, ty)
   ) RPAREN {TBin $2}
   | MOD list(sp) END {TMod $2}
   | SIG list(sp) END {TSig $2}
+  | LT ID COLON ty GT {TImpl ($2, $4)}
 
 %inline pop_list_ge_2(entry): 
   | entry nonempty_list(entry) {$1 :: $2}
@@ -154,25 +143,20 @@ s: s_t {$1, $loc}
 %inline s_t: 
   | access s_kw p ioption(preceded(COLON, ty)) ASSIGN e
     {Def ($1, $2, $3, $6, $4)}
-  | OPEN e {Open $2}
-  | USE e {Use $2}
-  | ioption(IMPL) MIX e {Mix (Option.map (fun _ -> `impl) $1, $3)}
-  | access ty_kw ID ioption(separated_pair(list(CAP), ASSIGN, ty))
-    {Ty ($1, $2, $3, $4)}
-  | access data_kw ID list(CAP) ASSIGN data
-    {Data ($1, $2, $3, $4, $6)}
+  | OPEN is_impl e {Open ($2, $3)}
+  | MIX e {Mix $2}
+  | access TYPE ID list(CAP) ioption(preceded(ASSIGN, ty))
+    {Ty ($1, $3, $4, $5)}
+  | access DATA ID list(CAP) ASSIGN data
+    {Data ($1, $3, $4, $6)}
 
 %inline s_kw: 
-  | DEF {`def}
-  | IMPL {`impl}
+  | DEF {false}
+  | IMPL {true}
 
-%inline ty_kw: 
-  | TYPE {`ty}
-  | CLASS {`class_}
-
-%inline data_kw: 
-  | DATA {`data}
-  | ALIAS {`alias}
+%inline is_impl: 
+  | IMPL {true}
+  | {false}
 
 e: e_t {$1, $loc}
 %inline e_t: 
@@ -190,7 +174,7 @@ e: e_t {$1, $loc}
   | AS p ARROW e {As ($1, $2, $4)}
 
 %inline let_body(kw): 
-  | kw p ASSIGN e {$1, $2, $4}
+  | kw is_impl p ASSIGN e {$1, $2, $3, $5}
 
 bexp: bexp_t {$1, $loc}
 %inline bexp_t: 
@@ -233,6 +217,7 @@ term: term_t {$1, $loc}
   | CAP {EData $1}
   | LBRACE sep_pop_list_ge_2(COMMA, e) rbrace {Prod $2}
   | MOD list(s) END {Mod $2}
+  | IMPL_LBRACK e IMPL_RBRACK {Impl $2}
   | LBRACE e rbrace {Capture $2}
 
   | SYMBOL {Sym $1}
@@ -281,8 +266,7 @@ p_term: p_term_t {$1, $loc}
     | _ -> failwith "Stack Combinator in Pattern"
   }
   | BLANK {PBlank}
-  | OPEN {POpen}
-  | USE {PUse}
+  | OPEN is_impl {POpen $2}
 
   | INT {PInt $1}
   | FLOAT {PFlo $1}
@@ -303,10 +287,11 @@ p_term: p_term_t {$1, $loc}
   
   | CAP {PData $1}
   | LBRACE sep_pop_list_ge_2(COMMA, p) RBRACE {PProd $2}
+  | LT p COLON ty GT {PImpl ($2, $4)}
   | LBRACE p RBRACE {PCapture $2}
 
   | LBRACK SYMBOL RBRACK {PSym $2}  // consider condensing
-  | LPAREN bop RPAREN {PSym $2}
+  | LPAREN list(semi) bop RPAREN {PSym $3}
 
 %inline p_bop: 
   | PLUS {"+"} | TIMES {"*"} | CAT {"&"}

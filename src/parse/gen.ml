@@ -47,7 +47,6 @@ let string_of_bindop op = function
 let string_of_token = function
   | WIDE_ARROW -> "=>"
   | VOID -> "<;>"
-  | USE -> "USE"
   | UNIT -> "<>"
   | TYPE -> "TYPE"
   | TIMES_BRACK -> "{ (regex)"
@@ -99,12 +98,10 @@ let string_of_token = function
   | DIVIDE -> "/"
   | DEF -> "DEF"
   | DATA -> "DATA"
-  | CONSTRAINT -> "~~"
   | CONS -> "-<"
   | COMMA -> ","
   | COMB e -> sprintf "COMB %s" (string_of_comb e)
   | COLON -> ":"
-  | CLASS -> "CLASS"
   | CHAR c -> sprintf "CHAR %c" c
   | CAT -> "&"
   | CAP s -> sprintf "CAP %s" s
@@ -118,7 +115,8 @@ let string_of_token = function
   | APPEND -> "++"
   | AND s -> string_of_bindop "AND" s
   | ALT -> "|"
-  | ALIAS -> "ALIAS"
+  | IMPL_LBRACK -> "[<"
+  | IMPL_RBRACK -> ">]"
 
 let lex ch = 
   let lexbuf = Lexing.from_channel ch in

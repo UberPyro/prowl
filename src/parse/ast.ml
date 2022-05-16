@@ -24,45 +24,42 @@ type access_mod = Pub | Opaq | Priv [@@deriving show]
 and sp = sp_t loc [@@deriving show]
 and sp_t = 
   | SDef of string * ty
-  | STy of string * (string list * ty) option
+  | STy of string * string list * ty option
   | SData of string * string list * data
   [@@deriving show]
 
 and ty = ty_t loc [@@deriving show]
-and ty_t = ty_term * ty_eff [@@deriving show]
-and ty_eff = ty_term * ty_term [@@deriving show]
+and ty_t = ty_term * ty_term [@@deriving show]
 and ty_term = ty_term_t loc [@@deriving show]
 and ty_term_t = 
   | TId of string
   | TGen of string
   | TAccess of ty_term * string
   | TCat of ty_term list
-  | TCapture of ty_eff
-  | TList of ty_eff
-  | TMap of ty_term * ty_eff
+  | TCapture of ty
+  | TList of ty
+  | TMap of ty_term * ty
   | TUnit
   | TVoid
-  | TBin of ty_eff list list
+  | TBin of ty list list
   | TSig of sp list
   | TMod of sp list
+  | TImpl of string * ty
   [@@deriving show]
 
 and data = data_t loc [@@deriving show]
-and data_t = ty_term * data_term [@@deriving show]
-and data_term = data_term_t loc [@@deriving show]
-and data_term_t = (ty_term list * string) list list [@@deriving show]
+and data_t = (ty_term list * string) list list [@@deriving show]
 
 and s = s_t loc [@@deriving show]
 and s_t = 
-  | Def of access_mod * [`def | `impl] * p * e * ty option
-  | Open of e
-  | Use of e
-  | Mix of [`impl] option * e
-  | Ty of access_mod * [`ty | `class_]
-    * string * (string list * ty) option
-  | Data of access_mod * [`data | `alias]
-    * string * string list * data
+  | Def of access_mod * implicit * p * e * ty option
+  | Open of implicit * e
+  | Mix of e
+  | Ty of access_mod * string * string list * ty option
+  | Data of access_mod * string * string list * data
   [@@deriving show]
+
+and implicit = bool
 
 and greed = Gre | Rel | Cut [@@deriving show]
 and quant = 
@@ -104,6 +101,7 @@ and e_t =
   | EData of string
   | Prod of e list
   | Mod of s list
+  | Impl of e
   | Capture of e
 
   | Sect of string
@@ -115,7 +113,7 @@ and e_t =
   | Bop of e * string * e
   | StackComb of stack_comb list
 
-  | Let of (string * p * e) list * e
+  | Let of (string * implicit * p * e) list * e
   | As of string * p * e
 
   | Quant of e * quant * greed
@@ -135,7 +133,8 @@ and p_t =
   | PBlank
   | PCat of p list
   | PAsc of p * ty
-  | POpen
+  | PImpl of p * ty
+  | POpen of implicit
   | PUse
 
   | PInt of int
