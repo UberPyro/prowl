@@ -41,7 +41,7 @@ type e_val =
   [@@deriving show]
 
 and vmod = {
-  spec_map: ty Dict.t; 
+  spec_map: (string list * ty option) Dict.t; 
   def_map: e Dict.t;
   impl_map: e Dict.t;
   ty_ctx: ty_val Dict.t;
@@ -197,7 +197,7 @@ and e (expr, loc) st = match expr with
         | Pub -> Dict.add s e1 a.def_map
         | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
-      end; 
+      end;
       e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx
     }
     | Def (access, false, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
@@ -209,6 +209,14 @@ and e (expr, loc) st = match expr with
         | Opaq -> failwith "Values cannot be opaque"
       end; 
       e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx
+    }
+    | Ty (access, s, args, ty1), _ -> {
+      a with
+      spec_map = begin match access with
+        | Pub -> Dict.add s (args, ty1) a.spec_map
+        | Local -> a.spec_map
+        | Opaq -> Dict.add s (args, None) a.spec_map
+      end
     }
     | _ -> a (* temporary *)
   end {null_vmod with e_ctx = st.ctx} lst
