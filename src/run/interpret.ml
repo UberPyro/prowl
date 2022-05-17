@@ -203,6 +203,12 @@ and e (expr, loc) st = match expr with
     | _ -> a (* temporary *)
   end {null_vmod with e_ctx = st.ctx} lst
   |> fun vmod -> lit st (VMod vmod)
+
+  | Access (e1, s) -> e e1 st >>= fun stx -> 
+    begin match stx.stk with
+      | VMod vmod :: _ -> pure {st with stk = vmod.e_ctx --> s :: st.stk}
+      | _ -> failwith "Type Error: Accessing a non-module"
+    end
   
   | _ ->
     print_endline (show_e_t expr);
