@@ -248,12 +248,22 @@ and e (expr, loc) st = match expr with
         | Opaq -> Dict.add s (args, None) a.spec_map
       end
     }
+    | Open (_, e1), _ ->
+      e e1 {st with ctx = a.e_ctx} 
+      |> LazyList.hd |> begin fun stx -> match stx.stk with
+      | VMod {def_map; _} :: _ -> def_map
+      | _ -> failwith "Type Error: Cannot open non-module"
+    end |> fun e_map -> {
+      a with e_ctx =
+        Dict.map (fun x -> VImm (x, a.e_ctx)) e_map
+        |> Dict.union (fun _ _ z -> Some z) a.e_ctx
+    }
     | _ -> a (* temporary *)
   end {null_vmod with e_ctx = st.ctx} lst
   |> fun vmod -> lit st (VMod vmod)
   | Access (e1, s) -> e e1 st >>= fun stx -> 
     begin match stx.stk with
-      | VMod vmod :: _ -> e (vmod.def_map --> s) st
+      | VMod vmod :: _ -> e (vmod.def_map --> s) {st with ctx = vmod.e_ctx}
       | _ -> failwith "Type Error: Accessing a non-module"
     end
   | Impl e1 -> lit st (VImpl e1)
