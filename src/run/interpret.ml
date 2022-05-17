@@ -1,6 +1,8 @@
 (* The *Lazy* Prowl Interpreter *)
 
 open Batteries
+open Util
+
 module D0 = Map.Make(struct type t = string let compare = compare end)
 module Dict = struct
   include D0
@@ -21,11 +23,11 @@ type ty_val =
   | YInt
   | YStr
   | YPair of ty_val * ty_val
-  | YLeft of ty_val
-  | YRight of ty_val
+  | YEith of ty_val * ty_val
   | YCapture of ty_val
   | YUnit
   | YVoid
+  | YWild
   [@@deriving show]
 
 type e_val = 
@@ -38,6 +40,7 @@ type e_val =
   | VImm of e * e_val Dict.t
   | VUnit
   | VMod of vmod
+  | VImpl of e_val
   [@@deriving show]
 
 and vmod = {
@@ -218,7 +221,7 @@ and e (expr, loc) st = match expr with
         | Opaq -> failwith "Values cannot be opaque"
       end
     }
-    | Def (access, true, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
+    (* | Def (access, true, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
       let e2 = As ("", (PCat t, y), e1), z in {
       a with
       impl_map = begin match access with 
@@ -226,7 +229,7 @@ and e (expr, loc) st = match expr with
         | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
       end
-    }
+    } *)
     | Ty (access, s, args, ty1), _ -> {
       a with
       spec_map = begin match access with
@@ -238,11 +241,14 @@ and e (expr, loc) st = match expr with
     | _ -> a (* temporary *)
   end {null_vmod with e_ctx = st.ctx} lst
   |> fun vmod -> lit st (VMod vmod)
-
   | Access (e1, s) -> e e1 st >>= fun stx -> 
     begin match stx.stk with
       | VMod vmod :: _ -> e (vmod.def_map --> s) st
       | _ -> failwith "Type Error: Accessing a non-module"
+    end
+  | Impl e1 -> e e1 st >>= fun stx -> begin match stx.stk with
+      | h :: t -> pure {st with stk = VImpl h :: t}
+      | _ -> failwith "Contents of Impl does not push to the stack"
     end
   
   | _ ->
@@ -341,19 +347,43 @@ and p (px, _) st = match px with
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
+  (* | PImpl (p1, t1) -> begin match st.stk with
+    | VImpl e_v :: t -> 
+  end *)
+
   | _ -> failwith "Unimplemented - pattern"
 
 and ty_of_v = function
   | VInt _ -> YInt
   | VStr _ -> YStr
   | VPair (e1, e2) -> YPair (ty_of_e e1, ty_of_e e2)
-  | VLeft e1 -> YLeft (ty_of_e e1)
-  | VRight e2 -> YRight (ty_of_e e2)
+  | VLeft e1 -> YEith (ty_of_e e1, YWild)
+  | VRight e2 -> YEith (YWild, ty_of_e e2)
   | VCapture _ | VImm (_, _) -> failwith "Cannot deduce the type of a function"
   | VUnit -> YUnit
   | VMod _ -> failwith "Cannot deduce the type of a module"
+  | _ -> failwith "Cannot convert value to type"
 
 and ty_of_e e1 = match e e1 null_st |> LazyList.get with
   | None -> failwith "Getting the type of a rejection"
   | Some ({stk = h :: _; _}, _) -> ty_of_v h
   | Some (_, _) -> failwith "Getting the type of a non-pushing expression"
+
+and y_of_ty = function
+  | TId "int" -> YInt
+  | TId "str" -> YStr
+  | TBin bin -> 
+    List.map (fun a -> List.map (fst >> fst >> fst >> y_of_ty) a) bin
+    |> List.map (bin_group (fun a b -> YPair (a, b)))
+    |> bin_group (fun a b -> YEith (a, b))
+  (* | TList (_, loc) as t -> 
+    y_of_ty (TBin [[((TCat [], loc), (TUnit, loc)), loc]; []]) *)
+  | _ -> failwith "Unimplemented"
+
+and bin_group g = function
+  | [h1; h2] -> g h1 h2
+  | h1 :: h2 :: t -> bin_group g (g h1 h2 :: t)
+  | lst ->
+    List.length lst
+    |> Printf.sprintf "Cannot have an either of %d elem(s)"
+    |> failwith
