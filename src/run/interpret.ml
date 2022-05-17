@@ -78,6 +78,13 @@ let string_of_v = function
   | _ -> failwith "Unimplemented - string_of_v"
 
 let null_st = {(* tyctx=Dict.empty; *) ctx=Dict.empty; stk=[]}
+let null_vmod = {
+  spec_map = Dict.empty;
+  def_map = Dict.empty;
+  impl_map = Dict.empty;
+  ty_ctx = Dict.empty;
+  e_ctx = Dict.empty;
+}
 
 let init_ctx = [
 
@@ -182,6 +189,20 @@ and e (expr, loc) st = match expr with
       | None -> lst in
       loop (e e1 st) (pure st)
   | Quant (e1, Opt, Gre) -> (e e1 <|> pure) st
+
+  | Mod lst -> List.fold_left begin fun a -> function
+    | Def (access, false, (PId s, _), e1, _), _ -> {
+      a with
+      def_map = begin match access with 
+        | Pub -> Dict.add s e1 a.def_map
+        | Priv -> a.def_map
+        | Opaq -> failwith "Values cannot be opaque"
+      end; 
+      e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx
+    }
+    | _ -> a (* temporary *)
+  end {null_vmod with e_ctx = st.ctx} lst
+  |> fun vmod -> lit st (VMod vmod)
   
   | _ ->
     print_endline (show_e_t expr);
