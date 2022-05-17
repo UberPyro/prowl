@@ -200,6 +200,16 @@ and e (expr, loc) st = match expr with
       end; 
       e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx
     }
+    | Def (access, false, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
+      let e2 = As ("", (PCat t, y), e1), z in {
+      a with
+      def_map = begin match access with 
+        | Pub -> Dict.add s e2 a.def_map
+        | Priv -> a.def_map
+        | Opaq -> failwith "Values cannot be opaque"
+      end; 
+      e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx
+    }
     | _ -> a (* temporary *)
   end {null_vmod with e_ctx = st.ctx} lst
   |> fun vmod -> lit st (VMod vmod)
