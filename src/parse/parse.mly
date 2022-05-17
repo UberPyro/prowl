@@ -12,8 +12,8 @@
 
 %token
   DEF OPEN MIX IMPL SIG END
-  PUB OPAQ MOD TYPE DATA DO
-  SPEC
+  OPAQ TYPE DATA SPEC LOCAL
+  MOD DO
 
   PLUS MINUS TIMES DIVIDE
   EXP RANGE SNOC CONS
@@ -75,9 +75,9 @@
 program: access e EOF {$1, $2}
 
 %inline access: 
-  | PUB {Pub}
+  | LOCAL {Local}
   | OPAQ {Opaq}
-  | {Priv}
+  | {Pub}
 
 sp: sp_t {$1, $loc}
 %inline sp_t: 

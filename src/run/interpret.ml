@@ -195,7 +195,7 @@ and e (expr, loc) st = match expr with
       a with
       def_map = begin match access with 
         | Pub -> Dict.add s e1 a.def_map
-        | Priv -> a.def_map
+        | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
       end; 
       e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx
@@ -205,7 +205,7 @@ and e (expr, loc) st = match expr with
       a with
       def_map = begin match access with 
         | Pub -> Dict.add s e2 a.def_map
-        | Priv -> a.def_map
+        | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
       end; 
       e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx

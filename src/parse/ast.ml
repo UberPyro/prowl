@@ -19,7 +19,7 @@ let pp_loc c f (a, loc) =
     else ""
   end |> pp_print_string f
 
-type access_mod = Pub | Opaq | Priv [@@deriving show]
+type access_mod = Local | Opaq | Pub [@@deriving show]
 
 and sp = sp_t loc [@@deriving show]
 and sp_t = 

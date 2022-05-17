@@ -68,7 +68,7 @@ rule token = parse
   | "open"  {OPEN}
   | "mix"   {MIX}
   | "impl"  {IMPL}
-  | "pub"   {PUB}
+  | "local" {LOCAL}
   | "opaq"  {OPAQ}
   | "type"  {TYPE}
   | "sig"   {SIG}
