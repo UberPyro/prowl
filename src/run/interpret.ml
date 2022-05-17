@@ -246,7 +246,7 @@ and e (expr, loc) st = match expr with
       | VMod vmod :: _ -> e (vmod.def_map --> s) st
       | _ -> failwith "Type Error: Accessing a non-module"
     end
-  | Impl e1 -> lit st (VImpl e1)
+  (* | Impl e1 -> lit st (VImpl e1) *)
   
   | _ ->
     print_endline (show_e_t expr);
@@ -344,10 +344,10 @@ and p (px, _) st = match px with
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
-  | PImpl (p1, _) -> begin match st.stk with
+  (* | PImpl (p1, _) -> begin match st.stk with
     | VImpl e1 :: t -> e e1 {st with stk = t} >>= p p1
     | _ -> failwith "the hard case"
-  end
+  end *)
 
   | _ -> failwith "Unimplemented - pattern"
 
