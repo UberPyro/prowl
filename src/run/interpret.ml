@@ -325,3 +325,18 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
   | _ -> failwith "Unimplemented - pattern"
+
+and ty_of_v = function
+  | VInt _ -> YInt
+  | VStr _ -> YStr
+  | VPair (e1, e2) -> YPair (ty_of_e e1, ty_of_e e2)
+  | VLeft e1 -> YLeft (ty_of_e e1)
+  | VRight e2 -> YRight (ty_of_e e2)
+  | VCapture _ | VImm (_, _) -> failwith "Cannot deduce the type of a function"
+  | VUnit -> YUnit
+  | VMod _ -> failwith "Cannot deduce the type of a module"
+
+and ty_of_e e1 = match e e1 null_st |> LazyList.get with
+  | None -> failwith "Getting the type of a rejection"
+  | Some ({stk = h :: _; _}, _) -> ty_of_v h
+  | Some (_, _) -> failwith "Getting the type of a non-pushing expression"
