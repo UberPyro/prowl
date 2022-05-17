@@ -40,7 +40,7 @@ type e_val =
   | VImm of e * e_val Dict.t
   | VUnit
   | VMod of vmod
-  | VImpl of e_val
+  | VImpl of e
   [@@deriving show]
 
 and vmod = {
@@ -246,10 +246,7 @@ and e (expr, loc) st = match expr with
       | VMod vmod :: _ -> e (vmod.def_map --> s) st
       | _ -> failwith "Type Error: Accessing a non-module"
     end
-  | Impl e1 -> e e1 st >>= fun stx -> begin match stx.stk with
-      | h :: t -> pure {st with stk = VImpl h :: t}
-      | _ -> failwith "Contents of Impl does not push to the stack"
-    end
+  | Impl e1 -> lit st (VImpl e1)
   
   | _ ->
     print_endline (show_e_t expr);
@@ -347,9 +344,10 @@ and p (px, _) st = match px with
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
-  (* | PImpl (p1, t1) -> begin match st.stk with
-    | VImpl e_v :: t -> 
-  end *)
+  | PImpl (p1, _) -> begin match st.stk with
+    | VImpl e1 :: t -> e e1 {st with stk = t} >>= p p1
+    | _ -> failwith "the hard case"
+  end
 
   | _ -> failwith "Unimplemented - pattern"
 
