@@ -206,7 +206,7 @@ and e (expr, loc) st = match expr with
 
   | Access (e1, s) -> e e1 st >>= fun stx -> 
     begin match stx.stk with
-      | VMod vmod :: _ -> pure {st with stk = vmod.e_ctx --> s :: st.stk}
+      | VMod vmod :: _ -> e (vmod.def_map --> s) st
       | _ -> failwith "Type Error: Accessing a non-module"
     end
   
