@@ -41,7 +41,16 @@ type e_val =
   | VUnit
   | VMod of vmod
   | VImpl of e
+  | VImplMod
   [@@deriving show]
+
+(* make VImm use this in order to implement implicits *)
+and v_imm = {
+  capt : e;
+  imm_ctx : e_val Dict.t;
+  imm_impl_ctx : e_val Dict.t;
+  imm_ty_ctx : ty_val Dict.t
+}
 
 and vmod = {
   spec_map: (string list * ty option) Dict.t; 
@@ -54,6 +63,7 @@ and vmod = {
 type st = {
   ctx: e_val Dict.t;
   stk: e_val list;
+  impl_ctx: vmod Dict.t
 }
 
 let (<&>) x f = LazyList.map f x
@@ -80,7 +90,7 @@ let string_of_v = function
   
   | _ -> failwith "Unimplemented - string_of_v"
 
-let null_st = {(* tyctx=Dict.empty; *) ctx=Dict.empty; stk=[]}
+let null_st = {ctx=Dict.empty; stk=[]; impl_ctx=Dict.empty}
 let null_vmod = {
   spec_map = Dict.empty;
   def_map = Dict.empty;
@@ -216,20 +226,20 @@ and e (expr, loc) st = match expr with
     | Def (access, true, (PId s, _), e1, _), _ -> {
       a with
       impl_map = begin match access with 
-        | Pub -> Dict.add s e1 a.def_map
-        | Local -> a.def_map
+        | Pub -> Dict.add s e1 a.impl_map
+        | Local -> a.impl_map
         | Opaq -> failwith "Values cannot be opaque"
       end
     }
-    (* | Def (access, true, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
+    | Def (access, true, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
       let e2 = As ("", (PCat t, y), e1), z in {
       a with
       impl_map = begin match access with 
-        | Pub -> Dict.add s e2 a.def_map
-        | Local -> a.def_map
+        | Pub -> Dict.add s e2 a.impl_map
+        | Local -> a.impl_map
         | Opaq -> failwith "Values cannot be opaque"
       end
-    } *)
+    }
     | Ty (access, s, args, ty1), _ -> {
       a with
       spec_map = begin match access with
@@ -246,7 +256,7 @@ and e (expr, loc) st = match expr with
       | VMod vmod :: _ -> e (vmod.def_map --> s) st
       | _ -> failwith "Type Error: Accessing a non-module"
     end
-  (* | Impl e1 -> lit st (VImpl e1) *)
+  | Impl e1 -> lit st (VImpl e1)
   
   | _ ->
     print_endline (show_e_t expr);
@@ -290,13 +300,17 @@ end (pure st0)
 
 and p (px, _) st = match px with
   | PId s -> begin match st.stk with
-    | h :: t -> pure {stk = t; ctx = st.ctx <-- (s, h)}
+    | h :: t -> pure {st with stk = t; ctx = st.ctx <-- (s, h)}
     | _ -> failwith "Stack Underflow"
   end
   | PCat lst ->
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
   | PCapture (PId s, _) -> begin match st.stk with
-    | VCapture vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm (vc, st.ctx))}
+    | VCapture vc :: t -> pure {
+      st with
+      stk = t; 
+      ctx = st.ctx <-- (s, VImm (vc, st.ctx))
+      }
     | _ -> failwith "Type Error: matching non-capture against capture (direct)"
   end
   | PCapture px -> begin match st.stk with
@@ -304,8 +318,11 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
   end
   | PPair ((PId s1, _), (PId s2, _)) -> begin match st.stk with
-    | VPair (vc1, vc2) :: t -> 
-      pure {stk = t; ctx = st.ctx <-- (s1, VImm (vc1, st.ctx)) <-- (s2, VImm (vc2, st.ctx))}
+    | VPair (vc1, vc2) :: t -> pure {
+        st with
+        stk = t;
+        ctx = st.ctx <-- (s1, VImm (vc1, st.ctx)) <-- (s2, VImm (vc2, st.ctx))
+      }
     | _ -> failwith "Type Error: matching non-pair on pair (direct) (direct)"
   end
   | PPair (px1, (PId s2, _)) -> begin match st.stk with
@@ -315,8 +332,11 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-pair on pair (indirect) (direct)"
   end
   | PPair ((PId s1, _), px2) -> begin match st.stk with
-    | VPair (vc1, vc2) :: t -> 
-      e vc2 {stk = t; ctx = st.ctx <-- (s1, VImm (vc1, st.ctx))} >>= p px2
+    | VPair (vc1, vc2) :: t -> e vc2 {
+        st with
+        stk = t;
+        ctx = st.ctx <-- (s1, VImm (vc1, st.ctx))
+      } >>= p px2
     | _ -> failwith "Type Error: matching non-pair on pair (direct) (indirect)"
   end
   | PPair (px1, px2)  -> begin match st.stk with
@@ -325,7 +345,11 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-pair on pair (indirect) (indirect)"
   end
   | PLeft (PId s, _) -> begin match st.stk with
-    | VLeft vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm (vc, st.ctx))}
+    | VLeft vc :: t -> pure {
+        st with
+        stk = t;
+        ctx = st.ctx <-- (s, VImm (vc, st.ctx))
+      }
     | VRight _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (direct)"
   end
@@ -335,7 +359,11 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
   | PRight (PId s, _) -> begin match st.stk with
-    | VRight vc :: t -> pure {stk = t; ctx = st.ctx <-- (s, VImm (vc, st.ctx))}
+    | VRight vc :: t -> pure {
+        st with
+        stk = t;
+        ctx = st.ctx <-- (s, VImm (vc, st.ctx))
+      }
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (direct)"
   end
@@ -344,10 +372,10 @@ and p (px, _) st = match px with
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
-  (* | PImpl (p1, _) -> begin match st.stk with
+  | PImpl (PId s, _ as p1, _) -> begin match st.stk with
     | VImpl e1 :: t -> e e1 {st with stk = t} >>= p p1
-    | _ -> failwith "the hard case"
-  end *)
+    | _ -> pure {st with ctx = st.ctx <-- (s, VImplMod)}
+  end
 
   | _ -> failwith "Unimplemented - pattern"
 
