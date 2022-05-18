@@ -162,8 +162,9 @@ and e (expr, loc) st = match expr with
     | _ -> failwith "Type Error: Expected string"
   end
   | Id s -> begin match st.ctx --> s with
-    | VImm {capt=ex; imm_ctx=ctx; _} -> 
-      e ex {st with ctx} <&> fun stx -> {stx with ctx = st.ctx}
+    | VImm {capt=ex; imm_ctx=ctx; imm_impl_ctx=impl_ctx} -> 
+      e ex {st with ctx; impl_ctx} <&> fun stx ->
+      {stx with ctx = st.ctx; impl_ctx = st.impl_ctx}
     | x -> lit st x (* incomplete? *)
     | exception Not_found -> failwith ("Unbound id: " ^ s)
 
