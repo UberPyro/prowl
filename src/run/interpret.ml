@@ -379,6 +379,7 @@ and p (px, _) st = match px with
     | VCapture vc :: t -> e vc {st with stk = t} >>= p px
     | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
   end
+  | PAsc (p1, _) -> p p1 st
   | PPair ((PId s1, _), (PId s2, _)) -> begin match st.stk with
     | VPair (vc1, vc2) :: t -> pure {
         st with
