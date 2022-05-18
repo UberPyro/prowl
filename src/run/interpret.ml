@@ -281,6 +281,23 @@ and e (expr, loc) st = match expr with
   | Access (e1, s) -> e e1 st >>= fun stx -> 
     begin match stx.stk with
       | VMod vmod :: _ -> e (vmod.def_map --> s) {st with ctx = vmod.e_ctx}
+      | VImplMod :: _ -> st.impl_ctx --> s |> List.filter begin fun vmod -> 
+        match vmod.def_map --> s with
+        | As (_, (PAsc (_, t1), _), _), _ ->
+          ty_of_v (List.hd st.stk) == y_of_ty t1
+        | As (_, (PCat lst, _), _), _ -> 
+          List.take (List.length lst) st.stk
+          |> List.combine lst
+          |> List.map begin function ((PAsc (_, t1), _), v) -> 
+            ty_of_v v == y_of_ty t1
+            | _ -> failwith "Bad implicits matching"
+          end |> List.for_all identity
+        | _ -> failwith "Bad Implicits case"
+      end |> begin function
+        | [] -> failwith "Implicits Error: No match could be found"
+        | _ :: _ :: _ -> failwith "Implicits Error: More than 1 match"
+        | [vmod] -> e (vmod.def_map --> s) {st with ctx = vmod.e_ctx}
+      end
       | _ -> failwith "Type Error: Accessing a non-module"
     end
   | Impl e1 -> lit st (VImpl e1)
@@ -426,7 +443,6 @@ and p (px, _) st = match px with
   end
   | PImpl (PId s, _ as p1, _) -> begin match st.stk with
     | VImpl e1 :: t -> e e1 {st with stk = t} >>= p p1
-
     | _ -> pure {st with ctx = st.ctx <-- (s, VImplMod)}
   end
   | POpen false -> begin match st.stk with
@@ -459,16 +475,18 @@ and ty_of_e e1 = match e e1 null_st |> LazyList.get with
   | Some ({stk = h :: _; _}, _) -> ty_of_v h
   | Some (_, _) -> failwith "Getting the type of a non-pushing expression"
 
-and y_of_ty = function
-  | TId "int" -> YInt
-  | TId "str" -> YStr
-  | TBin bin -> 
-    List.map (fun a -> List.map (fst >> fst >> fst >> y_of_ty) a) bin
-    |> List.map (bin_group (fun a b -> YPair (a, b)))
-    |> bin_group (fun a b -> YEith (a, b))
-  (* | TList (_, loc) as t -> 
-    y_of_ty (TBin [[((TCat [], loc), (TUnit, loc)), loc]; []]) *)
-  | _ -> failwith "Unimplemented"
+and y_of_ty x =
+  begin fst >> fst >> fst >> function
+    | TId "int" -> YInt
+    | TId "str" -> YStr
+    | TBin bin -> 
+      List.map (fun a -> List.map y_of_ty a) bin
+      |> List.map (bin_group (fun a b -> YPair (a, b)))
+      |> bin_group (fun a b -> YEith (a, b))
+    (* | TList (_, loc) as t -> 
+      y_of_ty (TBin [[((TCat [], loc), (TUnit, loc)), loc]; []]) *)
+    | _ -> failwith "Unimplemented"
+  end x
 
 and bin_group g = function
   | [h1; h2] -> g h1 h2
