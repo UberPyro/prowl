@@ -254,7 +254,7 @@ and e (expr, loc) st = match expr with
         | Opaq -> failwith "Values cannot be opaque"
       end;
       impl_ctx = Dict.add s begin
-        try a :: a.impl_ctx --> s with
+        a :: try a.impl_ctx --> s with
         | Not_found -> []
       end a.impl_ctx
     }
@@ -267,7 +267,7 @@ and e (expr, loc) st = match expr with
         | Opaq -> failwith "Values cannot be opaque"
       end;
       impl_ctx = Dict.add s begin
-        try a :: a.impl_ctx --> s with
+        a :: try a.impl_ctx --> s with
         | Not_found -> []
       end a.impl_ctx
     }
