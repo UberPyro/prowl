@@ -308,11 +308,7 @@ and e (expr, loc) st = match expr with
         | Not_found -> failwith "Field not found in module" end
       | VImplMod :: _ ->
         begin try st.impl_ctx --> s with
-          | Not_found -> 
-            (* show_st st |> print_endline; *)
-            (* st.impl_ctx |> Dict.cardinal |> print_int; *)
-            print_st st;
-            failwith "Field not found in implicit context"
+          | Not_found -> failwith "Field not found in implicit context"
         end |> List.filter begin fun vmod -> 
         match vmod.def_map --> s with
         | As (_, (PAsc (_, t1), _), _), _ ->
@@ -327,7 +323,9 @@ and e (expr, loc) st = match expr with
         | exception Not_found -> false  (* name not in module *)
         | _ -> failwith "Bad Implicits case"
       end |> begin function
-        | [] -> failwith "Implicits Error: No match could be found"
+        | [] -> 
+          print_st st;
+          failwith "Implicits Error: No match could be found"
         | _ :: _ :: _ -> failwith "Implicits Error: More than 1 match"
         | [vmod] ->
           try e (vmod.def_map --> s) {st with ctx = vmod.e_ctx} with
