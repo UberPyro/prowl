@@ -262,22 +262,6 @@ and e (expr, loc) st = match expr with
         }
       | _ -> failwith "bad"
       end
-    | Def (access, true, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
-      let e2 = As ("", (PCat t, y), e1), z in 
-      begin match LazyList.get (e e1 st) with
-      | Some ({stk = VMod vmod :: _; _}, _) -> {
-        a with
-        impl_map = begin match access with
-          | Pub -> Dict.add s e2 a.def_map
-          | Local -> a.def_map
-          | Opaq -> failwith "Values cannot be opaque"
-        end;
-        impl_ctx = Dict.fold begin fun k _ b -> 
-          b <-- (k, a :: try b --> k with Not_found -> [])
-        end vmod.def_map a.impl_ctx
-      }
-    | _ -> failwith "bad"
-    end
     | Ty (access, s, args, ty1), _ -> {
       a with
       spec_map = begin match access with
@@ -309,7 +293,7 @@ and e (expr, loc) st = match expr with
       | VImplMod :: _ ->
         begin try st.impl_ctx --> s with
           | Not_found -> failwith "Field not found in implicit context"
-        end |> List.filter begin fun vmod -> 
+        end |> List.filter begin fun vmod -> (* vmod.def_map is empty? *)
         match vmod.def_map --> s with
         | As (_, (PAsc (_, t1), _), _), _ ->
           ty_of_v (List.hd st.stk) == y_of_ty t1
