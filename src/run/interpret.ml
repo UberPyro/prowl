@@ -300,9 +300,10 @@ and e (expr, loc) st = match expr with
         | As (_, (PCat lst, _), _), _ -> 
           List.take (List.length lst) st.stk
           |> List.combine lst
-          |> List.map begin function ((PAsc (_, t1), _), v) -> 
-            ty_of_v v == y_of_ty t1
-            | _ -> failwith "Bad implicits matching"
+          |> List.map begin function 
+            | ((PAsc (_, t1), _), v) -> ty_of_v v == y_of_ty t1
+            (* | p1, _ -> show_p p1 |> print_endline; failwith "end" *)
+            | _ -> failwith "Bad implicits matching - missing an annotation?"
           end |> List.for_all identity
         | exception Not_found -> false  (* name not in module *)
         | _ -> failwith "Bad Implicits case"
@@ -492,7 +493,7 @@ and ty_of_e e1 = match e e1 null_st |> LazyList.get with
   | Some (_, _) -> failwith "Getting the type of a non-pushing expression"
 
 and y_of_ty x =
-  begin fst >> fst >> fst >> function
+  begin fst >> snd >> fst >> function
     | TId "int" -> YInt
     | TId "str" -> YStr
     | TBin bin -> 
@@ -501,7 +502,9 @@ and y_of_ty x =
       |> bin_group (fun a b -> YEith (a, b))
     (* | TList (_, loc) as t -> 
       y_of_ty (TBin [[((TCat [], loc), (TUnit, loc)), loc]; []]) *)
-    | _ -> failwith "Unimplemented"
+    | ty1 -> 
+      show_ty_term_t ty1 |> print_endline;
+      failwith "Unimplemented"
   end x
 
 and bin_group g = function
