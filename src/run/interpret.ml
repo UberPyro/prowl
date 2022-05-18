@@ -386,6 +386,14 @@ and p (px, _) st = match px with
     | VImpl e1 :: t -> e e1 {st with stk = t} >>= p p1
     | _ -> pure {st with ctx = st.ctx <-- (s, VImplMod)}
   end
+  | POpen false -> begin match st.stk with
+    | VMod {def_map; _} :: t -> def_map, t
+    | _ -> failwith "Type Error: matching non-module against OPEN"
+  end |> fun (e_map, t) -> pure {
+    st with stk = t; ctx = 
+      Dict.map (fun x -> VImm (x, st.ctx)) e_map
+      |> Dict.union (fun _ _ z -> Some z) st.ctx
+  }
 
   | _ -> failwith "Unimplemented - pattern"
 
