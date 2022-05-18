@@ -153,7 +153,7 @@ s: s_t {$1, $loc}
 
 %inline s_kw: 
   | DEF {false}
-  | IMPL {true}
+  | DEF IMPL {true}
 
 %inline is_impl: 
   | IMPL {true}
@@ -249,8 +249,6 @@ bin(entry):
 p: p_t {$1, $loc}
 %inline p_t: 
   | p p_bop p {PBop ($1, $2, $3)}
-  | LPAREN list(semi) p COLON ty RPAREN
-    {assert (List.length $2 == 0); PAsc ($3, $5)}
   | nonempty_list(p_term) {
     match $1 with
     | [h, _] -> h
@@ -288,6 +286,8 @@ p_term: p_term_t {$1, $loc}
   
   | CAP {PData $1}
   | LBRACE sep_pop_list_ge_2(COMMA, p) RBRACE {PProd $2}
+  | LPAREN list(semi) p COLON ty RPAREN
+    {assert (List.length $2 == 0); PAsc ($3, $5)}
   | LT p COLON ty GT {PImpl ($2, $4)}
   | LBRACE p RBRACE {PCapture $2}
 
