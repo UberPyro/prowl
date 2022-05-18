@@ -243,7 +243,10 @@ and e (expr, loc) st = match expr with
         | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
       end;
-      impl_ctx = Dict.add s (a :: a.impl_ctx --> s) a.impl_ctx
+      impl_ctx = Dict.add s begin
+        try a :: a.impl_ctx --> s with
+        | Not_found -> []
+      end a.impl_ctx
     }
     | Def (access, true, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
       let e2 = As ("", (PCat t, y), e1), z in {
@@ -253,7 +256,10 @@ and e (expr, loc) st = match expr with
         | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
       end;
-      impl_ctx = Dict.add s (a :: a.impl_ctx --> s) a.impl_ctx
+      impl_ctx = Dict.add s begin
+        try a :: a.impl_ctx --> s with
+        | Not_found -> []
+      end a.impl_ctx
     }
     | Ty (access, s, args, ty1), _ -> {
       a with
@@ -280,8 +286,13 @@ and e (expr, loc) st = match expr with
 
   | Access (e1, s) -> e e1 st >>= fun stx -> 
     begin match stx.stk with
-      | VMod vmod :: _ -> e (vmod.def_map --> s) {st with ctx = vmod.e_ctx}
-      | VImplMod :: _ -> st.impl_ctx --> s |> List.filter begin fun vmod -> 
+      | VMod vmod :: _ ->
+        begin try e (vmod.def_map --> s) {st with ctx = vmod.e_ctx} with
+        | Not_found -> failwith "Field not found in module" end
+      | VImplMod :: _ ->
+        begin try st.impl_ctx --> s with
+          | Not_found -> failwith "Field not found in implicit context"
+        end |> List.filter begin fun vmod -> 
         match vmod.def_map --> s with
         | As (_, (PAsc (_, t1), _), _), _ ->
           ty_of_v (List.hd st.stk) == y_of_ty t1
@@ -292,11 +303,14 @@ and e (expr, loc) st = match expr with
             ty_of_v v == y_of_ty t1
             | _ -> failwith "Bad implicits matching"
           end |> List.for_all identity
+        | exception Not_found -> false  (* name not in module *)
         | _ -> failwith "Bad Implicits case"
       end |> begin function
         | [] -> failwith "Implicits Error: No match could be found"
         | _ :: _ :: _ -> failwith "Implicits Error: More than 1 match"
-        | [vmod] -> e (vmod.def_map --> s) {st with ctx = vmod.e_ctx}
+        | [vmod] ->
+          try e (vmod.def_map --> s) {st with ctx = vmod.e_ctx} with
+          | Not_found -> failwith "Internal Error: Selected module does not have field"
       end
       | _ -> failwith "Type Error: Accessing a non-module"
     end
