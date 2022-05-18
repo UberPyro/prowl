@@ -257,7 +257,7 @@ and e (expr, loc) st = match expr with
             | Opaq -> failwith "Values cannot be opaque"
           end;
           impl_ctx = Dict.fold begin fun k _ b -> 
-            b <-- (k, a :: try b --> k with Not_found -> [])
+            b <-- (k, vmod :: try b --> k with Not_found -> [])
           end vmod.def_map a.impl_ctx
         }
       | _ -> failwith "bad"
@@ -307,9 +307,7 @@ and e (expr, loc) st = match expr with
         | exception Not_found -> false  (* name not in module *)
         | _ -> failwith "Bad Implicits case"
       end |> begin function
-        | [] -> 
-          print_st st;
-          failwith "Implicits Error: No match could be found"
+        | [] -> failwith "Implicits Error: No match could be found"
         | _ :: _ :: _ -> failwith "Implicits Error: More than 1 match"
         | [vmod] ->
           try e (vmod.def_map --> s) {st with ctx = vmod.e_ctx} with
