@@ -37,19 +37,18 @@ type e_val =
   | VLeft of e
   | VRight of e
   | VCapture of e
-  | VImm of e * e_val Dict.t
+  | VImm of v_imm
   | VUnit
   | VMod of vmod
   | VImpl of e
   | VImplMod
   [@@deriving show]
 
-(* make VImm use this in order to implement implicits *)
 and v_imm = {
   capt : e;
   imm_ctx : e_val Dict.t;
-  imm_impl_ctx : e_val Dict.t;
-  imm_ty_ctx : ty_val Dict.t
+  imm_impl_ctx : vmod list Dict.t
+  (* imm_ty_ctx : ty_val Dict.t *)
 }
 
 and vmod = {
@@ -153,7 +152,7 @@ and e (expr, loc) st = match expr with
     | _ -> failwith "Type Error: Expected string"
   end
   | Id s -> begin match st.ctx --> s with
-    | VImm (ex, ctx) -> 
+    | VImm {capt=ex; imm_ctx=ctx; _} -> 
       e ex {st with ctx} <&> fun stx -> {stx with ctx = st.ctx}
     | x -> lit st x (* incomplete? *)
     | exception Not_found -> failwith ("Unbound id: " ^ s)
@@ -165,11 +164,19 @@ and e (expr, loc) st = match expr with
   end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
     | "", false, (PId s, _), ex -> a <&> begin 
-        fun stx -> {stx with ctx = stx.ctx <-- (s, VImm (ex, stx.ctx))}
+        fun stx -> {stx with ctx = stx.ctx <-- (s, VImm {
+          capt=ex;
+          imm_ctx=stx.ctx;
+          imm_impl_ctx=stx.impl_ctx
+        })}
       end
     | "", false, (PCat ((PId s, z) :: t), y), ex -> a <&> begin
         fun stx -> {stx with 
-          ctx = stx.ctx <-- (s, VImm ((As ("", (PCat t, y), ex), z), stx.ctx))
+          ctx = stx.ctx <-- (s, VImm {
+            capt=As ("", (PCat t, y), ex), z;
+            imm_ctx=stx.ctx;
+            imm_impl_ctx=stx.impl_ctx
+        })
         }
       end
     | "", false, px, ex -> a >>= e ex >>= p px
@@ -213,7 +220,9 @@ and e (expr, loc) st = match expr with
         | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
       end;
-      e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx
+      e_ctx = Dict.add s (
+        VImm {capt=e1; imm_ctx=a.e_ctx; imm_impl_ctx=a.impl_ctx}
+      ) a.e_ctx
     }
     | Def (access, false, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
       let e2 = As ("", (PCat t, y), e1), z in {
@@ -223,7 +232,9 @@ and e (expr, loc) st = match expr with
         | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
       end; 
-      e_ctx = Dict.add s (VImm (e1, a.e_ctx)) a.e_ctx
+      e_ctx = Dict.add s (
+        VImm {capt=e1; imm_ctx=a.e_ctx; imm_impl_ctx=a.impl_ctx}
+      ) a.e_ctx
     }
     | Def (access, true, (PId s, _), e1, _), _ -> {
       a with
@@ -259,8 +270,9 @@ and e (expr, loc) st = match expr with
       | _ -> failwith "Type Error: Cannot open non-module"
     end |> fun e_map -> {
       a with e_ctx =
-        Dict.map (fun x -> VImm (x, a.e_ctx)) e_map
-        |> Dict.union (fun _ _ z -> Some z) a.e_ctx
+        Dict.map begin 
+          fun x -> VImm {capt=x; imm_ctx=a.e_ctx; imm_impl_ctx=a.impl_ctx}
+        end e_map |> Dict.union (fun _ _ z -> Some z) a.e_ctx
     }
     | _ -> a (* temporary *)
   end {null_vmod with e_ctx = st.ctx; impl_ctx = st.impl_ctx} lst
@@ -324,8 +336,12 @@ and p (px, _) st = match px with
     | VCapture vc :: t -> pure {
       st with
       stk = t; 
-      ctx = st.ctx <-- (s, VImm (vc, st.ctx))
-      }
+      ctx = st.ctx <-- (s, VImm {
+        capt=vc;
+        imm_ctx=st.ctx;
+        imm_impl_ctx=st.impl_ctx
+      })
+    }
     | _ -> failwith "Type Error: matching non-capture against capture (direct)"
   end
   | PCapture px -> begin match st.stk with
@@ -336,13 +352,22 @@ and p (px, _) st = match px with
     | VPair (vc1, vc2) :: t -> pure {
         st with
         stk = t;
-        ctx = st.ctx <-- (s1, VImm (vc1, st.ctx)) <-- (s2, VImm (vc2, st.ctx))
+        ctx =
+          st.ctx
+          <-- (s1, VImm {capt=vc1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
+          <-- (s2, VImm {capt=vc2; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
       }
     | _ -> failwith "Type Error: matching non-pair on pair (direct) (direct)"
   end
   | PPair (px1, (PId s2, _)) -> begin match st.stk with
     | VPair (vc1, vc2) :: t -> e vc1 {st with stk = t} >>= p px1 >>= begin 
-      fun stx -> pure {stx with ctx = st.ctx <-- (s2, VImm (vc2, st.ctx))}
+      fun stx -> pure {
+        stx with ctx = st.ctx <-- (s2, VImm {
+          capt=vc2;
+          imm_ctx=st.ctx;
+          imm_impl_ctx=st.impl_ctx
+        })
+      }
     end
     | _ -> failwith "Type Error: matching non-pair on pair (indirect) (direct)"
   end
@@ -350,7 +375,11 @@ and p (px, _) st = match px with
     | VPair (vc1, vc2) :: t -> e vc2 {
         st with
         stk = t;
-        ctx = st.ctx <-- (s1, VImm (vc1, st.ctx))
+        ctx = st.ctx <-- (s1, VImm {
+          capt=vc1;
+          imm_ctx=st.ctx;
+          imm_impl_ctx=st.impl_ctx
+        })
       } >>= p px2
     | _ -> failwith "Type Error: matching non-pair on pair (direct) (indirect)"
   end
@@ -363,7 +392,11 @@ and p (px, _) st = match px with
     | VLeft vc :: t -> pure {
         st with
         stk = t;
-        ctx = st.ctx <-- (s, VImm (vc, st.ctx))
+        ctx = st.ctx <-- (s, VImm {
+          capt=vc;
+          imm_ctx=st.ctx;
+          imm_impl_ctx=st.impl_ctx
+        })
       }
     | VRight _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (direct)"
@@ -377,7 +410,11 @@ and p (px, _) st = match px with
     | VRight vc :: t -> pure {
         st with
         stk = t;
-        ctx = st.ctx <-- (s, VImm (vc, st.ctx))
+        ctx = st.ctx <-- (s, VImm {
+          capt=vc;
+          imm_ctx=st.ctx;
+          imm_impl_ctx=st.impl_ctx
+        })
       }
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (direct)"
@@ -397,8 +434,11 @@ and p (px, _) st = match px with
     | _ -> failwith "Type Error: matching non-module against OPEN"
   end |> fun (e_map, t) -> pure {
     st with stk = t; ctx = 
-      Dict.map (fun x -> VImm (x, st.ctx)) e_map
-      |> Dict.union (fun _ _ z -> Some z) st.ctx
+      Dict.map (fun x -> VImm {
+        capt=x;
+        imm_ctx=st.ctx;
+        imm_impl_ctx=st.impl_ctx
+      }) e_map |> Dict.union (fun _ _ z -> Some z) st.ctx
   }
 
   | _ -> failwith "Unimplemented - pattern"
@@ -409,7 +449,7 @@ and ty_of_v = function
   | VPair (e1, e2) -> YPair (ty_of_e e1, ty_of_e e2)
   | VLeft e1 -> YEith (ty_of_e e1, YWild)
   | VRight e2 -> YEith (YWild, ty_of_e e2)
-  | VCapture _ | VImm (_, _) -> failwith "Cannot deduce the type of a function"
+  | VCapture _ | VImm _ -> failwith "Cannot deduce the type of a function"
   | VUnit -> YUnit
   | VMod _ -> failwith "Cannot deduce the type of a module"
   | _ -> failwith "Cannot convert value to type"
