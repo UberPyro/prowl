@@ -64,7 +64,17 @@ type st = {
   ctx: e_val Dict.t;
   stk: e_val list;
   impl_ctx: vmod list Dict.t
-}
+} [@@deriving show]
+
+let print_st {ctx; stk; impl_ctx} = 
+  print_endline "---";
+  print_endline "Stack: ";
+  List.iter (show_e_val >> print_endline) stk;
+  print_endline "\nContext: ";
+  Dict.iter (fun s -> show_e_val >> Printf.printf "%s: %s\n" s) ctx;
+  print_endline "\nImplicit Contexts:";
+  Dict.iter (fun s _ -> print_endline s) impl_ctx;
+  print_endline "---"
 
 let (<&>) x f = LazyList.map f x
 let (>>=) x f = x <&> f |> LazyList.concat
@@ -291,7 +301,11 @@ and e (expr, loc) st = match expr with
         | Not_found -> failwith "Field not found in module" end
       | VImplMod :: _ ->
         begin try st.impl_ctx --> s with
-          | Not_found -> failwith "Field not found in implicit context"
+          | Not_found -> 
+            (* show_st st |> print_endline; *)
+            (* st.impl_ctx |> Dict.cardinal |> print_int; *)
+            print_st st;
+            failwith "Field not found in implicit context"
         end |> List.filter begin fun vmod -> 
         match vmod.def_map --> s with
         | As (_, (PAsc (_, t1), _), _), _ ->
