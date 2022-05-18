@@ -56,6 +56,7 @@ and vmod = {
   spec_map: (string list * ty option) Dict.t; 
   def_map: e Dict.t;
   impl_map: e Dict.t;
+  impl_ctx: vmod list Dict.t;
   ty_ctx: ty_val Dict.t;
   e_ctx: e_val Dict.t
 }
@@ -63,7 +64,7 @@ and vmod = {
 type st = {
   ctx: e_val Dict.t;
   stk: e_val list;
-  impl_ctx: vmod Dict.t
+  impl_ctx: vmod list Dict.t
 }
 
 let (<&>) x f = LazyList.map f x
@@ -95,6 +96,7 @@ let null_vmod = {
   spec_map = Dict.empty;
   def_map = Dict.empty;
   impl_map = Dict.empty;
+  impl_ctx = Dict.empty;
   ty_ctx = Dict.empty;
   e_ctx = Dict.empty;
 }
@@ -225,20 +227,22 @@ and e (expr, loc) st = match expr with
     }
     | Def (access, true, (PId s, _), e1, _), _ -> {
       a with
-      impl_map = begin match access with 
-        | Pub -> Dict.add s e1 a.impl_map
-        | Local -> a.impl_map
+      impl_map = begin match access with
+        | Pub -> Dict.add s e1 a.def_map
+        | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
-      end
+      end;
+      impl_ctx = Dict.add s (a :: a.impl_ctx --> s) a.impl_ctx
     }
     | Def (access, true, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
       let e2 = As ("", (PCat t, y), e1), z in {
       a with
-      impl_map = begin match access with 
-        | Pub -> Dict.add s e2 a.impl_map
-        | Local -> a.impl_map
+      impl_map = begin match access with
+        | Pub -> Dict.add s e2 a.def_map
+        | Local -> a.def_map
         | Opaq -> failwith "Values cannot be opaque"
-      end
+      end;
+      impl_ctx = Dict.add s (a :: a.impl_ctx --> s) a.impl_ctx
     }
     | Ty (access, s, args, ty1), _ -> {
       a with
@@ -259,8 +263,9 @@ and e (expr, loc) st = match expr with
         |> Dict.union (fun _ _ z -> Some z) a.e_ctx
     }
     | _ -> a (* temporary *)
-  end {null_vmod with e_ctx = st.ctx} lst
+  end {null_vmod with e_ctx = st.ctx; impl_ctx = st.impl_ctx} lst
   |> fun vmod -> lit st (VMod vmod)
+
   | Access (e1, s) -> e e1 st >>= fun stx -> 
     begin match stx.stk with
       | VMod vmod :: _ -> e (vmod.def_map --> s) {st with ctx = vmod.e_ctx}
@@ -384,6 +389,7 @@ and p (px, _) st = match px with
   end
   | PImpl (PId s, _ as p1, _) -> begin match st.stk with
     | VImpl e1 :: t -> e e1 {st with stk = t} >>= p p1
+
     | _ -> pure {st with ctx = st.ctx <-- (s, VImplMod)}
   end
   | POpen false -> begin match st.stk with
