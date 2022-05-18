@@ -166,7 +166,9 @@ and e (expr, loc) st = match expr with
       e ex {st with ctx; impl_ctx} <&> fun stx ->
       {stx with ctx = st.ctx; impl_ctx = st.impl_ctx}
     | x -> lit st x (* incomplete? *)
-    | exception Not_found -> failwith ("Unbound id: " ^ s)
+    | exception Not_found ->
+      print_st st;
+      failwith ("Unbound id: " ^ s)
 
     (* | x -> 
       print_endline s;
@@ -315,7 +317,7 @@ and e (expr, loc) st = match expr with
           | Not_found -> failwith "Internal Error: Selected module does not have field"
       end
       | _ -> failwith "Type Error: Accessing a non-module"
-    end
+    end <&> fun stx -> {stx with ctx = st.ctx}
   | Impl e1 -> lit st (VImpl e1)
   
   | _ ->
