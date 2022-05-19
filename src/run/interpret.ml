@@ -42,6 +42,7 @@ type e_val =
   | VMod of vmod
   | VImpl of e
   | VImplMod
+  | VBuiltin of string
   [@@deriving show]
 
 and v_imm = {
@@ -78,9 +79,10 @@ let print_st {ctx; stk; impl_ctx} =
 
 let (<&>) x f = LazyList.map f x
 let (>>=) x f = x <&> f |> LazyList.concat
+let (>=>) f g x = f x >>= g
 let pure a = LazyList.(cons a nil)
 let (<|>) f g x = f x ^@^ g x
-let ( *> ) x c = x >>= fun _ -> c
+let ( *> ) x c y = x y >>= fun _ -> c y
 
 let g ex st l r = st >>= ex l >>= ex r
 
@@ -101,6 +103,7 @@ let string_of_v = function
   | _ -> failwith "Unimplemented - string_of_v"
 
 let null_st = {ctx=Dict.empty; stk=[]; impl_ctx=Dict.empty}
+
 let null_vmod = {
   spec_map = Dict.empty;
   def_map = Dict.empty;
@@ -111,8 +114,28 @@ let null_vmod = {
 }
 
 let init_ctx = [
+  "+", "$add";
+  "-", "$sub";
+  "*", "$mul";
+  "/", "$div"; 
+  "**", "$exp"; 
 
-] |> List.enum |> Dict.of_enum
+  "==", "$eq"; 
+  "/=", "$ne"; 
+  ">", "$gt"; 
+  "<", "$lt"; 
+  ">=", "$ge"; 
+  "<=", "$le"; 
+
+  "&", "$cat"; 
+  "|", "$alt"; 
+  "&&", "$intersect"
+]
+|> List.map (fun (a, b) -> a, VBuiltin b)
+|> List.enum
+|> Dict.of_enum
+
+let init_st = {ctx=init_ctx; stk=[]; impl_ctx=Dict.empty}
 
 let encode_lst loc = List.fold_left begin fun a ex -> 
   Right (Pair ((a, loc), ex), loc)
@@ -134,28 +157,45 @@ and e (expr, loc) st = match expr with
   | StackComb c -> comb st c
   | Cap e1 -> e e1 st
 
-  | Bop (e1, "+", e2) -> arith_bop st e1 (+) e2
-  | Bop (e1, "-", e2) -> arith_bop st e1 (-) e2
-  | Bop (e1, "*", e2) -> arith_bop st e1 ( * ) e2
-  | Bop (e1, "/", e2) -> arith_bop st e1 (/) e2
-  | Bop (e1, "**", e2) -> arith_bop st e1 Int.pow e2
+  | Bop (e1, "+", e2) -> bop_rewrite st e1 "$add" e2
+  | Bop (e1, "-", e2) -> bop_rewrite st e1 "$sub" e2
+  | Bop (e1, "*", e2) -> bop_rewrite st e1 "$mul" e2
+  | Bop (e1, "/", e2) -> bop_rewrite st e1 "$div" e2
+  | Bop (e1, "**", e2) -> bop_rewrite st e1 "$exp" e2
 
-  | Bop (e1, "==", e2) -> cmp_bop st e1 (=) e2
-  | Bop (e1, "/=", e2) -> cmp_bop st e1 (<>) e2
-  | Bop (e1, ">", e2) -> cmp_bop st e1 (>) e2
-  | Bop (e1, "<", e2) -> cmp_bop st e1 (<) e2
-  | Bop (e1, ">=", e2) -> cmp_bop st e1 (>=) e2
-  | Bop (e1, "<=", e2) -> cmp_bop st e1 (<=) e2
+  | Bop (e1, "==", e2) -> bop_rewrite st e1 "$eq" e2
+  | Bop (e1, "/=", e2) -> bop_rewrite st e1 "$ne" e2
+  | Bop (e1, ">", e2) -> bop_rewrite st e1 "$gt" e2
+  | Bop (e1, "<", e2) -> bop_rewrite st e1 "$lt" e2
+  | Bop (e1, ">=", e2) -> bop_rewrite st e1 "$le" e2
+  | Bop (e1, "<=", e2) -> bop_rewrite st e1 "$ge" e2
 
-  | Bop (e1, "&", e2) -> (e e1 st) >>= e e2
-  | Bop (e1, "|", e2) -> (e e1 <|> e e2) st
-  | Bop (e1, "&&", e2) -> (e e1 st) *> (e e2 st)
+  | Bop (e1, "&", e2) -> imm_rewrite st e1 "$cat" e2
+  | Bop (e1, "|", e2) -> imm_rewrite st e1 "$alt" e2
+  | Bop (e1, "&&", e2) -> imm_rewrite st e1 "$intersect" e2
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
     List.fold_left (fun a x -> a <|> e x) (e e1) (List.map snd elst) st
   
   | List elst -> e (encode_lst loc elst, loc) st
+
+  | Id "$add" -> arith_builtin st (+)
+  | Id "$sub" -> arith_builtin st (-)
+  | Id "$mul" -> arith_builtin st ( * )
+  | Id "$div" -> arith_builtin st (/)
+  | Id "$exp" -> arith_builtin st Int.pow
+
+  | Id "$eq" -> cmp_builtin st (==)
+  | Id "$ne" -> cmp_builtin st (<>)
+  | Id "$gt" -> cmp_builtin st (>)
+  | Id "$lt" -> cmp_builtin st (<)
+  | Id "$ge" -> cmp_builtin st (>=)
+  | Id "$le" -> cmp_builtin st (<=)
+
+  | Id "$cat" -> combinator st (>=>)
+  | Id "$alt" -> combinator st (<|>)
+  | Id "$intersect" -> combinator st ( *> )
   
   | Id "to-int" -> begin match st.stk with
     | VStr h :: t -> op st t (VInt (int_of_string h))
@@ -334,6 +374,32 @@ and cmp_bop st0 e1 op e2 =
     | VInt i2 :: VInt i1 :: stk -> 
       if op i1 i2 then pure {st with stk} else LazyList.nil
     | _ -> failwith "Type Error: Expected integer"
+
+and arith_builtin st opx = match st.stk with
+  | VInt h1 :: VInt h2 :: t -> pure {st with stk = VInt (opx h1 h2) :: t}
+  | _ :: _ :: _ -> failwith "Type Error: Expected Integer"
+  | _ -> failwith "Stack Underflow - Arithmetic Builtin"
+
+and cmp_builtin st opx = match st.stk with
+  | VInt i1 :: VInt i2 :: stk -> 
+    if opx i1 i2 then pure {st with stk} else LazyList.nil
+  | _ :: _ :: _ -> failwith "Type Error: Expected Integer"
+  | _ -> failwith "Stack Underflow - Comparison Builtin"
+
+and combinator st opx = match st.stk with
+  | VImm h1 :: VImm h2 :: stk ->
+    opx (e h1.capt) (e h2.capt) {st with stk}
+  | _ -> failwith "Stack Underflow - Combinator"
+
+and bop_rewrite st (_, loc as e1) opx e2 =
+  e e1 st >>= e e2 >>= e (Id opx, loc)
+
+and imm_rewrite st (_, loc as e1) opx e2 = e (Id opx, loc) {
+  st with stk = 
+    VImm {capt=e1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx}
+    :: VImm {capt=e2; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx}
+    :: st.stk
+  }
 
 (* maybe abstract over the stack update *)
 and comb st0 = List.fold_left begin fun st1 -> function
