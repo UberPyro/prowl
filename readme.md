@@ -1,5 +1,5 @@
 # Introduction
-How can the stack-based paradigm be made more modern, more readable, more expressive, and more productive?  The [Prowl Language](https://github.com/UberPyro/prowl) sets out to answer this question, taking influences from functional programing and other [concatenative languages](https://concatenative.org/wiki/view/Concatenative%20language) to take the paradigm to the next level.
+How can the stack-based paradigm be made more modern, more readable, more expressive, and more productive? The [Prowl Language](https://github.com/UberPyro/prowl) sets out to answer this question, taking influences from functional programing and other [concatenative languages](https://concatenative.org/wiki/view/Concatenative%20language) to take the paradigm to the next level.
 
 Prowl has 3 major influences that you should know about:
 
