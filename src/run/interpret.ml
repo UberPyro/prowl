@@ -77,6 +77,8 @@ let print_st {ctx; stk; impl_ctx} =
   Dict.iter (fun s _ -> print_endline s) impl_ctx;
   print_endline "---"
 
+let dum = Lexing.(dummy_pos, dummy_pos)
+
 let (<&>) x f = LazyList.map f x
 let (>>=) x f = x <&> f |> LazyList.concat
 let (>=>) f g x = f x >>= g
@@ -160,6 +162,7 @@ and e (expr, loc) st = match expr with
   | Bop (e1, s, e2) -> infix st e1 s e2
   | SectLeft (s, e2) -> sect_left st s e2
   | SectRight (e1, s) -> sect_right st e1 s
+  | Sect s -> sect st s
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
@@ -402,8 +405,26 @@ and sect_right st (_, loc as e1) opx = match st.stk with
     st with 
     stk = VImm {capt=e1; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
     :: VImm {
-      capt=Id "@1", loc;
-      imm_ctx=Dict.add "@1" h2 st.ctx;
+      capt=Id "@2", loc;
+      imm_ctx=Dict.add "@2" h2 st.ctx;
+      imm_impl_ctx=st.impl_ctx
+    }
+    :: t
+  }
+
+and sect st opx = match st.stk with
+  | _ :: [] | [] -> 
+    failwith (Printf.sprintf "Stack Underflow - Section (%s)" opx)
+  | h2 :: h1 :: t -> e (Id opx, dum) {
+    st with
+    stk = VImm {
+      capt=Id "@1", dum;
+      imm_ctx=Dict.add "@1" h1 st.ctx;
+      imm_impl_ctx=st.impl_ctx
+    }
+    :: VImm {
+      capt=Id "@2", dum;
+      imm_ctx=Dict.add "@2" h2 st.ctx;
       imm_impl_ctx=st.impl_ctx
     }
     :: t
