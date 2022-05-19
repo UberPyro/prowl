@@ -158,6 +158,7 @@ and e (expr, loc) st = match expr with
   | Cap e1 -> e e1 st
 
   | Bop (e1, s, e2) -> infix st e1 s e2
+  | SectLeft (s, e2) -> sect_left st s e2
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
@@ -350,18 +351,20 @@ and e (expr, loc) st = match expr with
     failwith "Unimplemented - expression"
 
 and arith_builtin st opx = match st.stk with
-  | VImm {capt=e1; _} :: VImm {capt=e2; _} :: t ->
-    e e2 {st with stk=t} >>= e e1
-    <&> fun stx -> begin match stx.stk with
+  | VImm {capt=e1; imm_ctx=ctx1; _} :: VImm {capt=e2; imm_ctx=ctx2; _} :: t ->
+    e e2 {st with stk=t; ctx=Dict.union (fun _ _ c -> Some c) st.ctx ctx2} <&> begin
+      fun sty -> {sty with ctx=Dict.union (fun _ _ c -> Some c) st.ctx ctx1}
+    end >>= e e1 <&> fun stx -> begin match stx.stk with
     | VInt i1 :: VInt i2 :: t -> {stx with stk = VInt (opx i1 i2) :: t}
     | _ -> failwith "Type Error: Expected Integer"
     end
   | _ -> failwith "Stack Underflow - Arithmetic Builtin"
 
 and cmp_builtin st opx = match st.stk with
-  | VImm {capt=e1; _} :: VImm {capt=e2; _} :: t ->
-    e e2 {st with stk=t} >>= e e1
-    >>= fun stx -> begin match stx.stk with
+  | VImm {capt=e1; imm_ctx=ctx1; _} :: VImm {capt=e2; imm_ctx=ctx2; _} :: t ->
+    e e2 {st with stk=t; ctx=Dict.union (fun _ _ c -> Some c) st.ctx ctx2} <&> begin
+      fun sty -> {sty with ctx=Dict.union (fun _ _ c -> Some c) st.ctx ctx1}
+    end >>= e e1 >>= fun stx -> begin match stx.stk with
     | VInt i1 :: VInt i2 :: t -> 
       if opx i1 i2 then pure {stx with stk=t} else LazyList.nil
     | _ -> failwith "Type Error: Expected Integer"
@@ -379,6 +382,18 @@ and infix st (_, loc as e1) opx e2 = e (Id opx, loc) {
   :: VImm {capt=e2; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
   :: st.stk
 }
+
+and sect_left st opx (_, loc as e2) = match st.stk with
+  | [] -> failwith (Printf.sprintf "Stack Underflow - Left Section: (%s _)" opx)
+  | h1 :: t -> e (Id opx, loc) {
+    st with stk = VImm {
+      capt=Id "@1", loc;
+      imm_ctx=Dict.add "@1" h1 st.ctx;
+      imm_impl_ctx=st.impl_ctx
+    }
+    :: VImm {capt=e2; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
+    :: t
+  }
 
 and bop_rewrite st (_, loc as e1) opx e2 =
   e e1 st >>= e e2 >>= e (Id opx, loc)
