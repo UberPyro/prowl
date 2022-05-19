@@ -114,22 +114,22 @@ let null_vmod = {
 }
 
 let init_ctx = [
-  "+", "$add";
-  "-", "$sub";
-  "*", "$mul";
-  "/", "$div"; 
-  "**", "$exp"; 
+  "+", "add";
+  "-", "sub";
+  "*", "mul";
+  "/", "div"; 
+  "**", "exp"; 
 
-  "==", "$eq"; 
-  "/=", "$ne"; 
-  ">", "$gt"; 
-  "<", "$lt"; 
-  ">=", "$ge"; 
-  "<=", "$le"; 
+  "==", "eq"; 
+  "/=", "ne"; 
+  ">", "gt"; 
+  "<", "lt"; 
+  ">=", "ge"; 
+  "<=", "le"; 
 
-  "&", "$cat"; 
-  "|", "$alt"; 
-  "&&", "$intersect"
+  "&", "cat"; 
+  "|", "alt"; 
+  "&&", "intersect"
 ]
 |> List.map (fun (a, b) -> a, VBuiltin b)
 |> List.enum
@@ -170,22 +170,22 @@ and e (expr, loc) st = match expr with
     | _ -> failwith "Type Error: Expected string"
   end
   | Id s -> begin match st.ctx --> s with
-    | VBuiltin "$add" -> arith_builtin st (+)
-    | VBuiltin "$sub" -> arith_builtin st (-)
-    | VBuiltin "$mul" -> arith_builtin st ( * )
-    | VBuiltin "$div" -> arith_builtin st (/)
-    | VBuiltin "$exp" -> arith_builtin st Int.pow
+    | VBuiltin "add" -> arith_builtin st (+)
+    | VBuiltin "sub" -> arith_builtin st (-)
+    | VBuiltin "mul" -> arith_builtin st ( * )
+    | VBuiltin "div" -> arith_builtin st (/)
+    | VBuiltin "exp" -> arith_builtin st Int.pow
 
-    | VBuiltin "$eq" -> cmp_builtin st (==)
-    | VBuiltin "$ne" -> cmp_builtin st (<>)
-    | VBuiltin "$gt" -> cmp_builtin st (>)
-    | VBuiltin "$lt" -> cmp_builtin st (<)
-    | VBuiltin "$ge" -> cmp_builtin st (>=)
-    | VBuiltin "$le" -> cmp_builtin st (<=)
+    | VBuiltin "eq" -> cmp_builtin st (==)
+    | VBuiltin "ne" -> cmp_builtin st (<>)
+    | VBuiltin "gt" -> cmp_builtin st (>)
+    | VBuiltin "lt" -> cmp_builtin st (<)
+    | VBuiltin "ge" -> cmp_builtin st (>=)
+    | VBuiltin "le" -> cmp_builtin st (<=)
 
-    | VBuiltin "$cat" -> combinator st (>=>)
-    | VBuiltin "$alt" -> combinator st (<|>)
-    | VBuiltin "$intersect" -> combinator st ( *> )
+    | VBuiltin "cat" -> combinator st (>=>)
+    | VBuiltin "alt" -> combinator st (<|>)
+    | VBuiltin "intersect" -> combinator st ( *> )
 
     | VImm {capt=ex; imm_ctx=ctx; imm_impl_ctx=impl_ctx} -> 
       e ex {st with ctx; impl_ctx} <&> fun stx ->
