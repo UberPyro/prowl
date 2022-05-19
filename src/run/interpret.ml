@@ -376,12 +376,12 @@ and cmp_bop st0 e1 op e2 =
     | _ -> failwith "Type Error: Expected integer"
 
 and arith_builtin st opx = match st.stk with
-  | VInt h1 :: VInt h2 :: t -> pure {st with stk = VInt (opx h1 h2) :: t}
+  | VInt h2 :: VInt h1 :: t -> pure {st with stk = VInt (opx h1 h2) :: t}
   | _ :: _ :: _ -> failwith "Type Error: Expected Integer"
   | _ -> failwith "Stack Underflow - Arithmetic Builtin"
 
 and cmp_builtin st opx = match st.stk with
-  | VInt i1 :: VInt i2 :: stk -> 
+  | VInt i2 :: VInt i1 :: stk -> 
     if opx i1 i2 then pure {st with stk} else LazyList.nil
   | _ :: _ :: _ -> failwith "Type Error: Expected Integer"
   | _ -> failwith "Stack Underflow - Comparison Builtin"
