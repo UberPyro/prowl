@@ -109,7 +109,6 @@ and e_t =
   | SectRight of e * string
 
   | Cat of e list
-  | Sym of string
   | Bop of e * string * e
   | StackComb of stack_comb list
 
@@ -153,7 +152,6 @@ and p_t =
   | PCapture of p
 
   | PBop of p * string * p
-  | PSym of string
   [@@deriving show]
 
 and program = access_mod * e [@@deriving show]

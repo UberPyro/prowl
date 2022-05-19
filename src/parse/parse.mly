@@ -221,7 +221,7 @@ term: term_t {$1, $loc}
   | IMPL_LBRACK e IMPL_RBRACK {Impl $2}
   | LBRACE e rbrace {Capture $2}
 
-  | SYMBOL {Sym $1}
+  | SYMBOL {Id $1}
   | COMB {$1}
   | term QUANT {Quant ($1, fst $2, snd $2)}
   | term TIMES_BRACK e RBRACE {Quant ($1, Num $3, $4)}
@@ -291,8 +291,8 @@ p_term: p_term_t {$1, $loc}
   | LT p COLON ty GT {PImpl ($2, $4)}
   | LBRACE p RBRACE {PCapture $2}
 
-  | LBRACK SYMBOL RBRACK {PSym $2}  // consider condensing
-  | LPAREN list(semi) bop RPAREN {PSym $3}
+  | LBRACK SYMBOL RBRACK {PId $2}  // consider condensing
+  | LPAREN list(semi) bop RPAREN {PId $3}
 
 %inline p_bop: 
   | PLUS {"+"} | TIMES {"*"} | CAT {"&"}
