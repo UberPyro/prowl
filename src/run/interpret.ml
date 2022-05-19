@@ -161,11 +161,11 @@ and e (expr, loc) st = match expr with
   | StackComb c -> comb st c
   | Cap e1 -> e e1 st
 
-  | Bop (e1, "&", e2) -> imm_rewrite st e1 "$cat" e2
-  | Bop (e1, "|", e2) -> imm_rewrite st e1 "$alt" e2
-  | Bop (e1, "&&", e2) -> imm_rewrite st e1 "$intersect" e2
+  | Bop (e1, "&", e2) -> infix st e1 "$cat" e2
+  | Bop (e1, "|", e2) -> infix st e1 "$alt" e2
+  | Bop (e1, "&&", e2) -> infix st e1 "$intersect" e2
 
-  | Bop (e1, s, e2) -> bop_rewrite st e1 s e2
+  | Bop (e1, s, e2) -> infix st e1 s e2
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
@@ -196,7 +196,8 @@ and e (expr, loc) st = match expr with
   end
   | Id s -> begin match st.ctx --> s with
     | VImm {capt=ex; imm_ctx=ctx; imm_impl_ctx=impl_ctx} -> 
-      e ex {st with ctx; impl_ctx} <&> fun stx ->
+      e ex {st with ctx=Dict.union (fun _ _ b -> Some b) st.ctx ctx; impl_ctx}
+      <&> fun stx -> (* Hacky & Broken *)
       {stx with ctx = st.ctx; impl_ctx = st.impl_ctx}
     | x -> lit st x (* incomplete? *)
     | exception Not_found ->
@@ -357,26 +358,23 @@ and e (expr, loc) st = match expr with
     print_endline (show_e_t expr);
     failwith "Unimplemented - expression"
 
-and arith_bop st0 e1 opx e2 = 
-  e e1 st0 >>= e e2 >>= fun st -> match st.stk with
-    | VInt i2 :: VInt i1 :: t -> op st t (VInt (opx i1 i2))
-    | _ -> failwith "Type Error: Expected integer"
-
-and cmp_bop st0 e1 op e2 = 
-  e e1 st0 >>= e e2 >>= fun st -> match st.stk with
-    | VInt i2 :: VInt i1 :: stk -> 
-      if op i1 i2 then pure {st with stk} else LazyList.nil
-    | _ -> failwith "Type Error: Expected integer"
-
 and arith_builtin st opx = match st.stk with
-  | VInt h2 :: VInt h1 :: t -> pure {st with stk = VInt (opx h1 h2) :: t}
-  | _ :: _ :: _ -> failwith "Type Error: Expected Integer"
+  | VImm {capt=e1; _} :: VImm {capt=e2; _} :: t ->
+    e e2 {st with stk=t} >>= e e1
+    <&> fun stx -> begin match stx.stk with
+    | VInt i1 :: VInt i2 :: t -> {stx with stk = VInt (opx i1 i2) :: t}
+    | _ -> failwith "Type Error: Expected Integer"
+    end
   | _ -> failwith "Stack Underflow - Arithmetic Builtin"
 
 and cmp_builtin st opx = match st.stk with
-  | VInt i2 :: VInt i1 :: stk -> 
-    if opx i1 i2 then pure {st with stk} else LazyList.nil
-  | _ :: _ :: _ -> failwith "Type Error: Expected Integer"
+  | VImm {capt=e1; _} :: VImm {capt=e2; _} :: t ->
+    e e2 {st with stk=t} >>= e e1
+    >>= fun stx -> begin match stx.stk with
+    | VInt i1 :: VInt i2 :: t -> 
+      if opx i1 i2 then pure {stx with stk=t} else LazyList.nil
+    | _ -> failwith "Type Error: Expected Integer"
+    end
   | _ -> failwith "Stack Underflow - Comparison Builtin"
 
 and combinator st opx = match st.stk with
@@ -384,15 +382,15 @@ and combinator st opx = match st.stk with
     opx (e h1.capt) (e h2.capt) {st with stk}
   | _ -> failwith "Stack Underflow - Combinator"
 
+and infix st (_, loc as e1) opx e2 = e (Id opx, loc) {
+  st with
+  stk = VImm {capt=e1; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
+  :: VImm {capt=e2; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
+  :: st.stk
+}
+
 and bop_rewrite st (_, loc as e1) opx e2 =
   e e1 st >>= e e2 >>= e (Id opx, loc)
-
-and imm_rewrite st (_, loc as e1) opx e2 = e (Id opx, loc) {
-  st with stk = 
-    VImm {capt=e1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx}
-    :: VImm {capt=e2; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx}
-    :: st.stk
-  }
 
 (* maybe abstract over the stack update *)
 and comb st0 = List.fold_left begin fun st1 -> function
