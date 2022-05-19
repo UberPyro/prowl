@@ -131,11 +131,7 @@ let init_ctx = [
   "|", "$alt"; 
   "&&", "$intersect"
 ]
-|> List.map (fun (a, b) -> a, VImm {
-  capt=Id b, Lexing.(dummy_pos, dummy_pos);
-  imm_ctx=Dict.empty;
-  imm_impl_ctx=Dict.empty
-})
+|> List.map (fun (a, b) -> a, VBuiltin b)
 |> List.enum
 |> Dict.of_enum
 
@@ -168,32 +164,31 @@ and e (expr, loc) st = match expr with
     List.fold_left (fun a x -> a <|> e x) (e e1) (List.map snd elst) st
   
   | List elst -> e (encode_lst loc elst, loc) st
-
-  | Id "$add" -> arith_builtin st (+)
-  | Id "$sub" -> arith_builtin st (-)
-  | Id "$mul" -> arith_builtin st ( * )
-  | Id "$div" -> arith_builtin st (/)
-  | Id "$exp" -> arith_builtin st Int.pow
-
-  | Id "$eq" -> cmp_builtin st (==)
-  | Id "$ne" -> cmp_builtin st (<>)
-  | Id "$gt" -> cmp_builtin st (>)
-  | Id "$lt" -> cmp_builtin st (<)
-  | Id "$ge" -> cmp_builtin st (>=)
-  | Id "$le" -> cmp_builtin st (<=)
-
-  | Id "$cat" -> combinator st (>=>)
-  | Id "$alt" -> combinator st (<|>)
-  | Id "$intersect" -> combinator st ( *> )
   
   | Id "to-int" -> begin match st.stk with
     | VStr h :: t -> op st t (VInt (int_of_string h))
     | _ -> failwith "Type Error: Expected string"
   end
   | Id s -> begin match st.ctx --> s with
+    | VBuiltin "$add" -> arith_builtin st (+)
+    | VBuiltin "$sub" -> arith_builtin st (-)
+    | VBuiltin "$mul" -> arith_builtin st ( * )
+    | VBuiltin "$div" -> arith_builtin st (/)
+    | VBuiltin "$exp" -> arith_builtin st Int.pow
+
+    | VBuiltin "$eq" -> cmp_builtin st (==)
+    | VBuiltin "$ne" -> cmp_builtin st (<>)
+    | VBuiltin "$gt" -> cmp_builtin st (>)
+    | VBuiltin "$lt" -> cmp_builtin st (<)
+    | VBuiltin "$ge" -> cmp_builtin st (>=)
+    | VBuiltin "$le" -> cmp_builtin st (<=)
+
+    | VBuiltin "$cat" -> combinator st (>=>)
+    | VBuiltin "$alt" -> combinator st (<|>)
+    | VBuiltin "$intersect" -> combinator st ( *> )
+
     | VImm {capt=ex; imm_ctx=ctx; imm_impl_ctx=impl_ctx} -> 
-      e ex {st with ctx=Dict.union (fun _ _ b -> Some b) st.ctx ctx; impl_ctx}
-      <&> fun stx -> (* Hacky & Broken *)
+      e ex {st with ctx; impl_ctx} <&> fun stx ->
       {stx with ctx = st.ctx; impl_ctx = st.impl_ctx}
     | x -> lit st x (* incomplete? *)
     | exception Not_found ->
