@@ -159,6 +159,7 @@ and e (expr, loc) st = match expr with
 
   | Bop (e1, s, e2) -> infix st e1 s e2
   | SectLeft (s, e2) -> sect_left st s e2
+  | SectRight (e1, s) -> sect_right st e1 s
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
@@ -392,6 +393,19 @@ and sect_left st opx (_, loc as e2) = match st.stk with
       imm_impl_ctx=st.impl_ctx
     }
     :: VImm {capt=e2; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
+    :: t
+  }
+
+and sect_right st (_, loc as e1) opx = match st.stk with
+  | [] -> failwith (Printf.sprintf "Stack Underflow - Left Section: (%s _)" opx)
+  | h2 :: t -> e (Id opx, loc) {
+    st with 
+    stk = VImm {capt=e1; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
+    :: VImm {
+      capt=Id "@1", loc;
+      imm_ctx=Dict.add "@1" h2 st.ctx;
+      imm_impl_ctx=st.impl_ctx
+    }
     :: t
   }
 
