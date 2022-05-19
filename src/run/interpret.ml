@@ -127,11 +127,15 @@ let init_ctx = [
   ">=", "$ge"; 
   "<=", "$le"; 
 
-  "&", "$cat"; 
+  (* "&", "$cat"; 
   "|", "$alt"; 
-  "&&", "$intersect"
+  "&&", "$intersect" *)
 ]
-|> List.map (fun (a, b) -> a, VBuiltin b)
+|> List.map (fun (a, b) -> a, VImm {
+  capt=Id b, Lexing.(dummy_pos, dummy_pos);
+  imm_ctx=Dict.empty;
+  imm_impl_ctx=Dict.empty
+})
 |> List.enum
 |> Dict.of_enum
 
@@ -157,22 +161,11 @@ and e (expr, loc) st = match expr with
   | StackComb c -> comb st c
   | Cap e1 -> e e1 st
 
-  | Bop (e1, "+", e2) -> bop_rewrite st e1 "$add" e2
-  | Bop (e1, "-", e2) -> bop_rewrite st e1 "$sub" e2
-  | Bop (e1, "*", e2) -> bop_rewrite st e1 "$mul" e2
-  | Bop (e1, "/", e2) -> bop_rewrite st e1 "$div" e2
-  | Bop (e1, "**", e2) -> bop_rewrite st e1 "$exp" e2
-
-  | Bop (e1, "==", e2) -> bop_rewrite st e1 "$eq" e2
-  | Bop (e1, "/=", e2) -> bop_rewrite st e1 "$ne" e2
-  | Bop (e1, ">", e2) -> bop_rewrite st e1 "$gt" e2
-  | Bop (e1, "<", e2) -> bop_rewrite st e1 "$lt" e2
-  | Bop (e1, ">=", e2) -> bop_rewrite st e1 "$le" e2
-  | Bop (e1, "<=", e2) -> bop_rewrite st e1 "$ge" e2
-
   | Bop (e1, "&", e2) -> imm_rewrite st e1 "$cat" e2
   | Bop (e1, "|", e2) -> imm_rewrite st e1 "$alt" e2
   | Bop (e1, "&&", e2) -> imm_rewrite st e1 "$intersect" e2
+
+  | Bop (e1, s, e2) -> bop_rewrite st e1 s e2
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
