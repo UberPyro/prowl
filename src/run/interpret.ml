@@ -127,9 +127,9 @@ let init_ctx = [
   ">=", "$ge"; 
   "<=", "$le"; 
 
-  (* "&", "$cat"; 
+  "&", "$cat"; 
   "|", "$alt"; 
-  "&&", "$intersect" *)
+  "&&", "$intersect"
 ]
 |> List.map (fun (a, b) -> a, VImm {
   capt=Id b, Lexing.(dummy_pos, dummy_pos);
@@ -160,10 +160,6 @@ and e (expr, loc) st = match expr with
   | Capture ast -> lit st (VCapture ast)
   | StackComb c -> comb st c
   | Cap e1 -> e e1 st
-
-  | Bop (e1, "&", e2) -> infix st e1 "$cat" e2
-  | Bop (e1, "|", e2) -> infix st e1 "$alt" e2
-  | Bop (e1, "&&", e2) -> infix st e1 "$intersect" e2
 
   | Bop (e1, s, e2) -> infix st e1 s e2
 
