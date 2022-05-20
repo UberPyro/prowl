@@ -292,7 +292,13 @@ p_term: p_term_t {$1, $loc}
   | LBRACE p RBRACE {PCapture $2}
 
   | LBRACK SYMBOL RBRACK {PId $2}  // consider condensing
-  | LPAREN list(semi) bop RPAREN {PId $3}
+  | LPAREN list(semi) ext_name RPAREN {PId $3}
 
 %inline p_bop: 
   | PLUS {"+"} | TIMES {"*"} | CAT {"&"}
+
+%inline ext_name: 
+  | bop {$1}
+  | LET {"let" ^ $1}
+  | AND {"and" ^ $1}
+  | AS {"as" ^ $1}

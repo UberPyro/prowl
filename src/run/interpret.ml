@@ -228,6 +228,10 @@ and e (expr, loc) st = match expr with
 
   | As ("", p1, e1) -> 
     (p p1 st) >>= e e1 <&> fun stx -> {st with stk = stx.stk}
+  | As (s, p1, e1) -> e (Id ("as" ^ s), loc) {
+    st with
+    stk = VImm {capt = As ("", p1, e1), loc; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx} :: st.stk
+  }
 
   | Quant (e1, Num e2, Gre) -> 
     (e e2 st) >>= begin function
