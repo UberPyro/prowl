@@ -585,6 +585,7 @@ and p (px, loc) st = match px with
   }
   | PBop (p1, ">-", p2) -> p (PRight (PPair (p1, p2), loc), loc) st
   | PList [] -> p (PLeft (PUnit, loc), loc) st
+  (* FIXME: then delete above since it's redundant *)
   | PList plst -> p (encode_plst loc plst, loc) st
   | PUnit -> begin match st.stk with
     | VUnit :: stk -> pure {st with stk}
