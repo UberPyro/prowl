@@ -579,6 +579,8 @@ and p (px, _) st = match px with
         imm_impl_ctx=st.impl_ctx
       }) e_map |> Dict.union (fun _ _ z -> Some z) st.ctx
   }
+  (* | PBop (p1, ">-", p2) -> begin match st.stk with
+    | VRight {capt=Pair ({capt=e1}, {capt=e2}), _} :: t ->  *)
 
   | _ -> failwith "Unimplemented - pattern"
 

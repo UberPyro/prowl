@@ -296,6 +296,7 @@ p_term: p_term_t {$1, $loc}
 
 %inline p_bop: 
   | PLUS {"+"} | TIMES {"*"} | CAT {"&"}
+  | CONS {"-<"} | SNOC {">-"}
 
 %inline ext_name: 
   | bop {$1}
