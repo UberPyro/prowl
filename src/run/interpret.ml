@@ -579,11 +579,7 @@ and p (px, _) st = match px with
         imm_impl_ctx=st.impl_ctx
       }) e_map |> Dict.union (fun _ _ z -> Some z) st.ctx
   }
-  (* Evaluate the inner pair so we can reuse the direct and 
-     indirect matches, then bind. 
-     Better yet, we can implement this pattern by just rewriting it... *)
-  (* | PBop (p1, ">-", p2) -> begin match st.stk with
-    | VRight {capt=Pair ({capt=e1}, {capt=e2}), _} :: t ->  *)
+  (* | PBop (p1, ">-", p2) -> p (PRight (PPair)) *)
 
   | _ -> failwith "Unimplemented - pattern"
 
