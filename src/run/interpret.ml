@@ -141,6 +141,10 @@ let encode_lst loc = List.fold_left begin fun a ex ->
   Right (Pair ((a, loc), ex), loc)
 end (Left (Unit, loc))
 
+let encode_plst loc = List.fold_left begin fun a ex -> 
+  PRight (PPair ((a, loc), ex), loc)
+end (PLeft (PUnit, loc))
+
 let lit st v = pure {st with stk = v :: st.stk}
 let op st stk v = pure {st with stk = v :: stk}
 
@@ -581,8 +585,7 @@ and p (px, loc) st = match px with
   }
   | PBop (p1, ">-", p2) -> p (PRight (PPair (p1, p2), loc), loc) st
   | PList [] -> p (PLeft (PUnit, loc), loc) st
-  (* FIXME: have to unroll the expression... *)
-  (* | PList (ph :: pt) -> p ph st >>= p (PList pt, loc) *)
+  | PList plst -> p (encode_plst loc plst, loc) st
   | PUnit -> begin match st.stk with
     | VUnit :: stk -> pure {st with stk}
     | _ -> failwith "Type Error: matching non-unit against UNIT"
