@@ -233,11 +233,11 @@ and e (expr, loc) st = match expr with
     (* Note: broken *)
     | a, _, px, ex -> e (Id ("let" ^ a), loc) {
       st with stk = VImm {
-        capt = As ("", px, ex), loc;
+        capt = As ("", px, e1), loc;
         imm_ctx = st.ctx; 
         imm_impl_ctx = st.impl_ctx
       } :: VImm {
-        capt = e1; 
+        capt = ex; 
         imm_ctx = st.ctx; 
         imm_impl_ctx = st.impl_ctx
       } :: st.stk
