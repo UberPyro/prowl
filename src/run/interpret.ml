@@ -24,7 +24,6 @@ type ty_val =
   | YStr
   | YPair of ty_val * ty_val
   | YEith of ty_val * ty_val
-  | YCapture of ty_val
   | YUnit
   | YVoid
   | YWild
@@ -36,7 +35,6 @@ type e_val =
   | VPair of e * e
   | VLeft of e
   | VRight of e
-  | VCapture of e
   | VImm of v_imm
   | VUnit
   | VMod of vmod
@@ -155,7 +153,8 @@ and e (expr, loc) st = match expr with
   | Pair (e1, e2) -> lit st (VPair (e1, e2))
   | Left e1 -> lit st (VLeft e1)
   | Right e1 -> lit st (VRight e1)
-  | Capture ast -> lit st (VCapture ast)
+  | Capture ast ->
+    lit st (VImm {capt=ast; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
   | StackComb c -> comb st c
   | Cap e1 -> e e1 st
 
@@ -454,7 +453,11 @@ and comb st0 = List.fold_left begin fun st1 -> function
   end
   | Run i, _ -> st1 >>= begin fun stx -> 
     match List.at stx.stk (i-1) with
-    | VCapture ex -> e ex {stx with stk = List.remove_at (i-1) stx.stk}
+    | VImm {capt; imm_ctx; imm_impl_ctx} -> e capt {
+      stk = List.remove_at (i-1) stx.stk;
+      ctx = imm_ctx;
+      impl_ctx = imm_impl_ctx
+    } <&> fun sty -> {sty with ctx=stx.ctx; impl_ctx=stx.impl_ctx}
     | _ -> failwith "Type Error: Cannot call nonclosure"
   end
   | Rot _, _ -> failwith "Unimplemented - rot n"
@@ -470,19 +473,15 @@ and p (px, _) st = match px with
   | PCat lst ->
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
   | PCapture (PId s, _) -> begin match st.stk with
-    | VCapture vc :: t -> pure {
+    | (VImm _ as vi) :: t -> pure {
       st with
       stk = t; 
-      ctx = st.ctx <-- (s, VImm {
-        capt=vc;
-        imm_ctx=st.ctx;
-        imm_impl_ctx=st.impl_ctx
-      })
+      ctx = st.ctx <-- (s, vi)
     }
     | _ -> failwith "Type Error: matching non-capture against capture (direct)"
   end
   | PCapture px -> begin match st.stk with
-    | VCapture vc :: t -> e vc {st with stk = t} >>= p px
+    | VImm {capt; _} :: t -> e capt {st with stk = t} >>= p px
     | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
   end
   | PAsc (p1, _) -> p p1 st
@@ -586,7 +585,7 @@ and ty_of_v = function
   | VPair (e1, e2) -> YPair (ty_of_e e1, ty_of_e e2)
   | VLeft e1 -> YEith (ty_of_e e1, YWild)
   | VRight e2 -> YEith (YWild, ty_of_e e2)
-  | VCapture _ | VImm _ -> failwith "Cannot deduce the type of a function"
+  | VImm _ -> failwith "Cannot deduce the type of a function"
   | VUnit -> YUnit
   | VMod _ -> failwith "Cannot deduce the type of a module"
   | _ -> failwith "Cannot convert value to type"
