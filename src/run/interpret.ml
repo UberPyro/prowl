@@ -487,7 +487,7 @@ end (pure st0)
 
 (* and upd_ctx st stk s vc = pure {stk; ctx = st.ctx <-- (s, VImm vc)} *)
 
-and p (px, _) st = match px with
+and p (px, loc) st = match px with
   | PId s -> begin match st.stk with
     | h :: t -> pure {st with stk = t; ctx = st.ctx <-- (s, h)}
     | _ -> failwith "Stack Underflow"
@@ -579,7 +579,7 @@ and p (px, _) st = match px with
         imm_impl_ctx=st.impl_ctx
       }) e_map |> Dict.union (fun _ _ z -> Some z) st.ctx
   }
-  (* | PBop (p1, ">-", p2) -> p (PRight (PPair)) *)
+  | PBop (p1, ">-", p2) -> p (PRight (PPair (p1, p2), loc), loc) st
 
   | _ -> failwith "Unimplemented - pattern"
 
