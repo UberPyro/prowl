@@ -32,9 +32,9 @@ type ty_val =
 type e_val = 
   | VInt of int
   | VStr of string
-  | VPair of e * e
-  | VLeft of e
-  | VRight of e
+  | VPair of v_imm * v_imm
+  | VLeft of v_imm
+  | VRight of v_imm
   | VImm of v_imm
   | VUnit
   | VMod of vmod
@@ -95,10 +95,10 @@ let string_of_v = function
   | VInt i -> string_of_int i
   | VStr s -> s
   | VUnit -> "<>"
-  | VPair (e1, e2) -> 
+  | VPair ({capt=e1; _}, {capt=e2; _}) -> 
     Printf.sprintf "(%s, %s)" (enhanced_show_e e1) (enhanced_show_e e2)
-  | VLeft ex -> Printf.sprintf "(;%s)" (enhanced_show_e ex)
-  | VRight ex -> Printf.sprintf "(%s;)" (enhanced_show_e ex)
+  | VLeft {capt; _} -> Printf.sprintf "(;%s)" (enhanced_show_e capt)
+  | VRight {capt; _} -> Printf.sprintf "(%s;)" (enhanced_show_e capt)
   
   | _ -> failwith "Unimplemented - string_of_v"
 
@@ -150,9 +150,14 @@ and e (expr, loc) st = match expr with
   | Int i -> lit st (VInt i)
   | Str s -> lit st (VStr s)
   | Unit -> lit st VUnit
-  | Pair (e1, e2) -> lit st (VPair (e1, e2))
-  | Left e1 -> lit st (VLeft e1)
-  | Right e1 -> lit st (VRight e1)
+  | Pair (e1, e2) -> lit st (VPair (
+    {capt=e1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx},
+    {capt=e2; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx}
+  ))
+  | Left e1 ->
+    lit st (VLeft {capt=e1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
+  | Right e2 -> 
+    lit st (VRight {capt=e2; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
   | Capture ast ->
     lit st (VImm {capt=ast; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
   | StackComb c -> comb st c
@@ -495,39 +500,28 @@ and p (px, _) st = match px with
     | VPair (vc1, vc2) :: t -> pure {
         st with
         stk = t;
-        ctx =
-          st.ctx
-          <-- (s1, VImm {capt=vc1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
-          <-- (s2, VImm {capt=vc2; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
+        ctx = st.ctx <-- (s1, VImm vc1) <-- (s2, VImm vc2)
       }
     | _ -> failwith "Type Error: matching non-pair on pair (direct) (direct)"
   end
   | PPair (px1, (PId s2, _)) -> begin match st.stk with
-    | VPair (vc1, vc2) :: t -> e vc1 {st with stk = t} >>= p px1 >>= begin 
-      fun stx -> pure {
-        stx with ctx = st.ctx <-- (s2, VImm {
-          capt=vc2;
-          imm_ctx=st.ctx;
-          imm_impl_ctx=st.impl_ctx
-        })
+    | VPair ({capt=vc1; _}, vc2) :: t ->
+      e vc1 {st with stk = t} >>= p px1 >>= begin fun stx -> pure {
+        stx with ctx = st.ctx <-- (s2, VImm vc2)
       }
     end
     | _ -> failwith "Type Error: matching non-pair on pair (indirect) (direct)"
   end
   | PPair ((PId s1, _), px2) -> begin match st.stk with
-    | VPair (vc1, vc2) :: t -> e vc2 {
+    | VPair (vc1, {capt=vc2; _}) :: t -> e vc2 {
         st with
         stk = t;
-        ctx = st.ctx <-- (s1, VImm {
-          capt=vc1;
-          imm_ctx=st.ctx;
-          imm_impl_ctx=st.impl_ctx
-        })
+        ctx = st.ctx <-- (s1, VImm vc1)
       } >>= p px2
     | _ -> failwith "Type Error: matching non-pair on pair (direct) (indirect)"
   end
   | PPair (px1, px2)  -> begin match st.stk with
-    | VPair (vc1, vc2) :: t -> 
+    | VPair ({capt=vc1; _}, {capt=vc2; _}) :: t -> 
       e vc1 {st with stk = t} >>= p px1 >>= e vc2 >>= p px2
     | _ -> failwith "Type Error: matching non-pair on pair (indirect) (indirect)"
   end
@@ -535,17 +529,13 @@ and p (px, _) st = match px with
     | VLeft vc :: t -> pure {
         st with
         stk = t;
-        ctx = st.ctx <-- (s, VImm {
-          capt=vc;
-          imm_ctx=st.ctx;
-          imm_impl_ctx=st.impl_ctx
-        })
+        ctx = st.ctx <-- (s, VImm vc)
       }
     | VRight _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (direct)"
   end
   | PLeft px -> begin match st.stk with
-    | VLeft vc :: t -> e vc {st with stk = t} >>= p px
+    | VLeft {capt=vc; _} :: t -> e vc {st with stk = t} >>= p px
     | VRight _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
@@ -553,17 +543,13 @@ and p (px, _) st = match px with
     | VRight vc :: t -> pure {
         st with
         stk = t;
-        ctx = st.ctx <-- (s, VImm {
-          capt=vc;
-          imm_ctx=st.ctx;
-          imm_impl_ctx=st.impl_ctx
-        })
+        ctx = st.ctx <-- (s, VImm vc)
       }
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (direct)"
   end
   | PRight px -> begin match st.stk with
-    | VRight vc :: t -> e vc {st with stk = t} >>= p px
+    | VRight {capt=vc; _} :: t -> e vc {st with stk = t} >>= p px
     | VLeft _ :: _ -> LazyList.nil
     | _ -> failwith "Type Error: matching non-either on either (indirect)"
   end
@@ -588,9 +574,9 @@ and p (px, _) st = match px with
 and ty_of_v = function
   | VInt _ -> YInt
   | VStr _ -> YStr
-  | VPair (e1, e2) -> YPair (ty_of_e e1, ty_of_e e2)
-  | VLeft e1 -> YEith (ty_of_e e1, YWild)
-  | VRight e2 -> YEith (YWild, ty_of_e e2)
+  | VPair ({capt=e1; _}, {capt=e2; _}) -> YPair (ty_of_e e1, ty_of_e e2)
+  | VLeft {capt=e1; _} -> YEith (ty_of_e e1, YWild)
+  | VRight {capt=e2; _} -> YEith (YWild, ty_of_e e2)
   | VImm _ -> failwith "Cannot deduce the type of a function"
   | VUnit -> YUnit
   | VMod _ -> failwith "Cannot deduce the type of a module"
