@@ -580,8 +580,17 @@ and p (px, loc) st = match px with
       }) e_map |> Dict.union (fun _ _ z -> Some z) st.ctx
   }
   | PBop (p1, ">-", p2) -> p (PRight (PPair (p1, p2), loc), loc) st
+  | PList [] -> p (PLeft (PUnit, loc), loc) st
+  (* FIXME: have to unroll the expression... *)
+  (* | PList (ph :: pt) -> p ph st >>= p (PList pt, loc) *)
+  | PUnit -> begin match st.stk with
+    | VUnit :: stk -> pure {st with stk}
+    | _ -> failwith "Type Error: matching non-unit against UNIT"
+  end
 
-  | _ -> failwith "Unimplemented - pattern"
+  | pz ->
+    show_p_t pz |> print_endline;
+    failwith "Unimplemented - pattern"
 
 and ty_of_v = function
   | VInt _ -> YInt
