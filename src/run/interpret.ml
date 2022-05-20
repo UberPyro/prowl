@@ -207,17 +207,17 @@ and e (expr, loc) st = match expr with
   | Let (lst, e1) -> List.fold_left begin fun a -> function
     | "", false, (PId s, _), ex -> a <&> begin 
         fun stx -> {stx with ctx = stx.ctx <-- (s, VImm {
-          capt=ex;
-          imm_ctx=stx.ctx;
-          imm_impl_ctx=stx.impl_ctx
+          capt = ex;
+          imm_ctx = stx.ctx;
+          imm_impl_ctx = stx.impl_ctx
         })}
       end
     | "", false, (PCat ((PId s, z) :: t), y), ex -> a <&> begin
         fun stx -> {stx with 
           ctx = stx.ctx <-- (s, VImm {
-            capt=As ("", (PCat t, y), ex), z;
-            imm_ctx=stx.ctx;
-            imm_impl_ctx=stx.impl_ctx
+            capt = As ("", (PCat t, y), ex), z;
+            imm_ctx = stx.ctx;
+            imm_impl_ctx = stx.impl_ctx
         })
         }
       end
