@@ -230,7 +230,18 @@ and e (expr, loc) st = match expr with
         }
       end
     | "", false, px, ex -> a >>= e ex >>= p px
-    | _ -> failwith "Failing Let expression"
+    (* Note: broken *)
+    | a, _, px, ex -> e (Id ("let" ^ a), loc) {
+      st with stk = VImm {
+        capt = As ("", px, ex), loc;
+        imm_ctx = st.ctx; 
+        imm_impl_ctx = st.impl_ctx
+      } :: VImm {
+        capt = e1; 
+        imm_ctx = st.ctx; 
+        imm_impl_ctx = st.impl_ctx
+      } :: st.stk
+    }
   end (pure st) lst >>= e e1 <&> fun stx -> {st with stk = stx.stk}
 
   | As ("", p1, e1) -> 
