@@ -24,7 +24,7 @@ let rec ast_of_file = function
     Def (am, false, (PId sfn, loc), e, None), loc
   end foln), Interpret.dum))
 
-let endow std (am, (_, loc1 as e)) = 
-  let (_, (_, loc as em)) = std |> load_file |> ast_of_file in
+let endow lib (am, (_, loc1 as e)) = 
+  let (_, (_, loc as em)) = lib |> load_file |> ast_of_file in
   am, 
-  (Let (["", false, (POpen false, loc), em], (Access (e, "std"), loc1)), loc)
+  (Let (["", false, (POpen false, loc), em], (Access (e, lib), loc1)), loc)
