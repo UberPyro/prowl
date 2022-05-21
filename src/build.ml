@@ -5,21 +5,21 @@ open Ast
 (* FIXME: Track & Include entire path!! *)
 
 type file = 
-  | File of string
-  | Folder of string * file list
+  | File of string * string
+  | Folder of string * string * file list
 
-let rec load_file fn = 
-  if Sys.is_directory fn
+let rec load_file ?(path="/") fn = 
+  if Sys.is_directory (path ^ fn)
   then
-    Sys.readdir fn
-    |> Array.map load_file
+    Sys.readdir (path ^ fn)
+    |> Array.map (load_file ~path:(path ^ fn ^ "/"))
     |> Array.to_list
-    |> fun x -> Folder (fn, x)
-  else File fn
+    |> fun x -> Folder (path, fn, x)
+  else File (path, fn)
 
 let rec ast_of_file = function
-  | File fn -> File.open_in fn |> Gen.parse
-  | Folder (sfn, foln) -> (Pub, (Mod (List.map begin fun fn -> 
+  | File (path, fn) -> File.open_in (path ^ fn) |> Gen.parse
+  | Folder (_, sfn, foln) -> (Pub, (Mod (List.map begin fun fn -> 
     let am, (_, loc as e) = ast_of_file fn in 
     Def (am, false, (PId sfn, loc), e, None), loc
   end foln), Interpret.dum))
