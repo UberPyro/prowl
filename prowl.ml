@@ -22,8 +22,11 @@ let compile file args =
     let str = show_program ast in
     String.nreplace ~str ~sub:"Ast." ~by:""
     |> print_endline end;
-  begin if O.get interpret then
-    match Interpret.(program {init_st with stk=args}) ast |> LazyList.get with
+  begin if O.get interpret then match
+      ast
+      |> Build.endow "std"
+      |> Interpret.(program {init_st with stk=args})
+      |> LazyList.get with
       | Some (v, _) -> 
         List.rev_map Interpret.string_of_v v.stk
         |> List.iter print_endline
