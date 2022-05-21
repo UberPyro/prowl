@@ -25,6 +25,10 @@ let rec ast_of_file = function
   end foln), Interpret.dum))
 
 let endow lib (am, (_, loc1 as e)) = 
-  let (_, (_, loc as em)) = lib |> load_file |> ast_of_file in
-  am, 
-  (Let (["", false, (POpen false, loc), em], (Access (e, lib), loc1)), loc)
+  lib
+  |> load_file
+  |> ast_of_file
+  |> fun (_, (_, loc as em)) -> am, (
+    Let (["", false, (POpen false, loc), em], (Access (e, lib), loc1)),
+    loc
+  )
