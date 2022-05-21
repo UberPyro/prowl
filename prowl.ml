@@ -12,6 +12,7 @@ let lex_out = flag "output lexemes" "lex"
 let ast_out = flag "output ast as ocaml ADTs" "ast"
 let span_out = flag "output code spans with ast" "span"
 let interpret = flags "interpret sources" "interpret" 'i'
+let no_std = flag "don't search for the std" "wstd"
 
 let compile file args = 
   if O.get lex_out then File.open_in file |> lex;

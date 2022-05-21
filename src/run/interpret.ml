@@ -342,6 +342,13 @@ and e (expr, loc) st = match expr with
           fun x -> VImm {capt=x; imm_ctx=a.e_ctx; imm_impl_ctx=a.impl_ctx}
         end e_map |> Dict.union (fun _ _ z -> Some z) a.e_ctx
     }
+    | Mix e1, _ ->
+      e e1 {st with ctx = a.e_ctx} 
+      |> LazyList.hd |> begin fun stx -> match stx.stk with
+      | VMod {def_map; _} :: _ -> def_map
+      | _ -> failwith "Type Error: Cannot mix non-module"
+    end |> fun def_map -> {a with def_map}
+    
     | _ -> a (* temporary *)
   end {null_vmod with e_ctx = st.ctx; impl_ctx = st.impl_ctx} lst
   |> fun vmod -> lit st (VMod vmod)
