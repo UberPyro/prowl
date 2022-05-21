@@ -32,12 +32,11 @@ let rec def_of_file = function
 
 let wrap_stmt s_t = Mod [s_t, dum], dum
 
-let endow lib (am, (_, loc1 as e)) = 
+let endow lib (am, e) = 
   lib
   |> load_file
   |> def_of_file
-  |> wrap_stmt
-  |> fun (_, loc as em) -> am, (
-    Let (["", false, (POpen false, loc), em], (Access (e, lib), loc1)),
+  |> function (Def (_, _, _, (_, loc as m), _)) -> am, (
+    Let (["", false, (POpen false, loc), m], e),
     loc
-  )
+  ) | _ -> failwith "Did not retrieve definition"
