@@ -268,6 +268,7 @@ and e (expr, loc) st = match expr with
       in loop (pure st) i
     | _ -> failwith "Bad arg in quantifier"
     end
+  
   | Quant (e1, Star, Gre) -> 
     let rec loop lst st1 =
       let st2 = st1 >>= e e1 in
@@ -275,6 +276,15 @@ and e (expr, loc) st = match expr with
       | Some _ -> loop (st2^@^lst) st2
       | None -> lst in
       loop (pure st) (pure st)
+    
+  | Quant (e1, Star, Cut) -> 
+    let rec loop stf st1 =
+      let st2 = st1 >>= e e1 in
+      match LazyList.get st2 with
+      | Some _ -> loop (st2) st2
+      | None -> stf in
+      loop (pure st) (pure st)
+    
   | Quant (e1, Plus, Gre) -> 
     let rec loop lst st1 =
       let st2 = st1 >>= e e1 in
@@ -282,7 +292,22 @@ and e (expr, loc) st = match expr with
       | Some _ -> loop (st2^@^lst) st2
       | None -> lst in
       loop (e e1 st) (pure st)
+    
+  | Quant (e1, Plus, Cut) -> 
+    let rec loop stf st1 =
+      let st2 = st1 >>= e e1 in
+      match LazyList.get st2 with
+      | Some _ -> loop (st2) st2
+      | None -> stf in
+      loop (e e1 st) (pure st)
+    
   | Quant (e1, Opt, Gre) -> (e e1 <|> pure) st
+  | Quant (e1, Opt, Cut) -> 
+    let st1 = e e1 st in
+    begin match LazyList.get st1 with
+      | None -> pure st
+      | _ -> st1
+    end
 
   | Mod lst -> List.fold_left begin fun a -> function
     | Def (access, false, (PId s, _), e1, _), _ -> {

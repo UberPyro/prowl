@@ -24,7 +24,7 @@ let compile file args =
     |> print_endline end;
   begin if O.get interpret then match
       ast
-      |> Build.endow "std"
+      (* |> Build.endow "std" *)
       |> Interpret.(program {init_st with stk=args})
       |> LazyList.get with
       | Some (v, _) -> 
