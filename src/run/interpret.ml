@@ -75,8 +75,6 @@ let print_st {ctx; stk; impl_ctx} =
   Dict.iter (fun s _ -> print_endline s) impl_ctx;
   print_endline "---"
 
-let dum = Lexing.(dummy_pos, dummy_pos)
-
 let (<&>) x f = LazyList.map f x
 let (>>=) x f = x <&> f |> LazyList.concat
 let (>=>) f g x = f x >>= g

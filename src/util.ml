@@ -47,3 +47,5 @@ module Either = struct
 end
 
 type ('a, 'b) either = ('a, 'b) Either.t
+
+let dum = Lexing.(dummy_pos, dummy_pos)

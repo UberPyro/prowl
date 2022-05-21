@@ -1,10 +1,13 @@
 open Batteries
 
 open Ast
+open Util
 
 type file = 
   | File of string * string
-  | Folder of string * string * file list
+  | Folder of string * file list
+
+(* FIXME: File Extensions *)
 
 let rec load_file ?(path="") fn = 
   if Sys.is_directory (path ^ fn)
@@ -12,23 +15,29 @@ let rec load_file ?(path="") fn =
     Sys.readdir (path ^ fn)
     |> Array.map (load_file ~path:(path ^ fn ^ "/"))
     |> Array.to_list
-    |> fun x -> Folder (path, fn, x)
+    |> fun x -> Folder (fn, x)
   else File (path, fn)
 
-let rec ast_of_file = function
-  | File (path, fn) -> File.open_in (path ^ fn) |> Gen.parse
+let rec def_of_file = function
+  | File (path, fn) ->
+    File.open_in (path ^ fn)
+    |> Gen.parse
+    |> fun (am, (_, loc as e1)) -> 
+    Def (am, false, (PId fn, loc), e1, None)
+  | Folder (sn, lst) -> 
+    lst
+    |> List.map (fun fn -> def_of_file fn, dum)
+    |> fun def_lst -> 
+    Def (Pub, false, (PId sn, dum), (Mod def_lst, dum), None)
 
-  (* Rethink all this logic *)
-  | Folder (_, sfn, foln) -> (Pub, (Mod (List.map begin fun fn -> 
-    let am, (_, loc as e) = ast_of_file fn in 
-    Def (am, false, (PId sfn, loc), e, None), loc
-  end foln), Interpret.dum))
+let wrap_stmt s_t = Mod [s_t, dum], dum
 
 let endow lib (am, (_, loc1 as e)) = 
   lib
   |> load_file
-  |> ast_of_file
-  |> fun (_, (_, loc as em)) -> am, (
+  |> def_of_file
+  |> wrap_stmt
+  |> fun (_, loc as em) -> am, (
     Let (["", false, (POpen false, loc), em], (Access (e, lib), loc1)),
     loc
   )
