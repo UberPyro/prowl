@@ -604,7 +604,9 @@ and p (px, loc) st = match px with
   end
   | POpen false -> begin match st.stk with
     | VMod {def_map; _} :: t -> def_map, t
-    | _ -> failwith "Type Error: matching non-module against OPEN"
+    | _ -> 
+      print_st st;
+      failwith "Type Error: matching non-module against OPEN"
   end |> fun (e_map, t) -> pure {
     st with stk = t; ctx = 
       Dict.map (fun x -> VImm {
