@@ -33,6 +33,5 @@ let endow lib (am, e) =
   |> load_file
   |> def_of_file
   |> function (Def (_, _, _, (_, loc as m), _)) -> am, (
-    Cat [m; As ("", (POpen false, loc), e), loc],
-    loc
+    Cat [m; As ("", (POpen false, loc), e), loc], loc
   ) | _ -> failwith "Did not retrieve definition"
