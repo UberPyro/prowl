@@ -378,8 +378,8 @@ and e (expr, loc) st = match expr with
 
   | Access (e1, s) -> e e1 st >>= fun stx -> 
     begin match stx.stk with
-      | VMod vmod :: _ ->
-        begin try e (vmod.def_map --> s) {st with ctx = vmod.e_ctx} with
+      | VMod {def_map; e_ctx; _} :: _ ->
+        begin try e (def_map --> s) {st with ctx = e_ctx} with
         | Not_found -> failwith "Field not found in module" end
       | VImplMod :: _ ->
         begin try st.impl_ctx --> s with
