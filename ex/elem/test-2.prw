@@ -1,2 +1,1 @@
-stack as open ->
-[1] {as x -> x + 1} map
+[1] {as x -> x + 1} stack.map
