@@ -1,7 +1,7 @@
 /* warning: this abuses dynamic typing in an unintended way :) */
 
 let div n m = n / m * m == n -> 
-let fizz = (<= 100) && [
+let fizz = [
   15 div "fizzbuzz";
   3 div "fizz"; 
   5 div "buzz"
