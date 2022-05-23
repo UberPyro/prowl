@@ -274,6 +274,14 @@ and e (expr, loc) st = match expr with
       | Some _ -> loop (st2^@^lst) st2
       | None -> lst in
       loop (pure st) (pure st)
+
+  | Quant (e1, Star, Rel) -> 
+    let rec loop lst st1 =
+      let st2 = st1 >>= e e1 in
+      match LazyList.get st2 with
+      | Some _ -> loop (lst^@^st2) st2
+      | None -> lst in
+      loop (pure st) (pure st)
     
   | Quant (e1, Star, Cut) -> 
     let rec loop stf st1 =
@@ -290,6 +298,14 @@ and e (expr, loc) st = match expr with
       | Some _ -> loop (st2^@^lst) st2
       | None -> lst in
       loop (e e1 st) (pure st)
+  
+  | Quant (e1, Plus, Rel) -> 
+    let rec loop lst st1 =
+      let st2 = st1 >>= e e1 in
+      match LazyList.get st2 with
+      | Some _ -> loop (lst^@^st2) st2
+      | None -> lst in
+      loop (e e1 st) (pure st)
     
   | Quant (e1, Plus, Cut) -> 
     let rec loop stf st1 =
@@ -300,6 +316,7 @@ and e (expr, loc) st = match expr with
       loop (e e1 st) (pure st)
     
   | Quant (e1, Opt, Gre) -> (e e1 <|> pure) st
+  | Quant (e1, Opt, Rel) -> (pure <|> e e1) st
   | Quant (e1, Opt, Cut) -> 
     let st1 = e e1 st in
     begin match LazyList.get st1 with
