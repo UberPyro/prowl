@@ -543,6 +543,7 @@ and p (px, loc) st = match px with
     | h :: t -> pure {st with stk = t; ctx = st.ctx <-- (s, h)}
     | _ -> failwith "Stack Underflow"
   end
+  | PBlank -> pure st
   | PCat lst ->
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
   | PCapture (PId s, _) -> begin match st.stk with
