@@ -127,6 +127,8 @@ let init_ctx = [
 
   "&", "cat"; 
   "|", "alt"; 
+  "|?", "alt-rel"; 
+  "|+", "alt-cut"; 
   "&&", "intersect"
 ]
 |> List.map (fun (a, b) -> a, VBuiltin b)
@@ -196,6 +198,8 @@ and e (expr, loc) st = match expr with
 
     | VBuiltin "cat" -> combinator st (>=>)
     | VBuiltin "alt" -> combinator st (<|>)
+    | VBuiltin "alt-rel" -> combinator st alt_rel
+    | VBuiltin "alt-cut" -> combinator st alt_cut
     | VBuiltin "intersect" -> combinator st ( *> )
 
     | VImm {capt=ex; imm_ctx=ctx; imm_impl_ctx=impl_ctx} -> 
@@ -535,6 +539,12 @@ and comb st0 = List.fold_left begin fun st1 -> function
   end
   | Rot _, _ -> failwith "Unimplemented - rot n"
 end (pure st0)
+
+and alt_rel f g = g <|> f
+
+and alt_cut f g st = f st |> LazyList.get |> function
+  | Some _ -> f st
+  | None -> g st
 
 (* and upd_ctx st stk s vc = pure {stk; ctx = st.ctx <-- (s, VImm vc)} *)
 

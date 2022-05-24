@@ -18,7 +18,7 @@
   PLUS MINUS TIMES DIVIDE
   EXP RANGE SNOC CONS
   APPEND BIND KLEISLI
-  ALT CAT
+  ALT ALT_REL ALT_CUT CAT
 
   EQ NEQ LT LE GT GE
 
@@ -50,7 +50,7 @@
 %token<Ast.greed> SEMICOLON RBRACE
 
 %left CAT
-%left ALT
+%left ALT ALT_REL ALT_CUT
 %left INTERSECT
 %left BIND
 %left KLEISLI
@@ -237,7 +237,8 @@ term: term_t {$1, $loc}
   | EXP {"**"} | RANGE {".."} | SNOC {">-"} | CONS {"-<"}
   | GT {">"} | GE {">="} | LT {"<"} | LE {"<="} | EQ {"=="} | NEQ {"/="}
   | APPEND {"++"} | BIND {">>="} | KLEISLI {">=>"}
-  | ALT {"|"} | CAT {"&"} | INTERSECT {"&&"} | INFIX {$1}
+  | ALT {"|"} | ALT_REL {"|?"} | ALT_CUT {"|+"} | CAT {"&"} | INTERSECT {"&&"}
+  | INFIX {$1}
 
 %inline semi: SEMICOLON {assert ($1 == Gre); ";"}
 %inline rbrace: RBRACE {assert ($1 == Gre)}

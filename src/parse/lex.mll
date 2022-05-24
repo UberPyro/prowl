@@ -88,6 +88,8 @@ rule token = parse
   | ">>="  {BIND}
   | ">=>"  {KLEISLI}
   | "|"    {ALT}
+  | "|?"   {ALT_REL}
+  | "|+"   {ALT_CUT}
   | "&"    {CAT}
   | "&&"   {INTERSECT}
 

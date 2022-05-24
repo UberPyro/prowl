@@ -115,6 +115,8 @@ let string_of_token = function
   | APPEND -> "++"
   | AND s -> string_of_bindop "AND" s
   | ALT -> "|"
+  | ALT_REL -> "|?"
+  | ALT_CUT -> "|+"
   | IMPL_LBRACK -> "[<"
   | IMPL_RBRACK -> ">]"
   | SPEC -> "SPEC"

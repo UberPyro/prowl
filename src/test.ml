@@ -51,9 +51,9 @@ let tests = [
     "star-greedy", "1";
     "plus", "3";
     "plus-reject", "rejected";
-    (* "alt-cut-accepted", "0"; *)
-    (* "alt-cut", "rejected"; *)  (* Implement *)
-    (* "alt-cut-handle", "1"; *)
+    "alt-cut-accepted", "0";
+    "alt-cut", "rejected";
+    "alt-cut-handle", "1";
     "star-cut", "rejected";
     "star-rel", "5"
   ]; 
