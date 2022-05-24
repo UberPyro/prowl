@@ -544,6 +544,18 @@ and p (px, loc) st = match px with
     | _ -> failwith "Stack Underflow"
   end
   | PBlank -> pure st
+  | PInt i1 -> begin match st.stk with
+    | VInt i2 :: t -> 
+      if i1 == i2 then pure {st with stk = t}
+      else LazyList.nil
+    | _ -> failwith "Type Error: matching non-int on int"
+  end
+  | PStr s1 -> begin match st.stk with
+    | VStr s2 :: t -> 
+      if s1 == s2 then pure {st with stk = t}
+      else LazyList.nil
+    | _ -> failwith "Type Error: matching non-int on int"
+  end
   | PCat lst ->
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
   | PCapture (PId s, _) -> begin match st.stk with
