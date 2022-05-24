@@ -55,6 +55,9 @@ let tests = [
     "alt-cut-accepted", "0";
     "alt-cut", "rejected";
     "alt-cut-handle", "1";
+    "case-rel", "8";
+    "case-rel2", "11";
+    "case-cut", "rejected";
     "star-cut", "rejected";
     "star-rel", "5"
   ]; 

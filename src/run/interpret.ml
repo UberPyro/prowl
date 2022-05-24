@@ -173,8 +173,7 @@ and e (expr, loc) st = match expr with
   | Sect s -> sect st s
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
-  | Case (e1, elst) -> 
-    List.fold_left begin fun a -> function
+  | Case (e1, elst) -> List.fold_left begin fun a -> function
     | Gre, x -> a <|> e x
     | Rel, x -> e x <|> a
     | Cut, x -> e x |> alt_cut a
