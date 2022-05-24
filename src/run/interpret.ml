@@ -174,7 +174,11 @@ and e (expr, loc) st = match expr with
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
   | Case (e1, elst) -> 
-    List.fold_left (fun a x -> a <|> e x) (e e1) (List.map snd elst) st
+    List.fold_left begin fun a -> function
+    | Gre, x -> a <|> e x
+    | Rel, x -> e x <|> a
+    | Cut, x -> e x |> alt_cut a
+  end (e e1) elst st
   
   | List elst -> e (encode_lst loc elst, loc) st
   
