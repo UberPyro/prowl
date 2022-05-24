@@ -2,4 +2,4 @@
 (library
   (name lib)
   (preprocess (pps ppx_deriving.show))
-  (libraries batteries ounit2))
+  (libraries batteries alcotest))
