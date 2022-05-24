@@ -5,7 +5,65 @@ open Util
 
 let tests = [
   "fundamentals", [
-    "lit1", "4\n5\nhi"
+    "lit1", "4\n5\nhi";
+    "arith1", "7";
+    "arith2", "5";
+  ]; 
+  "bindings", [
+    "as1", "11";
+    "let1", "6";
+    "let-func", "25";
+    "let-as", "2";
+    "let-sect", "4";
+    "compose", "3";
+    "sect1", "1";
+    "sect-full", "20"; 
+    "sect-left", "2"; 
+    "sect-right", "1";
+  ]; 
+  "patterns", [
+    "cat", "9";
+    "left", "13";
+    "right", "0";
+    "pair", "4";
+    "capture-direct", "7";
+    "capture-indirect", "7";
+    "capture-fun", "2";
+    "nest-capture-pair", "2";
+    "nest-either-pair", "1";
+    (* "long-pair", "5"; *)  (* FAILING :( *)
+    (* "const-int", "1"; *)  (* TODO *)
+    (* "const-int-reject", "rejected"; *)  (* TODO *)
+    (* "const-str", "0"; *)  (* TODO *)
+  ]; 
+  "flow", [
+    "cat", "5";
+    "alt", "0";
+    "alt-handle", "1";
+    "alt-rejected", "rejected";
+    "alt-greedy", "0";
+    "case", "2";
+    "intersect", "2";
+    "n-times", "7\n23";
+    "opt", "3";
+    "opt-handle", "2";
+    "star", "6";
+    "star-greedy", "1";
+    "plus", "3";
+    "plus-reject", "rejected";
+    (* "alt-cut-accepted", "0"; *)
+    (* "alt-cut", "rejected"; *)  (* Implement *)
+    (* "alt-cut-handle", "1"; *)
+    "star-cut", "rejected";
+    "star-rel", "5"
+  ]; 
+  "combinators", [
+    "simple", "44";
+    "compound", "3";
+  ];
+  "modules", [
+    "access", "3";
+    "open", "7";
   ]
 ]
 

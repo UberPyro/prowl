@@ -521,7 +521,7 @@ and comb st0 = List.fold_left begin fun st1 -> function
   end
   | Rot 3, _ -> st1 >>= begin function 
     | ({stk = h1 :: h2 :: h3 :: t; _} as stx) -> 
-      pure {stx with stk = h3 :: h2 :: h1 :: t}
+      pure {stx with stk = h3 :: h1 :: h2 :: t}
     | _ -> failwith "Stack underflow (rot)"
   end
   | Run i, _ -> st1 >>= begin fun stx -> 
