@@ -187,7 +187,7 @@ and e (expr, loc) st = match expr with
     | VBuiltin "div" -> arith_builtin st (/)
     | VBuiltin "exp" -> arith_builtin st Int.pow
 
-    | VBuiltin "eq" -> cmp_builtin st (==)
+    | VBuiltin "eq" -> cmp_builtin st (=)
     | VBuiltin "ne" -> cmp_builtin st (<>)
     | VBuiltin "gt" -> cmp_builtin st (>)
     | VBuiltin "lt" -> cmp_builtin st (<)
@@ -404,12 +404,12 @@ and e (expr, loc) st = match expr with
         end |> List.filter begin fun vmod -> (* vmod.def_map is empty? *)
         match vmod.def_map --> s with
         | As (_, (PAsc (_, t1), _), _), _ ->
-          ty_of_v (List.hd st.stk) == y_of_ty t1
+          ty_of_v (List.hd st.stk) = y_of_ty t1
         | As (_, (PCat lst, _), _), _ -> 
           List.take (List.length lst) st.stk
           |> List.combine lst
           |> List.map begin function 
-            | ((PAsc (_, t1), _), v) -> ty_of_v v == y_of_ty t1
+            | ((PAsc (_, t1), _), v) -> ty_of_v v = y_of_ty t1
             (* | p1, _ -> show_p p1 |> print_endline; failwith "end" *)
             | _ -> failwith "Bad implicits matching - missing an annotation?"
           end |> List.for_all identity
@@ -546,15 +546,15 @@ and p (px, loc) st = match px with
   | PBlank -> pure st
   | PInt i1 -> begin match st.stk with
     | VInt i2 :: t -> 
-      if i1 == i2 then pure {st with stk = t}
+      if i1 = i2 then pure {st with stk = t}
       else LazyList.nil
     | _ -> failwith "Type Error: matching non-int on int"
   end
   | PStr s1 -> begin match st.stk with
     | VStr s2 :: t -> 
-      if s1 == s2 then pure {st with stk = t}
+      if s1 = s2 then pure {st with stk = t}
       else LazyList.nil
-    | _ -> failwith "Type Error: matching non-int on int"
+    | _ -> failwith "Type Error: matching non-string on string"
   end
   | PCat lst ->
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)

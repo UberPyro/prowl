@@ -32,9 +32,9 @@ let tests = [
     "nest-capture-pair", "2";
     "nest-either-pair", "1";
     (* "long-pair", "5"; *)  (* FAILING :( *)
-    (* "const-int", "1"; *)  (* TODO *)
-    (* "const-int-reject", "rejected"; *)  (* TODO *)
-    (* "const-str", "0"; *)  (* TODO *)
+    "const-int", "1";
+    "const-int-reject", "rejected";
+    "const-str", "0";
   ]; 
   "flow", [
     "cat", "5";
