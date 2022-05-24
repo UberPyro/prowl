@@ -1,3 +1,8 @@
 (executable
   (name prowl)
+  (modules prowl)
   (libraries lib batteries))
+(executable
+  (name prowl_test)
+  (modules prowl_test)
+  (libraries lib))
