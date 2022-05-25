@@ -117,6 +117,7 @@ and e_t =
 
   | Quant of e * quant * greed
   | Case of e * (greed * e) list
+  | Absurdity
   | Inv of e list
   | Span of e * e
 

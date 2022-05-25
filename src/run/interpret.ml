@@ -178,6 +178,7 @@ and e (expr, loc) st = match expr with
     | Rel, x -> e x <|> a
     | Cut, x -> e x |> alt_cut a
   end (e e1) elst st
+  | Absurdity -> LazyList.nil
   
   | List elst -> e (encode_lst loc elst, loc) st
   
