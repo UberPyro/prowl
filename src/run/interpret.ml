@@ -268,6 +268,9 @@ and e (expr, loc) st = match expr with
   | Quant (e1, Num e2, gr) -> 
     eval_grab_int e2 st >>= fun (i1, stx) -> times_quant gr e1 i1 i1 stx
   
+  | Quant (e1, Min e2, gr) -> 
+    eval_grab_int e2 st >>= fun (i1, stx) -> times_quant_while gr e1 i1 stx
+  
   | Quant (e1, Max e2, gr) -> 
     eval_grab_int e2 st >>= fun (i1, stx) -> times_quant gr e1 0 i1 stx
   
@@ -276,62 +279,9 @@ and e (expr, loc) st = match expr with
       eval_grab_int e3 stx >>= fun (i2, sty) ->
         times_quant gr e1 i1 i2 sty
   
-  | Quant (e1, Star, Gre) -> 
-    let rec loop lst st1 =
-      let st2 = st1 >>= e e1 in
-      match LazyList.get st2 with
-      | Some _ -> loop (st2^@^lst) st2
-      | None -> lst in
-      loop (pure st) (pure st)
-
-  | Quant (e1, Star, Rel) -> 
-    let rec loop lst st1 =
-      let st2 = st1 >>= e e1 in
-      match LazyList.get st2 with
-      | Some _ -> loop (lst^@^st2) st2
-      | None -> lst in
-      loop (pure st) (pure st)
-    
-  | Quant (e1, Star, Cut) -> 
-    let rec loop stf st1 =
-      let st2 = st1 >>= e e1 in
-      match LazyList.get st2 with
-      | Some _ -> loop (st2) st2
-      | None -> stf in
-      loop (pure st) (pure st)
-    
-  | Quant (e1, Plus, Gre) -> 
-    let rec loop lst st1 =
-      let st2 = st1 >>= e e1 in
-      match LazyList.get st2 with
-      | Some _ -> loop (st2^@^lst) st2
-      | None -> lst in
-      loop (e e1 st) (pure st)
-  
-  | Quant (e1, Plus, Rel) -> 
-    let rec loop lst st1 =
-      let st2 = st1 >>= e e1 in
-      match LazyList.get st2 with
-      | Some _ -> loop (lst^@^st2) st2
-      | None -> lst in
-      loop (e e1 st) (pure st)
-    
-  | Quant (e1, Plus, Cut) -> 
-    let rec loop stf st1 =
-      let st2 = st1 >>= e e1 in
-      match LazyList.get st2 with
-      | Some _ -> loop (st2) st2
-      | None -> stf in
-      loop (e e1 st) (pure st)
-    
-  | Quant (e1, Opt, Gre) -> (e e1 <|> pure) st
-  | Quant (e1, Opt, Rel) -> (pure <|> e e1) st
-  | Quant (e1, Opt, Cut) -> 
-    let st1 = e e1 st in
-    begin match LazyList.get st1 with
-      | None -> pure st
-      | _ -> st1
-    end
+  | Quant (e1, Star, gr) -> times_quant_while gr e1 0 st
+  | Quant (e1, Plus, gr) -> times_quant_while gr e1 1 st
+  | Quant (e1, Opt, gr) -> times_quant gr e1 0 1 st
 
   | Mod lst -> List.fold_left begin fun a -> function
     | Def (access, false, (PId s, _), e1, _), _ -> {
@@ -564,14 +514,28 @@ and choose_alt = function
   | Rel -> alt_rel
   | Cut -> alt_cut
 
+and choose_alt_flip gr x y = choose_alt gr y x
+
 and times_quant gr e1 qmin qmax st = match qmax - qmin with
-  | qdiff when qdiff < 0 -> LazyList.nil
-  | qdiff -> 
-    let (</>) = choose_alt gr in
-    List.fold_left (>=>) pure (List.make qmin (e e1)) st
-      >>= List.fold_right begin fun i a -> 
-        a </> List.fold_left (>=>) pure (List.make i (e e1))
-      end (List.range 0 `To qdiff) empty
+  | qdiff when qmin < 0 || qdiff < 0 -> LazyList.nil
+  | qdiff -> adv qmin e1 st >>= adv_alt gr qdiff e1
+
+and times_quant_while gr e1 qmin st = 
+  if qmin < 0 then LazyList.nil
+  else adv qmin e1 st >>= adv_alt_while gr e1
+
+and adv n e1 st = 
+  List.fold_left (>=>) pure (List.make n (e e1)) st
+
+and adv_alt gr n e1 = 
+  Enum.scanl (>=>) pure (Enum.repeat ~times:n (e e1))
+  |> Enum.fold (choose_alt_flip gr) empty
+
+and adv_alt_while gr e1 st = 
+  Enum.unfold pure begin fun b -> 
+    let g = b >=> e e1 in 
+    Option.map (fun _ -> g, g) (LazyList.get (g st))
+  end |> Enum.fold (choose_alt_flip gr) empty <| st
 
 (* and upd_ctx st stk s vc = pure {stk; ctx = st.ctx <-- (s, VImm vc)} *)
 
