@@ -62,6 +62,8 @@ let tests = [
     "star-rel", "5";
     "inversion", "6";
     "inversion-rejected", "rejected";
+    "noncap-accept", "6";
+    "noncap-reject", "rejected";
   ]; 
   "combinators", [
     "simple", "44";
