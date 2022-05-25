@@ -59,7 +59,9 @@ let tests = [
     "case-rel2", "11";
     "case-cut", "rejected";
     "star-cut", "rejected";
-    "star-rel", "5"
+    "star-rel", "5";
+    "inversion", "6";
+    "inversion-rejected", "rejected";
   ]; 
   "combinators", [
     "simple", "44";
