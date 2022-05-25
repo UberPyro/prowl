@@ -265,16 +265,16 @@ and e (expr, loc) st = match expr with
     } :: st.stk
   }
 
-  | Quant (e1, Num e2, Gre) -> 
-    (e e2 st) >>= begin function
-    | {stk = VInt i :: _; _} -> 
-      if i < 0 then LazyList.nil
-      else let rec loop a = function
-        | 0 -> a
-        | j -> loop (a >>= e e1) (j - 1)
-      in loop (pure st) i
-    | _ -> failwith "Bad arg in quantifier"
-    end
+  | Quant (e1, Num e2, gr) -> 
+    eval_grab_int e2 st >>= fun (i1, stx) -> times_quant gr e1 i1 i1 stx
+  
+  | Quant (e1, Max e2, gr) -> 
+    eval_grab_int e2 st >>= fun (i1, stx) -> times_quant gr e1 0 i1 stx
+  
+  | Quant (e1, Range (e2, e3), gr) -> 
+    eval_grab_int e2 st >>= fun (i1, stx) -> 
+      eval_grab_int e3 stx >>= fun (i2, sty) ->
+        times_quant gr e1 i1 i2 sty
   
   | Quant (e1, Star, Gre) -> 
     let rec loop lst st1 =
@@ -550,6 +550,28 @@ and alt_rel f g = g <|> f
 and alt_cut f g st = f st |> LazyList.get |> function
   | Some _ -> f st
   | None -> g st
+
+and eval_grab e1 st = e e1 st <&> function
+  | ({stk=h::stk; _} as stx) -> h, {stx with stk}
+  | _ -> failwith "Stack Underflow (eval_grab)"
+
+and eval_grab_int e1 st = eval_grab e1 st <&> function
+  | VInt i, stx -> i, stx
+  | _ -> failwith "Type Error: Expecting int (grab_eval_int)"
+
+and choose_alt = function
+  | Gre -> (<|>)
+  | Rel -> alt_rel
+  | Cut -> alt_cut
+
+and times_quant gr e1 qmin qmax st = match qmax - qmin with
+  | qdiff when qdiff < 0 -> LazyList.nil
+  | qdiff -> 
+    let (</>) = choose_alt gr in
+    List.fold_left (>=>) pure (List.make qmin (e e1)) st
+      >>= List.fold_right begin fun i a -> 
+        a </> List.fold_left (>=>) pure (List.make i (e e1))
+      end (List.range 0 `To qdiff) empty
 
 (* and upd_ctx st stk s vc = pure {stk; ctx = st.ctx <-- (s, VImm vc)} *)
 
