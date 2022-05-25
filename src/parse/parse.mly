@@ -198,10 +198,10 @@ term: term_t {$1, $loc}
 
   | LPAREN RPAREN {Cat []}
   | DO e END {let (d, _) = $2 in d}
-  | LPAREN semi RPAREN {Absurdity}
+  | LPAREN semi RPAREN {Case []}
   | LBRACE rbrace {Capture (Cat [], $loc)}
-  | LBRACE semi rbrace {Capture (Absurdity, $loc)}
-  | LBRACK e nonempty_list(pair(SEMICOLON, e)) RBRACK {Case ($2, $3)}
+  | LBRACE semi rbrace {Capture (Case [], $loc)}
+  | LBRACK e nonempty_list(pair(SEMICOLON, e)) RBRACK {Case ((Gre, $2) :: $3)}
   | INV_BRACK separated_list(semi, e) RBRACK {Inv $2}
 
   | LBRACK separated_list(COMMA, e) RBRACK {List $2}

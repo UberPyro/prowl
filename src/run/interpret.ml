@@ -81,6 +81,7 @@ let (>=>) f g x = f x >>= g
 let pure a = LazyList.(cons a nil)
 let (<|>) f g x = f x ^@^ g x
 let ( *> ) x c y = x y >>= fun _ -> c y
+let absurd _ = LazyList.nil
 
 let g ex st l r = st >>= ex l >>= ex r
 
@@ -173,12 +174,11 @@ and e (expr, loc) st = match expr with
   | Sect s -> sect st s
 
   | Cat lst -> List.fold_left (fun a x -> a >>= (e x)) (pure st) lst
-  | Case (e1, elst) -> List.fold_left begin fun a -> function
+  | Case elst -> List.fold_left begin fun a -> function
     | Gre, x -> a <|> e x
     | Rel, x -> e x <|> a
     | Cut, x -> e x |> alt_cut a
-  end (e e1) elst st
-  | Absurdity -> LazyList.nil
+  end absurd elst st
   
   | List elst -> e (encode_lst loc elst, loc) st
   

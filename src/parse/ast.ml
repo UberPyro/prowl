@@ -116,7 +116,7 @@ and e_t =
   | As of string * p * e
 
   | Quant of e * quant * greed
-  | Case of e * (greed * e) list
+  | Case of (greed * e) list
   | Absurdity
   | Inv of e list
   | Span of e * e
