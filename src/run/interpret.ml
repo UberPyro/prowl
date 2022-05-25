@@ -384,6 +384,15 @@ and e (expr, loc) st = match expr with
       | _ -> failwith "Type Error: Accessing a non-module"
     end <&> fun stx -> {stx with ctx = st.ctx}
   | Impl e1 -> lit st (VImpl e1)
+
+  | Noncap e1 -> (e e1 *> pure) st
+  | Atomic (Cat lst, _) ->
+    List.fold_left begin fun a e1 -> 
+      a >>= e e1 |> LazyList.get |> function
+        | None -> LazyList.nil
+        | Some (x, _) -> pure x
+    end (pure st) lst
+  | Atomic e1 -> e e1 st
   
   | _ ->
     print_endline (show_e_t expr);
