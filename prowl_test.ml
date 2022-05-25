@@ -63,7 +63,9 @@ let tests = [
     "inversion", "6";
     "inversion-rejected", "rejected";
     "noncap-accept", "6";
-    "noncap-reject", "rejected";
+    "noncap-reject", "rejected"; 
+    "atomic-accept", "1";
+    "atomic-reject", "rejected";
   ]; 
   "combinators", [
     "simple", "44";

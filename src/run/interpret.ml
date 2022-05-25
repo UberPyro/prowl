@@ -392,7 +392,7 @@ and e (expr, loc) st = match expr with
         | None -> LazyList.nil
         | Some (x, _) -> pure x
     end (pure st) lst
-  | Atomic e1 -> e e1 st
+  | Atomic e1 -> e (Atomic (Cat [e1], loc), loc) st
   
   | _ ->
     print_endline (show_e_t expr);
