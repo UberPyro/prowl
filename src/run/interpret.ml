@@ -394,7 +394,7 @@ and e (expr, loc) st = match expr with
     failwith "Unimplemented - expression"
 
 and arith_builtin st opx = match st.stk with
-  | VImm {capt=e1; imm_ctx=ctx1; _} :: VImm {capt=e2; imm_ctx=ctx2; _} :: t ->
+  | VImm {capt=e2; imm_ctx=ctx2; _} :: VImm {capt=e1; imm_ctx=ctx1; _} :: t ->
     e e2 {st with stk=t; ctx=Dict.union (fun _ _ c -> Some c) st.ctx ctx2} <&> begin
       fun sty -> {sty with ctx=Dict.union (fun _ _ c -> Some c) st.ctx ctx1}
     end >>= e e1 <&> fun stx -> begin match stx.stk with
@@ -404,7 +404,7 @@ and arith_builtin st opx = match st.stk with
   | _ -> failwith "Stack Underflow - Arithmetic Builtin"
 
 and cmp_builtin st opx = match st.stk with
-  | VImm {capt=e1; imm_ctx=ctx1; _} :: VImm {capt=e2; imm_ctx=ctx2; _} :: t ->
+  | VImm {capt=e2; imm_ctx=ctx2; _} :: VImm {capt=e1; imm_ctx=ctx1; _} :: t ->
     e e2 {st with stk=t; ctx=Dict.union (fun _ _ c -> Some c) st.ctx ctx2} <&> begin
       fun sty -> {sty with ctx=Dict.union (fun _ _ c -> Some c) st.ctx ctx1}
     end >>= e e1 >>= fun stx -> begin match stx.stk with
@@ -415,26 +415,26 @@ and cmp_builtin st opx = match st.stk with
   | _ -> failwith "Stack Underflow - Comparison Builtin"
 
 and combinator st opx = match st.stk with
-  | VImm h1 :: VImm h2 :: stk ->
+  | VImm h2 :: VImm h1 :: stk ->
     opx (e h1.capt) (e h2.capt) {st with stk}
   | _ -> failwith "Stack Underflow - Combinator"
 
 and infix st (_, loc as e1) opx e2 = e (Id opx, loc) {
   st with
-  stk = VImm {capt=e1; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
-  :: VImm {capt=e2; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
+  stk = VImm {capt=e2; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
+  :: VImm {capt=e1; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
   :: st.stk
 }
 
 and sect_left st opx (_, loc as e2) = match st.stk with
   | [] -> failwith (Printf.sprintf "Stack Underflow - Left Section: (%s _)" opx)
   | h1 :: t -> e (Id opx, loc) {
-    st with stk = VImm {
+    st with stk = VImm {capt=e2; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
+    :: VImm {
       capt=Id "@1", loc;
       imm_ctx=Dict.add "@1" h1 st.ctx;
       imm_impl_ctx=st.impl_ctx
     }
-    :: VImm {capt=e2; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
     :: t
   }
 
@@ -442,12 +442,12 @@ and sect_right st (_, loc as e1) opx = match st.stk with
   | [] -> failwith (Printf.sprintf "Stack Underflow - Right Section: (_ %s)" opx)
   | h2 :: t -> e (Id opx, loc) {
     st with 
-    stk = VImm {capt=e1; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
-    :: VImm {
+    stk = VImm {
       capt=Id "@2", loc;
       imm_ctx=Dict.add "@2" h2 st.ctx;
       imm_impl_ctx=st.impl_ctx
     }
+    :: VImm {capt=e1; imm_ctx = st.ctx; imm_impl_ctx=st.impl_ctx}
     :: t
   }
 
@@ -457,16 +457,14 @@ and sect st opx = match st.stk with
   | h2 :: h1 :: t -> e (Id opx, dum) {
     st with
     stk = VImm {
-      capt=Id "@1", dum;
-      imm_ctx=Dict.add "@1" h1 st.ctx;
-      imm_impl_ctx=st.impl_ctx
-    }
-    :: VImm {
       capt=Id "@2", dum;
       imm_ctx=Dict.add "@2" h2 st.ctx;
       imm_impl_ctx=st.impl_ctx
-    }
-    :: t
+    } :: VImm {
+      capt=Id "@1", dum;
+      imm_ctx=Dict.add "@1" h1 st.ctx;
+      imm_impl_ctx=st.impl_ctx
+    } :: t
   }
 
 and bop_rewrite st (_, loc as e1) opx e2 =
