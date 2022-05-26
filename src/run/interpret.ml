@@ -59,11 +59,33 @@ and vmod = {
   e_ctx: e_val Dict.t
 }
 
+let type_fail s = failwith (Printf.sprintf "Type Error: Expected %s" s)
+let int_of_v = function VInt i -> i | _ -> type_fail "Int"
+let str_of_v = function VStr s -> s | _ -> type_fail "Str"
+let unit_of_v = function VUnit -> () | _ -> type_fail "Unit"
+let imm_of_v = function VImm vi -> vi | _ -> type_fail "Capture"
+
 type st = {
   ctx: e_val Dict.t;
   stk: e_val list;
   impl_ctx: vmod list Dict.t
 } [@@deriving show]
+
+let pop = function
+  | ({stk = h :: t; _} as st) ->  h, {st with stk = t}
+  | _ -> failwith "Stack Underflow (pop)"
+let pop2 = function
+  | ({stk = h1 :: h2 :: t; _} as st) -> h1, h2, {st with stk = t}
+  | _ -> failwith "Stack Underflow (pop2)"
+let push a ({stk; _} as st) = {st with stk = a :: stk}
+let get s {ctx; _} = Dict.find s ctx
+let set s v st = {st with ctx = Dict.add s v st.ctx}
+let theirs d1 d2 = Dict.union (fun _ _ c -> Some c) d1 d2
+let merge st vi = {
+  st with
+  ctx = theirs st.ctx vi.imm_ctx;
+  impl_ctx = theirs st.impl_ctx vi.imm_impl_ctx
+}
 
 let print_st {ctx; stk; impl_ctx} = 
   print_endline "---";
@@ -146,8 +168,10 @@ let encode_plst loc = List.fold_left begin fun a ex ->
   PRight (PPair ((a, loc), ex), loc)
 end (PLeft (PUnit, loc))
 
-let lit st v = pure {st with stk = v :: st.stk}
+let lit st v = pure (push v st)
 let op st stk v = pure {st with stk = v :: stk}
+let cap e1 st = {capt=e1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx}
+let state imm st = {st with ctx = imm.imm_ctx; impl_ctx = imm.imm_impl_ctx}
 
 let rec program st (_, expr) = e expr st
 
@@ -155,16 +179,10 @@ and e (expr, loc) st = match expr with
   | Int i -> lit st (VInt i)
   | Str s -> lit st (VStr s)
   | Unit -> lit st VUnit
-  | Pair (e1, e2) -> lit st (VPair (
-    {capt=e1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx},
-    {capt=e2; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx}
-  ))
-  | Left e1 ->
-    lit st (VLeft {capt=e1; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
-  | Right e2 -> 
-    lit st (VRight {capt=e2; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
-  | Capture ast ->
-    lit st (VImm {capt=ast; imm_ctx=st.ctx; imm_impl_ctx=st.impl_ctx})
+  | Pair (e1, e2) -> lit st (VPair (cap e1 st, cap e2 st))
+  | Left e1 -> lit st (VLeft (cap e1 st))
+  | Right e2 -> lit st (VRight (cap e2 st))
+  | Capture ast -> lit st (VImm (cap ast st))
   | StackComb c -> comb st c
   | Cap e1 -> e e1 st
 
@@ -207,9 +225,7 @@ and e (expr, loc) st = match expr with
     | VBuiltin "alt-cut" -> combinator st alt_cut
     | VBuiltin "intersect" -> combinator st ( *> )
 
-    | VImm {capt=ex; imm_ctx=ctx; imm_impl_ctx=impl_ctx} -> 
-      e ex {st with ctx; impl_ctx} <&> fun stx ->
-      {stx with ctx = st.ctx; impl_ctx = st.impl_ctx}
+    | VImm vi -> call vi st
     | x -> lit st x (* incomplete? *)
     | exception Not_found ->
       print_st st;
@@ -546,36 +562,38 @@ and adv_alt_while gr e1 st =
     Option.map (fun _ -> g, g) (LazyList.get (g st))
   end |> Enum.fold (choose_alt_flip gr) empty <| st
 
+and call vi st =
+  e vi.capt (state vi st) <&> fun {stk; _} -> {st with stk}
+
+and virt e1 st = e e1 {st with stk = []} <&> begin function
+  | {stk = [x]; _} -> push x st
+  | {stk; _} -> 
+    List.length stk
+    |> Printf.sprintf "Virtual call produced a stack with %d != 1 elements"
+    |> failwith 
+end
+
 (* and upd_ctx st stk s vc = pure {stk; ctx = st.ctx <-- (s, VImm vc)} *)
 
 and p (px, loc) st = match px with
-  | PId s -> begin match st.stk with
-    | h :: t -> pure {st with stk = t; ctx = st.ctx <-- (s, h)}
-    | _ -> failwith "Stack Underflow"
-  end
+  | PId s -> let v, stx = pop st in pure (set s v stx)
   | PBlank -> pure st
-  | PInt i1 -> begin match st.stk with
-    | VInt i2 :: t -> 
-      if i1 = i2 then pure {st with stk = t}
-      else LazyList.nil
-    | _ -> failwith "Type Error: matching non-int on int"
-  end
-  | PStr s1 -> begin match st.stk with
-    | VStr s2 :: t -> 
-      if s1 = s2 then pure {st with stk = t}
-      else LazyList.nil
-    | _ -> failwith "Type Error: matching non-string on string"
-  end
+  | PInt i1 -> 
+    let v, st' = pop st in
+    if i1 = int_of_v v then pure st'
+    else LazyList.nil
+  | PStr s1 -> 
+    let v, st' = pop st in
+    if s1 = str_of_v v then pure st'
+    else LazyList.nil
   | PCat lst ->
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
-  | PCapture (PId s, _) -> begin match st.stk with
-    | (VImm _ as vi) :: t -> pure {
-      st with
-      stk = t; 
-      ctx = st.ctx <-- (s, vi)
-    }
-    | _ -> failwith "Type Error: matching non-capture against capture (direct)"
-  end
+  | PCapture (PId s, _) -> 
+    let v, st' = pop st in
+    ignore begin try imm_of_v v with 
+      _ -> failwith "Type Error: matching non-capture against capture (direct)"
+    end;
+    pure (set s v st')
   | PCapture px -> begin match st.stk with
     | VImm {capt; _} :: t -> e capt {st with stk = t} >>= p px
     | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
