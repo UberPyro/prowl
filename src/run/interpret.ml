@@ -96,8 +96,8 @@ let string_of_v = function
   | VUnit -> "<>"
   | VPair ({capt=e1; _}, {capt=e2; _}) -> 
     Printf.sprintf "(%s, %s)" (enhanced_show_e e1) (enhanced_show_e e2)
-  | VLeft {capt; _} -> Printf.sprintf "(;%s)" (enhanced_show_e capt)
-  | VRight {capt; _} -> Printf.sprintf "(%s;)" (enhanced_show_e capt)
+  | VLeft {capt; _} -> Printf.sprintf "(%s;)" (enhanced_show_e capt)
+  | VRight {capt; _} -> Printf.sprintf "(;%s)" (enhanced_show_e capt)
   
   | _ -> failwith "Unimplemented - string_of_v"
 
