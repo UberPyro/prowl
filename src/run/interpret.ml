@@ -229,7 +229,7 @@ and e (expr, loc) st = match expr with
     | VImm vi -> call vi st
     | x -> lit st x (* incomplete? *)
     | exception Not_found ->
-      print_st st;
+      (* print_st st; *)
       failwith
         (Printf.sprintf "Unbound id: %s @ [%d:%d]"
         s
@@ -611,7 +611,7 @@ and p (px, loc) st = match px with
   | POpen false -> begin match st.stk with
     | VMod {def_map; _} :: t -> def_map, t
     | _ -> 
-      print_st st;
+      (* print_st st; *)
       failwith "Type Error: matching non-module against OPEN"
   end |> fun (e_map, t) -> pure {
     st with stk = t; ctx = 

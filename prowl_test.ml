@@ -77,6 +77,9 @@ let tests = [
   "modules", [
     "access", "3";
     "open", "7";
+  ];
+  "data", [
+    "rev", "1\n3\n5\n7\n9"
   ]
 ]
 
