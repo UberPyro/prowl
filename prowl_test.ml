@@ -32,7 +32,7 @@ let tests = [
     "capture-fun", "2";
     "nest-capture-pair", "2";
     "nest-either-pair", "1";
-    (* "long-pair", "5"; *)  (* FAILING :( *)
+    "long-pair", "5";
     "const-int", "1";
     "const-int-reject", "rejected";
     "const-str", "0";
