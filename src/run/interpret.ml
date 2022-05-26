@@ -487,13 +487,8 @@ and comb st0 = List.fold_left begin fun st1 -> function
       pure {stx with stk = h3 :: h1 :: h2 :: t}
     | _ -> failwith "Stack underflow (rot)"
   end
-  | Run i, _ -> st1 >>= begin fun stx -> 
-    match List.at stx.stk (i-1) with
-    | VImm {capt; imm_ctx; imm_impl_ctx} -> e capt {
-      stk = List.remove_at (i-1) stx.stk;
-      ctx = imm_ctx;
-      impl_ctx = imm_impl_ctx
-    } <&> fun sty -> {sty with ctx=stx.ctx; impl_ctx=stx.impl_ctx}
+  | Run i, _ -> st1 >>= begin fun stx -> match List.at stx.stk (i-1) with
+    | VImm vi -> call vi {stx with stk = List.remove_at (i-1) stx.stk}
     | _ -> failwith "Type Error: Cannot call nonclosure"
   end
   | Rot _, _ -> failwith "Unimplemented - rot n"
@@ -611,9 +606,9 @@ and p (px, loc) st = match px with
       | VLeft _, _ -> LazyList.nil
       | _ -> type_fail "Either"
     end
-  | PImpl (PId s, _ as p1, _) -> begin match st.stk with
-    | VImpl e1 :: t -> e e1 {st with stk = t} >>= p p1
-    | _ -> pure {st with ctx = st.ctx <-- (s, VImplMod)}
+  | PImpl (PId s, _ as p1, _) -> begin match pop st with
+    | VImpl e1, st' -> e e1 st' >>= p p1
+    | _ -> pure (set s VImplMod st)
   end
   | POpen false -> begin match st.stk with
     | VMod {def_map; _} :: t -> def_map, t
