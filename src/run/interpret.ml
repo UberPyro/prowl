@@ -247,11 +247,11 @@ and e (expr, loc) st = match expr with
       a <&> fun stx -> set s (VImm (cap (As ("", (PCat t, y), ex), z) stx)) stx
     | "", false, px, ex -> a >>= e ex >>= p px
     (* Note: broken *)
-    | a, _, px, ex -> e (Id ("let" ^ a), loc) {
-      st with stk = 
-        VImm (cap (As ("", px, e1), loc) st)
-        :: VImm (cap ex st) 
-        :: st.stk
+    | b, _, px, ex -> a >>= fun st' -> e (Id ("let" ^ b), loc) {
+      st' with stk = 
+        VImm (cap (As ("", px, e1), loc) st')
+        :: VImm (cap ex st') 
+        :: st'.stk
     }
   end (pure st) lst >>= e e1 <&> fun stx -> {st with stk = stx.stk}
 
