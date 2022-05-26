@@ -36,6 +36,9 @@ let tests = [
     "const-int", "1";
     "const-int-reject", "rejected";
     "const-str", "0";
+    "pair-func", "2";
+    "eith-func", "1";
+    "bin-func", "2";
   ]; 
   "flow", [
     "cat", "5";
