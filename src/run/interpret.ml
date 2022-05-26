@@ -240,46 +240,24 @@ and e (expr, loc) st = match expr with
       failwith "Unimplemented - id" *)
   end
   | Let (lst, e1) -> List.fold_left begin fun a -> function
-    | "", false, (PId s, _), ex -> a <&> begin 
-        fun stx -> {stx with ctx = stx.ctx <-- (s, VImm {
-          capt = ex;
-          imm_ctx = stx.ctx;
-          imm_impl_ctx = stx.impl_ctx
-        })}
-      end
-    | "", false, (PCat ((PId s, z) :: t), y), ex -> a <&> begin
-        fun stx -> {stx with 
-          ctx = stx.ctx <-- (s, VImm {
-            capt = As ("", (PCat t, y), ex), z;
-            imm_ctx = stx.ctx;
-            imm_impl_ctx = stx.impl_ctx
-        })
-        }
-      end
+    | "", false, (PId s, _), ex ->
+      a <&> fun stx -> set s (VImm (cap ex stx)) stx
+    | "", false, (PCat ((PId s, z) :: t), y), ex -> 
+      a <&> fun stx -> set s (VImm (cap (As ("", (PCat t, y), ex), z) stx)) stx
     | "", false, px, ex -> a >>= e ex >>= p px
     (* Note: broken *)
     | a, _, px, ex -> e (Id ("let" ^ a), loc) {
-      st with stk = VImm {
-        capt = As ("", px, e1), loc;
-        imm_ctx = st.ctx; 
-        imm_impl_ctx = st.impl_ctx
-      } :: VImm {
-        capt = ex; 
-        imm_ctx = st.ctx; 
-        imm_impl_ctx = st.impl_ctx
-      } :: st.stk
+      st with stk = 
+        VImm (cap (As ("", px, e1), loc) st)
+        :: VImm (cap ex st) 
+        :: st.stk
     }
   end (pure st) lst >>= e e1 <&> fun stx -> {st with stk = stx.stk}
 
   | As ("", p1, e1) -> 
     (p p1 st) >>= e e1 <&> fun stx -> {st with stk = stx.stk}
-  | As (s, p1, e1) -> e (Id ("as" ^ s), loc) {
-    st with stk = VImm {
-      capt = As ("", p1, e1), loc;
-      imm_ctx = st.ctx;
-      imm_impl_ctx = st.impl_ctx
-    } :: st.stk
-  }
+  | As (s, p1, e1) ->
+    e (Id ("as" ^ s), loc) (push (VImm (cap (As ("", p1, e1), loc) st)) st)
 
   | Quant (e1, Num e2, gr) -> 
     eval_grab_int e2 st >>= fun (i1, stx) -> times_quant gr e1 i1 i1 stx
