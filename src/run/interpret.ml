@@ -64,6 +64,7 @@ let int_of_v = function VInt i -> i | _ -> type_fail "Int"
 let str_of_v = function VStr s -> s | _ -> type_fail "Str"
 let unit_of_v = function VUnit -> () | _ -> type_fail "Unit"
 let imm_of_v = function VImm vi -> vi | _ -> type_fail "Capture"
+let pair_of_v = function VPair (v1, v2) -> v1, v2 | _ -> type_fail "Pair"
 
 type st = {
   ctx: e_val Dict.t;
@@ -568,72 +569,48 @@ and p (px, loc) st = match px with
     List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
   | PCapture (PId s, _) -> 
     let v, st' = pop st in
-    ignore begin try imm_of_v v with 
-      _ -> failwith "Type Error: matching non-capture against capture (direct)"
-    end;
+    ignore (imm_of_v v);
     pure (set s v st')
-  | PCapture px -> begin match st.stk with
-    | VImm {capt; _} :: t -> e capt {st with stk = t} >>= p px
-    | _ -> failwith "Type Error: matching non-capture against capture (indirect)"
-  end
+  | PCapture px -> 
+    let v, st' = pop st in
+    call (imm_of_v v) st' >>= p px
   | PAsc (p1, _) -> p p1 st
-  | PPair ((PId s1, _), (PId s2, _)) -> begin match st.stk with
-    | VPair (vc1, vc2) :: t -> pure {
-        st with
-        stk = t;
-        ctx = st.ctx <-- (s1, VImm vc1) <-- (s2, VImm vc2)
-      }
-    | _ -> failwith "Type Error: matching non-pair on pair (direct) (direct)"
-  end
-  | PPair (px1, (PId s2, _)) -> begin match st.stk with
-    | VPair ({capt=vc1; _}, vc2) :: t ->
-      e vc1 {st with stk = t} >>= p px1 >>= begin fun stx -> pure {
-        stx with ctx = st.ctx <-- (s2, VImm vc2)
-      }
+  | PPair ((PId s1, _), (PId s2, _)) -> 
+    let v, st' = pop st in
+    let l, r = pair_of_v v in
+    pure (set s2 (VImm r) (set s1 (VImm l) st'))
+  | PPair (px1, (PId s2, _)) -> 
+    let v, st' = pop st in
+    let l, r = pair_of_v v in
+    call l st' >>= p px1 >>= (set s2 (VImm r) >> pure)
+  | PPair ((PId s1, _), px2) -> 
+    let v, st' = pop st in
+    let l, r = pair_of_v v in
+    call r (set s1 (VImm l) st') >>= p px2
+  | PPair (px1, px2)  -> 
+    let v, st' = pop st in
+    let l, r = pair_of_v v in
+    call l st' >>= p px1 >>= call r >>= p px2
+  | PLeft (PId s, _) -> begin match pop st with
+      | VLeft l, st' -> pure (set s (VImm l) st')
+      | VRight _, _ -> LazyList.nil
+      | _ -> type_fail "Either"
     end
-    | _ -> failwith "Type Error: matching non-pair on pair (indirect) (direct)"
-  end
-  | PPair ((PId s1, _), px2) -> begin match st.stk with
-    | VPair (vc1, {capt=vc2; _}) :: t -> e vc2 {
-        st with
-        stk = t;
-        ctx = st.ctx <-- (s1, VImm vc1)
-      } >>= p px2
-    | _ -> failwith "Type Error: matching non-pair on pair (direct) (indirect)"
-  end
-  | PPair (px1, px2)  -> begin match st.stk with
-    | VPair ({capt=vc1; _}, {capt=vc2; _}) :: t -> 
-      e vc1 {st with stk = t} >>= p px1 >>= e vc2 >>= p px2
-    | _ -> failwith "Type Error: matching non-pair on pair (indirect) (indirect)"
-  end
-  | PLeft (PId s, _) -> begin match st.stk with
-    | VLeft vc :: t -> pure {
-        st with
-        stk = t;
-        ctx = st.ctx <-- (s, VImm vc)
-      }
-    | VRight _ :: _ -> LazyList.nil
-    | _ -> failwith "Type Error: matching non-either on either (direct)"
-  end
-  | PLeft px -> begin match st.stk with
-    | VLeft {capt=vc; _} :: t -> e vc {st with stk = t} >>= p px
-    | VRight _ :: _ -> LazyList.nil
-    | _ -> failwith "Type Error: matching non-either on either (indirect)"
-  end
-  | PRight (PId s, _) -> begin match st.stk with
-    | VRight vc :: t -> pure {
-        st with
-        stk = t;
-        ctx = st.ctx <-- (s, VImm vc)
-      }
-    | VLeft _ :: _ -> LazyList.nil
-    | _ -> failwith "Type Error: matching non-either on either (direct)"
-  end
-  | PRight px -> begin match st.stk with
-    | VRight {capt=vc; _} :: t -> e vc {st with stk = t} >>= p px
-    | VLeft _ :: _ -> LazyList.nil
-    | _ -> failwith "Type Error: matching non-either on either (indirect)"
-  end
+  | PLeft px -> begin match pop st with
+      | VLeft l, st' -> call l st' >>= p px
+      | VRight _, _ -> LazyList.nil
+      | _ -> type_fail "Either"
+    end
+  | PRight (PId s, _) -> begin match pop st with
+      | VRight r, st' -> pure (set s (VImm r) st')
+      | VLeft _, _ -> LazyList.nil
+      | _ -> type_fail "Either"
+    end
+  | PRight px -> begin match pop st with
+      | VRight r, st' -> call r st' >>= p px
+      | VLeft _, _ -> LazyList.nil
+      | _ -> type_fail "Either"
+    end
   | PImpl (PId s, _ as p1, _) -> begin match st.stk with
     | VImpl e1 :: t -> e e1 {st with stk = t} >>= p p1
     | _ -> pure {st with ctx = st.ctx <-- (s, VImplMod)}
