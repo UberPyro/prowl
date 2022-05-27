@@ -12,7 +12,8 @@ module type S = sig
   val ( *> ) : (State.t -> t) -> (State.t -> t) -> (State.t -> t)
   val annihilate : 'a -> t
   val cut : t -> t
-  val is_empty : t -> bool
+  val is_null : t -> bool
+  val null : t
 
 end
 
@@ -36,6 +37,7 @@ module LazySearch : S = struct
     | Some (h, _) -> pure h
     | None -> LazyList.nil
 
-  let is_empty = LazyList.is_empty
+  let is_null = LazyList.is_empty
+  let null = LazyList.nil
 
 end

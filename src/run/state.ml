@@ -190,8 +190,10 @@ and State : sig
 
   val s : t -> stack
   val c : t -> Context.t
-  val merge : Capture.t -> t -> t
   val init : t
+  val merge : Capture.t -> t -> t
+  val update : Capture.t -> t -> t
+  val switch : t -> t -> t
 
   val pop : t -> Value.t * t
   val pop2 : t -> Value.t * Value.t * t
@@ -210,14 +212,18 @@ and State : sig
     val (!:) : t -> Value.t * t
     val (!::) : t -> Value.t * Value.t * t
     val (>:) : Value.t -> t -> t
-    val (>::) : Value.t -> Value.t -> t -> t
+    val (>::) : Value.t * Value.t -> t -> t
   
-    val (<--) : string -> Value.t * t -> t
+    val (<--) : t -> string * Value.t -> t
     val (-->) : string -> t -> Value.t
-    val (<==) : string -> Type.t * t -> t
+    val (<==) : t -> string * Type.t -> t
     val (==>) : string -> t -> Type.t
-    val (<<-) : string -> Module.t * t -> t
+    val (<<-) : t -> string * Module.t -> t
     val (->>) : string -> t -> Module.t list
+
+    val (<-|) : t -> Capture.t -> t
+    val (<-<) : t -> Capture.t -> t
+    val (<->) : t -> t -> t
 
   end
 
@@ -234,6 +240,8 @@ end = struct
   let s st = st.s
   let c st = st.c
   let merge vi st = {st with c = Capture.c vi}
+  let update vi st = {st with c = Context.update st.c (Capture.c vi)}
+  let switch st1 st2 = {st1 with c = st2.c}
   let empty = {s = []; c = Context.empty}
   let init = {empty with c = Context.init}
 
@@ -262,14 +270,18 @@ end = struct
     let (!:) = pop
     let (!::) = pop2
     let (>:) = push
-    let (>::) = push2
+    let (>::) (v1, v2) = push2 v1 v2
 
-    let (<--) k (v, st) = set k v st
+    let (<--) st (k, v) = set k v st
     let (-->) = get
-    let (<==) k (t, st) = sett k t st
+    let (<==) st (k, t) = sett k t st
     let (==>) = gett
-    let (<<-) k (i, st) = ins k i st
+    let (<<-) st (k, i) = ins k i st
     let (->>) = dump
+
+    let (<-|) st c = merge c st
+    let (<-<) st c = update c st
+    let (<->) = switch
 
   end
 
@@ -285,6 +297,7 @@ and Context : sig
 
   val empty : t
   val init : t
+  val update : t -> t -> t
 
   val set : string -> Value.t -> t -> t
   val get : string -> t -> Value.t
@@ -322,6 +335,14 @@ end = struct
     |> fun v -> {c with i = Dict.add k v c.i}
 
   let dump k c = Dict.find k c.i
+
+  let upd y z = Dict.union (fun _ _ x -> Some x) y z
+  let updi y z = Dict.union (fun _ x1 x2 -> Some (x1 @ x2)) y z
+  let update c1 c2 = {
+    v = upd c1.v c2.v;
+    t = upd c1.t c2.t;
+    i = updi c1.i c2.i;
+  }
 
   let init_v = [
     "+", "add";
