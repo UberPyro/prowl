@@ -1,5 +1,7 @@
 open Batteries
 
+open Util
+
 module StrKey = struct
   type t = string
   let compare = compare
@@ -31,6 +33,8 @@ module rec Value : sig
   val to_cap : t -> Capture.t
   val to_unit : t -> unit
 
+  val string_of_v : t -> string
+
 end = struct
 
   exception ExpectedType of string
@@ -54,6 +58,23 @@ end = struct
   let to_eith = function VLeft c | VRight c -> c | _ -> raise (ExpectedType "Eith")
   let to_cap = function VImm c -> c | _ -> raise (ExpectedType "Capture")
   let to_unit = function VUnit -> () | _ -> raise (ExpectedType "Unit")
+
+  let enhanced_show_e = function
+    | Ast.Int i, _ -> string_of_int i
+    | Ast.Str s, _ -> s
+    | ex -> Ast.show_e ex
+
+  let show_c = Capture.ast >> enhanced_show_e
+
+  let string_of_v = function
+    | VInt i -> string_of_int i
+    | VStr s -> s
+    | VUnit -> "<>"
+    | VPair (c1, c2) -> Printf.sprintf "(%s, %s)" (show_c c1) (show_c c2)
+    | VLeft c -> Printf.sprintf "(%s;)" (show_c c)
+    | VRight c -> Printf.sprintf "(;%s)" (show_c c)
+    
+    | _ -> failwith "Unimplemented - string_of_v"
 
 end
 
