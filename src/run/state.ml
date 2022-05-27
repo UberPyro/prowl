@@ -117,6 +117,7 @@ and Capture : sig
   val ast : t -> Ast.e
   val make : Ast.e -> Context.t -> t
   val of_st : Ast.e -> State.t -> t
+  val c : t -> Context.t
 
   val set : string -> Value.t -> t -> t
   val get : string -> t -> Value.t
@@ -135,6 +136,7 @@ end = struct
   let ast a = a.e
   let make e c = {e; c}
   let of_st e st = {e; c = State.c st}
+  let c st = st.c
 
   let set k v a = {a with c = Context.set k v a.c}
   let get k a = Context.get k a.c
