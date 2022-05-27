@@ -194,6 +194,7 @@ and State : sig
   val merge : Capture.t -> t -> t
   val update : Capture.t -> t -> t
   val switch : t -> t -> t
+  val restack : stack -> t -> t
 
   val pop : t -> Value.t * t
   val pop2 : t -> Value.t * Value.t * t
@@ -244,6 +245,7 @@ end = struct
   let switch st1 st2 = {st1 with c = st2.c}
   let empty = {s = []; c = Context.empty}
   let init = {empty with c = Context.init}
+  let restack s st = {st with s}
 
   let pop = function
     | ({s = h :: s; _} as st) -> h, {st with s}

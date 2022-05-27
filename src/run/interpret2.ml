@@ -77,8 +77,8 @@ module Run (E : Eval.S) = struct
   end
   
   and comb st = List.fold_left begin fun st1 -> function
-    | Dup i, _ -> st1 <&> fun st2 -> List.at (S.s st2) (i-1) >: st2
-    (* | Zap i, _ ->  *)
+    | Dup i, _ -> List.at (S.s st1) (i-1) >: st1
+    | Zap i, _ -> restack (List.remove_at (i-1) (S.s st1)) st1
   end
 
   and call c st =
