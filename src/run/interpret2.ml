@@ -58,10 +58,28 @@ module Run (E : Eval.S) = struct
   and infix (_, loc as e1) o e2 st = 
     e (Id o, loc) (C.(VImm (of_st e2 st), VImm (of_st e1 st)) >:: st)
   
-  (* and sect_left o (_, loc as e2) st = 
+  and def_cap s v st = C.of_st (Id s, dum) (st <-- (s, v))
+  
+  and sect_left o (_, loc as e2) st = 
     let v2, st' = !: st in
-    let c2 = V.to_cap v2 in
-    e (Id o, loc) (C.(VImm (of_st e2 st), VImm (of_st e1 st)) >::) *)
+    e (Id o, loc) (C.(VImm (of_st e2 st), VImm (def_cap "@2" v2 st)) >:: st')
+  
+  and sect_right (_, loc as e1) o st = 
+    let v1, st' = !: st in
+    e (Id o, loc) (C.(VImm (def_cap "@1" v1 st), VImm (of_st e1 st)) >:: st')
+  
+  and sect o st = 
+    let v2, v1, st' = !:: st in
+    e (Id o, dum) begin (
+      VImm (def_cap "@2" v2 st), 
+      VImm (def_cap "@1" v1 st)
+    ) >:: st'
+  end
+  
+  and comb st = List.fold_left begin fun st1 -> function
+    | Dup i, _ -> st1 <&> fun st2 -> List.at (S.s st2) (i-1) >: st2
+    (* | Zap i, _ ->  *)
+  end
 
   and call c st =
     e (Capture.ast c) (st <-| c) <&> fun st' -> st' <-> st
