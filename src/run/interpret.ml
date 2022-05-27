@@ -106,8 +106,6 @@ let (<|>) f g x = f x ^@^ g x
 let ( *> ) x c y = x y >>= fun _ -> c y
 let empty _ = LazyList.nil
 
-let g ex st l r = st >>= ex l >>= ex r
-
 let enhanced_show_e = function
   | Int i, _ -> string_of_int i
   | Str s, _ -> s
