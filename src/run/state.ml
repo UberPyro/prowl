@@ -67,6 +67,8 @@ and Module : sig
 
   type t
 
+  val make : Context.t -> t
+
   val def : string -> Ast.e -> t -> t
   val acc : string -> t -> Ast.e
   val deft : string -> string list * Ast.ty option -> t -> t
@@ -87,7 +89,14 @@ end = struct
     def : Ast.e Dict.t;
     ty : (string list * Ast.ty option) Dict.t;
     impl : Ast.e Dict.t;
-    c : Context.t
+    c : Context.t;
+  }
+
+  let make c = {
+    def = Dict.empty;
+    ty = Dict.empty;
+    impl = Dict.empty;
+    c;
   }
 
   let def k v m = {m with def = Dict.add k v m.def}
@@ -118,6 +127,7 @@ and Capture : sig
   val make : Ast.e -> Context.t -> t
   val of_st : Ast.e -> State.t -> t
   val c : t -> Context.t
+  val init : Ast.e -> t
 
   val set : string -> Value.t -> t -> t
   val get : string -> t -> Value.t
@@ -137,6 +147,7 @@ end = struct
   let make e c = {e; c}
   let of_st e st = {e; c = State.c st}
   let c st = st.c
+  let init e = {e; c = Context.init}
 
   let set k v a = {a with c = Context.set k v a.c}
   let get k a = Context.get k a.c
@@ -158,6 +169,8 @@ and State : sig
 
   val s : t -> stack
   val c : t -> Context.t
+  val merge : Capture.t -> t -> t
+  val init : t
 
   val pop : t -> Value.t * t
   val pop2 : t -> Value.t * Value.t * t
@@ -199,6 +212,9 @@ end = struct
 
   let s st = st.s
   let c st = st.c
+  let merge vi st = {st with c = Capture.c vi}
+  let empty = {s = []; c = Context.empty}
+  let init = {empty with c = Context.init}
 
   let pop = function
     | ({s = h :: s; _} as st) -> h, {st with s}
@@ -246,6 +262,9 @@ and Context : sig
     i : Module.t list Dict.t;  (* Implicits *)
   }
 
+  val empty : t
+  val init : t
+
   val set : string -> Value.t -> t -> t
   val get : string -> t -> Value.t
 
@@ -263,13 +282,50 @@ end = struct
     i : Module.t list Dict.t;
   }
 
+  let empty = {
+    v = Dict.empty;
+    t = Dict.empty;
+    i = Dict.empty;
+  }
+
   let set k v c = {c with v = Dict.add k v c.v}
   let get k c = Dict.find k c.v
 
   let sett k t c = {c with t = Dict.add k t c.t}
   let gett k c = Dict.find k c.t
 
-  let ins k i c = {c with i = Dict.add k (i :: Dict.find k c.i) c.i}
+  let ins k i c = 
+    Dict.find_opt k c.i
+    |> Option.default []
+    |> List.cons i
+    |> fun v -> {c with i = Dict.add k v c.i}
+
   let dump k c = Dict.find k c.i
+
+  let init_v = [
+    "+", "add";
+    "-", "sub";
+    "*", "mul";
+    "/", "div"; 
+    "**", "exp"; 
+  
+    "==", "eq"; 
+    "/=", "ne"; 
+    ">", "gt"; 
+    "<", "lt"; 
+    ">=", "ge"; 
+    "<=", "le"; 
+  
+    "&", "cat"; 
+    "|", "alt"; 
+    "|?", "alt-rel"; 
+    "|+", "alt-cut"; 
+    "&&", "intersect";
+  ]
+  |> List.map (fun (a, b) -> a, Value.VBuiltin b)
+  |> List.enum
+  |> Dict.of_enum
+
+  let init = {empty with v = init_v}
 
 end
