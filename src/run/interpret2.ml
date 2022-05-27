@@ -17,6 +17,14 @@ module Run (E : Eval.S) = struct
   open S.Infix
   open E
 
+  let encode_lst loc = List.fold_left begin fun a ex -> 
+    Right (Pair ((a, loc), ex), loc)
+  end (Left (Unit, loc))
+  
+  let encode_plst loc = List.fold_left begin fun a ex -> 
+    PRight (PPair ((a, loc), ex), loc)
+  end (PLeft (PUnit, loc))
+
   let lit v st = pure (push v st)
 
   let rec program (_, e1) = e e1
@@ -29,8 +37,23 @@ module Run (E : Eval.S) = struct
     | Left e1 -> lit (VLeft (C.of_st e1 st)) st
     | Right e2 -> lit (VRight (C.of_st e2 st)) st
     | Capture ast -> lit (VImm (C.of_st ast st)) st
-    (* | StackComb c -> comb st c *)
+    | StackComb c -> comb st c
     | Cap e1 -> e e1 st
+    
+    | Bop (e1, s, e2) -> infix e1 s e2 st
+    | SectLeft (s, e2) -> sect_left s e2 st
+    | SectRight (e1, s) -> sect_right e1 s st
+    | Sect s -> sect s st
+
+    | Cat lst -> List.fold_left (fun a x -> a >=> e x) pure lst st
+    | Case elst -> List.fold_left begin fun a -> function
+      | Gre, x -> a <|> e x
+      | Rel, x -> e x <|> a
+      | Cut, x -> e x |> alt_cut a
+    end annihilate elst st
+    | Inv lst -> List.fold_left (fun a x -> a *> e x) pure lst st
+    
+    | List elst -> e (encode_lst loc elst, loc) st
   
     | _ -> failwith "Unimplemented - expression"
   
@@ -76,12 +99,59 @@ module Run (E : Eval.S) = struct
     ) >:: st'
   end
   
-  and comb st = List.fold_left begin fun st1 -> function
-    | Dup i, _ -> List.at (S.s st1) (i-1) >: st1
-    | Zap i, _ -> restack (List.remove_at (i-1) (S.s st1)) st1
-  end
+  and comb st = 
+    List.fold_left begin fun m a -> m >>= fun st1 -> match a with
+    | Dup i, _ -> List.at (S.s st1) (i-1) >: st1 |> pure
+    | Zap i, _ -> restack (List.remove_at (i-1) (S.s st1)) st1 |> pure
+    | Rot 2, _ ->
+      let v2, v1, st2 = !:: st1 in
+      (v1, v2) >:: st2 |> pure
+    | Rot 3, _ -> 
+      let v3, v2, st2 = !:: st1 in
+      let v1, st3 = !: st2 in
+      v1 >: ((v3, v2) >:: st3) |> pure
+    | Rot _, _ -> failwith "Unimplemented - rot n"
+    | Run i, _ -> 
+        restack (List.remove_at (i-1) (S.s st1)) st1
+        |> call (to_cap (List.at (S.s st1) (i-1)))
+  end (pure st)
+
+  and alt_rel f g = g <|> f
+
+  and alt_cut f g = (f <|> g) >> cut
+
+  and choose_alt = function
+    | Gre -> (<|>)
+    | Rel -> alt_rel
+    | Cut -> alt_cut
+  
+  and choose_alt_flip gr x y = choose_alt gr y x
+
+  and times_quant gr e1 qmin qmax st = match qmax - qmin with
+  | qdiff when qmin < 0 || qdiff < 0 -> null
+  | qdiff -> adv qmin e1 st >>= adv_alt gr qdiff e1
+
+  and times_quant_while gr e1 qmin st = 
+    if qmin < 0 then null
+    else adv qmin e1 st >>= adv_alt_while gr e1
+  
+  and adv n e1 st = 
+    List.fold_left (>=>) pure (List.make n (e e1)) st
+
+  and adv_alt gr n e1 = 
+    Enum.scanl (>=>) pure (Enum.repeat ~times:n (e e1))
+    |> Enum.fold (choose_alt_flip gr) annihilate
+
+  and adv_alt_while gr e1 st = 
+    Enum.unfold pure begin fun b -> 
+      let g = b >=> e e1 in
+      if is_null (g st) then None
+      else Some (g, g)
+    end |> Enum.fold (choose_alt_flip gr) annihilate <| st
 
   and call c st =
     e (Capture.ast c) (st <-| c) <&> fun st' -> st' <-> st
+  
+  and p = failwith "Implement"
 
 end
