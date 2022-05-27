@@ -9,6 +9,8 @@ module Dict = Map.Make(StrKey)
 
 module rec Value : sig
 
+  exception ExpectedType of string
+
   type t = 
     | VInt of int
     | VStr of string
@@ -21,9 +23,18 @@ module rec Value : sig
     | VImpl of Capture.t
     | VImplMod
     | VBuiltin of string
+  
+  val to_int : t -> int
+  val to_str : t -> string
+  val to_pair : t -> Capture.t * Capture.t
+  val to_eith : t -> Capture.t
+  val to_cap : t -> Capture.t
+  val to_unit : t -> unit
 
 end = struct
 
+  exception ExpectedType of string
+
   type t = 
     | VInt of int
     | VStr of string
@@ -36,6 +47,13 @@ end = struct
     | VImpl of Capture.t
     | VImplMod
     | VBuiltin of string
+  
+  let to_int = function VInt i -> i | _ -> raise (ExpectedType "Int")
+  let to_str = function VStr s -> s | _ -> raise (ExpectedType "Str")
+  let to_pair = function VPair (c1, c2) -> c1, c2 | _ -> raise (ExpectedType "Pair")
+  let to_eith = function VLeft c | VRight c -> c | _ -> raise (ExpectedType "Eith")
+  let to_cap = function VImm c -> c | _ -> raise (ExpectedType "Capture")
+  let to_unit = function VUnit -> () | _ -> raise (ExpectedType "Unit")
 
 end
 
@@ -131,10 +149,10 @@ end
 
 and State : sig
 
-  exception Underflow
-
   type t
   type stack = Value.t list
+
+  exception Underflow of t
 
   val s : t -> stack
   val c : t -> Context.t
@@ -169,24 +187,24 @@ and State : sig
 
 end = struct
 
-  exception Underflow
-
   type t = {
     s : stack;
     c : Context.t;
   }
   and stack = Value.t list
 
+  exception Underflow of t
+
   let s st = st.s
   let c st = st.c
 
   let pop = function
     | ({s = h :: s; _} as st) -> h, {st with s}
-    | _ -> raise Underflow
+    | st -> raise (Underflow st)
   
   let pop2 = function
     | ({s = h1 :: h2 :: s; _} as st) -> h1, h2, {st with s}
-    | _ -> raise Underflow
+    | st -> raise (Underflow st)
   
   let push v st = {st with s = v :: st.s}
   let push2 v1 v2 st = {st with s = v1 :: v2 :: st.s}
