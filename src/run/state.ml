@@ -216,11 +216,11 @@ and State : sig
     val (>::) : Value.t * Value.t -> t -> t
   
     val (<--) : t -> string * Value.t -> t
-    val (-->) : string -> t -> Value.t
+    val (-->) : t -> string -> Value.t
     val (<==) : t -> string * Type.t -> t
-    val (==>) : string -> t -> Type.t
+    val (==>) : t -> string -> Type.t
     val (<<-) : t -> string * Module.t -> t
-    val (->>) : string -> t -> Module.t list
+    val (->>) : t -> string -> Module.t list
 
     val (<-|) : t -> Capture.t -> t
     val (<-<) : t -> Capture.t -> t
@@ -275,11 +275,11 @@ end = struct
     let (>::) (v1, v2) = push2 v1 v2
 
     let (<--) st (k, v) = set k v st
-    let (-->) = get
+    let (-->) st k = get k st
     let (<==) st (k, t) = sett k t st
-    let (==>) = gett
+    let (==>) st k = gett k st
     let (<<-) st (k, i) = ins k i st
-    let (->>) = dump
+    let (->>) st k = dump k st
 
     let (<-|) st c = merge c st
     let (<-<) st c = update c st

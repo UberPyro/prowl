@@ -54,6 +54,75 @@ module Run (E : Eval.S) = struct
     | Inv lst -> List.fold_left (fun a x -> a *> e x) pure lst st
     
     | List elst -> e (encode_lst loc elst, loc) st
+
+    | Id "to-int" -> 
+      let v, st1 = !: st in
+      VInt (V.to_int v) >: st1 |> pure
+
+    | Id s -> begin match st --> s with
+      | VBuiltin "add" -> arith_builtin (+) st
+      | VBuiltin "sub" -> arith_builtin (-) st
+      | VBuiltin "mul" -> arith_builtin ( * ) st
+      | VBuiltin "div" -> arith_builtin (/) st
+      | VBuiltin "exp" -> arith_builtin Int.pow st
+
+      | VBuiltin "eq" -> cmp_builtin (=) st
+      | VBuiltin "ne" -> cmp_builtin (<>) st
+      | VBuiltin "gt" -> cmp_builtin (>) st
+      | VBuiltin "lt" -> cmp_builtin (<) st
+      | VBuiltin "ge" -> cmp_builtin (>=) st
+      | VBuiltin "le" -> cmp_builtin (<=) st
+
+      | VBuiltin "cat" -> combinator (>=>) st
+      | VBuiltin "alt" -> combinator (<|>) st
+      | VBuiltin "alt-rel" -> combinator alt_rel st
+      | VBuiltin "alt-cut" -> combinator alt_cut st
+      | VBuiltin "intersect" -> combinator ( *> ) st
+
+      | VImm c -> call c st
+      | x -> lit x st
+      | exception Not_found -> 
+          failwith
+            (Printf.sprintf "Unbound id: %s @ [%d:%d]"
+            s
+            (fst loc).pos_lnum ((fst loc).pos_cnum - (fst loc).pos_bol))
+    end
+    | Let (lst, e1) -> List.fold_left begin fun a -> function
+      | "", false, (PId s, _), ex -> a <&> fun stx -> 
+        set s (VImm (C.of_st ex stx)) stx
+      | "", false, (PCat ((PId s, z) :: t), y), ex -> a <&> fun stx -> 
+          set s (VImm (C.of_st (As ("", (PCat t, y), ex), z) stx)) stx
+      | "", false, px, ex -> a >>= e ex >>= p px
+      (* Note: broken *)
+      | b, _, px, ex -> a >>= fun st' -> 
+        let l = VImm (C.of_st (As ("", px, e1), loc) st') in
+        let r = VImm (C.of_st ex st') in
+        e (Id ("let" ^ b), loc) ((l, r) >:: st')
+    end (pure st) lst >>= e e1 <&> fun stx -> stx <-> st
+
+    | As ("", p1, e1) -> (p p1 st) >>= e e1 <&> fun st1 -> st1 <-> st
+    | As (s, p1, e1) -> 
+      e (Id ("as" ^ s), loc) (VImm (C.of_st (As ("", p1, e1), loc) st) >: st)
+    
+    | Quant (e1, Num e2, gr) -> 
+      eval_grab_int e2 st (fun i1 -> times_quant gr e1 i1 i1)
+    
+    | Quant (e1, Min e2, gr) -> 
+      eval_grab_int e2 st (fun i1 st1 -> times_quant_while gr e1 i1 st1)
+
+    | Quant (e1, Max e2, gr) -> 
+      eval_grab_int e2 st (fun i1 st1 -> times_quant gr e1 0 i1 st1)
+
+    | Quant (e1, Range (e2, e3), gr) -> 
+      eval_grab_int e2 st begin fun i1 st1 -> 
+        eval_grab_int e3 st1 (fun i2 st2 -> times_quant gr e1 i1 i2 st2)
+      end
+    
+    | Quant (e1, Star, gr) -> times_quant_while gr e1 0 st
+    | Quant (e1, Plus, gr) -> times_quant_while gr e1 1 st
+    | Quant (e1, Opt, gr) -> times_quant gr e1 0 1 st
+    
+    
   
     | _ -> failwith "Unimplemented - expression"
   
@@ -119,6 +188,10 @@ module Run (E : Eval.S) = struct
   and alt_rel f g = g <|> f
 
   and alt_cut f g = (f <|> g) >> cut
+
+  and eval_grab_int e1 st f = e e1 st >>= fun st1 ->
+    let v, st1 = !: st1 in
+    f (to_int v) st1
 
   and choose_alt = function
     | Gre -> (<|>)
