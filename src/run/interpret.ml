@@ -36,7 +36,7 @@ module Run (E : Eval.S) = struct
     | Pair (e1, e2) -> lit (VPair (C.of_st e1 st, C.of_st e2 st)) st
     | Left e1 -> lit (VLeft (C.of_st e1 st)) st
     | Right e2 -> lit (VRight (C.of_st e2 st)) st
-    | Capture ast -> lit (VImm (C.of_st ast st)) st
+    | Capture ast -> lit (VCap (C.of_st ast st)) st
     | StackComb c -> comb st c
     | Cap e1 -> e e1 st
     
@@ -83,7 +83,7 @@ module Run (E : Eval.S) = struct
       | VBuiltin "alt-cut" -> combinator alt_cut st
       | VBuiltin "intersect" -> combinator ( *> ) st
 
-      | VImm c -> call c st
+      | VCap c -> call c st
       | x -> lit x st
       | exception Not_found -> 
           failwith
@@ -93,20 +93,20 @@ module Run (E : Eval.S) = struct
     end
     | Let (lst, e1) -> List.fold_left begin fun a -> function
       | "", false, (PId s, _), ex -> a <&> fun stx -> 
-        set s (VImm (C.of_st ex stx)) stx
+        set s (VCap (C.of_st ex stx)) stx
       | "", false, (PCat ((PId s, z) :: t), y), ex -> a <&> fun stx -> 
-          set s (VImm (C.of_st (As ("", (PCat t, y), ex), z) stx)) stx
+          set s (VCap (C.of_st (As ("", (PCat t, y), ex), z) stx)) stx
       | "", false, px, ex -> a >>= e ex >>= p px
       (* Note: broken *)
       | b, _, px, ex -> a >>= fun st' -> 
-        let l = VImm (C.of_st (As ("", px, e1), loc) st') in
-        let r = VImm (C.of_st ex st') in
+        let l = VCap (C.of_st (As ("", px, e1), loc) st') in
+        let r = VCap (C.of_st ex st') in
         e (Id ("let" ^ b), loc) ((l, r) >:: st')
     end (pure st) lst >>= e e1 <&> fun stx -> stx <-> st
 
     | As ("", p1, e1) -> (p p1 st) >>= e e1 <&> fun st1 -> st1 <-> st
     | As (s, p1, e1) -> 
-      e (Id ("as" ^ s), loc) (VImm (C.of_st (As ("", p1, e1), loc) st) >: st)
+      e (Id ("as" ^ s), loc) (VCap (C.of_st (As ("", p1, e1), loc) st) >: st)
     
     | Quant (e1, Num e2, gr) -> 
       eval_grab_int e2 st (fun i1 -> times_quant gr e1 i1 i1)
@@ -129,11 +129,11 @@ module Run (E : Eval.S) = struct
     | Mod lst -> List.fold_left begin fun a -> function
       | Def (access, false, (PId s, _), e1, _), _ -> 
         def_access access s e1 a
-        |> M.set s (VImm (C.of_mod e1 a))
+        |> M.set s (VCap (C.of_mod e1 a))
       | Def (access, false, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
         let e2 = As ("", (PCat t, y), e1), z in
         def_access access s e2 a
-        |> M.set s (VImm (C.of_mod e1 a))
+        |> M.set s (VCap (C.of_mod e1 a))
         (* opens are possessive - consider changing *)
       | Open (_, e1), _ -> 
         e e1 (State.merge_mod a st) |> unsafe_cut |> fun st1 -> 
@@ -181,23 +181,23 @@ module Run (E : Eval.S) = struct
     o (call c1) (call c2) st'
   
   and infix (_, loc as e1) o e2 st = 
-    e (Id o, loc) (C.(VImm (of_st e2 st), VImm (of_st e1 st)) >:: st)
+    e (Id o, loc) (C.(VCap (of_st e2 st), VCap (of_st e1 st)) >:: st)
   
   and def_cap s v st = C.of_st (Id s, dum) (st <-- (s, v))
   
   and sect_left o (_, loc as e2) st = 
     let v2, st' = !: st in
-    e (Id o, loc) (C.(VImm (of_st e2 st), VImm (def_cap "@2" v2 st)) >:: st')
+    e (Id o, loc) (C.(VCap (of_st e2 st), VCap (def_cap "@2" v2 st)) >:: st')
   
   and sect_right (_, loc as e1) o st = 
     let v1, st' = !: st in
-    e (Id o, loc) (C.(VImm (def_cap "@1" v1 st), VImm (of_st e1 st)) >:: st')
+    e (Id o, loc) (C.(VCap (def_cap "@1" v1 st), VCap (of_st e1 st)) >:: st')
   
   and sect o st = 
     let v2, v1, st' = !:: st in
     e (Id o, dum) begin (
-      VImm (def_cap "@2" v2 st), 
-      VImm (def_cap "@1" v1 st)
+      VCap (def_cap "@2" v2 st), 
+      VCap (def_cap "@1" v1 st)
     ) >:: st'
   end
   
@@ -287,21 +287,21 @@ module Run (E : Eval.S) = struct
     | PPair ((PId s1, _), (PId s2, _)) -> 
       let v, st' = !: st in
       let l, r = to_pair v in
-      pure (set s2 (VImm r) (set s1 (VImm l) st'))
+      pure (set s2 (VCap r) (set s1 (VCap l) st'))
     | PPair (px1, (PId s2, _)) -> 
       let v, st' = !: st in
       let l, r = to_pair v in
-      call l st' >>= p px1 >>= (set s2 (VImm r) >> pure)
+      call l st' >>= p px1 >>= (set s2 (VCap r) >> pure)
     | PPair ((PId s1, _), px2) -> 
       let v, st' = !: st in
       let l, r = to_pair v in
-      call r (set s1 (VImm l) st') >>= p px2
+      call r (set s1 (VCap l) st') >>= p px2
     | PPair (px1, px2)  -> 
       let v, st' = !: st in
       let l, r = to_pair v in
       call l st' >>= p px1 >>= call r >>= p px2
     | PLeft (PId s, _) -> begin match !: st with
-        | VLeft l, st' -> pure (set s (VImm l) st')
+        | VLeft l, st' -> pure (set s (VCap l) st')
         | VRight _, _ -> null
         | _ -> raise (ExpectedType "Either")
       end
@@ -311,7 +311,7 @@ module Run (E : Eval.S) = struct
         | _ -> raise (ExpectedType "Either")
       end
     | PRight (PId s, _) -> begin match !: st with
-        | VRight r, st' -> pure (set s (VImm r) st')
+        | VRight r, st' -> pure (set s (VCap r) st')
         | VLeft _, _ -> null
         | _ -> raise (ExpectedType "Either")
       end

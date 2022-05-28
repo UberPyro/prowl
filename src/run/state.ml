@@ -19,7 +19,7 @@ module rec Value : sig
     | VPair of Capture.t * Capture.t
     | VLeft of Capture.t
     | VRight of Capture.t
-    | VImm of Capture.t
+    | VCap of Capture.t
     | VUnit
     | VMod of Module.t
     | VImpl of Capture.t
@@ -46,7 +46,7 @@ end = struct
     | VPair of Capture.t * Capture.t
     | VLeft of Capture.t
     | VRight of Capture.t
-    | VImm of Capture.t
+    | VCap of Capture.t
     | VUnit
     | VMod of Module.t
     | VImpl of Capture.t
@@ -57,7 +57,7 @@ end = struct
   let to_str = function VStr s -> s | _ -> raise (ExpectedType "Str")
   let to_pair = function VPair (c1, c2) -> c1, c2 | _ -> raise (ExpectedType "Pair")
   let to_eith = function VLeft c | VRight c -> c | _ -> raise (ExpectedType "Either")
-  let to_cap = function VImm c -> c | _ -> raise (ExpectedType "Capture")
+  let to_cap = function VCap c -> c | _ -> raise (ExpectedType "Capture")
   let to_unit = function VUnit -> () | _ -> raise (ExpectedType "Unit")
   let to_mod = function VMod m -> m | _ -> raise (ExpectedType "Module")
 
@@ -346,7 +346,7 @@ end = struct
 
   let of_mod m = 
     let d, _, _ = Module.body m in {
-      v = Dict.map (fun x -> Value.VImm (Capture.of_mod x m)) d
+      v = Dict.map (fun x -> Value.VCap (Capture.of_mod x m)) d
         |> Dict.union (fun _ _ c -> Some c) (Module.c m).v;
       t = Dict.empty;
       i = Dict.empty;
