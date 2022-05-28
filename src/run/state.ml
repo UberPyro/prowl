@@ -215,6 +215,8 @@ and State : sig
 
   val pop : t -> Value.t * t
   val pop2 : t -> Value.t * Value.t * t
+  val pop_opt : t -> (Value.t * t) option
+  val pop2_opt : t -> (Value.t * Value.t * t) option
   val push : Value.t -> t -> t
   val push2 : Value.t -> Value.t -> t -> t
 
@@ -229,6 +231,8 @@ and State : sig
 
     val (!:) : t -> Value.t * t
     val (!::) : t -> Value.t * Value.t * t
+    val (!?) : t -> (Value.t * t) option
+    val (!??) : t -> (Value.t * Value.t * t) option
     val (>:) : Value.t -> t -> t
     val (>::) : Value.t * Value.t -> t -> t
   
@@ -274,6 +278,14 @@ end = struct
     | ({s = h1 :: h2 :: s; _} as st) -> h1, h2, {st with s}
     | st -> raise (Underflow st)
   
+  let pop_opt = function
+    | ({s = h :: s; _} as st) -> Some (h, {st with s})
+    | _ -> None
+  
+  let pop2_opt = function
+    | ({s = h1 :: h2 :: s; _} as st) -> Some (h1, h2, {st with s})
+    | _ -> None
+  
   let push v st = {st with s = v :: st.s}
   let push2 v1 v2 st = {st with s = v1 :: v2 :: st.s}
 
@@ -290,6 +302,8 @@ end = struct
 
     let (!:) = pop
     let (!::) = pop2
+    let (!?) = pop_opt
+    let (!??) = pop2_opt
     let (>:) = push
     let (>::) (v1, v2) = push2 v1 v2
 

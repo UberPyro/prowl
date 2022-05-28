@@ -255,8 +255,7 @@ module Run (E : Eval.S) = struct
       else Some (g, g)
     end |> Enum.fold (choose_alt_flip gr) annihilate <| st
 
-  and call c st =
-    e (Capture.ast c) (st <-| c) <&> fun st' -> st' <-> st
+  and call c st = e (Capture.ast c) (st <-| c) <&> flip (<->) st
   
   and def_access = function
     | Pub -> Module.def
