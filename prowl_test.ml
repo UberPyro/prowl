@@ -90,7 +90,8 @@ open Run(L)
 let run_file fname = 
   File.open_in ("test/" ^ fname ^ ".prw")
   |> Gen.parse |> fun ast -> try
-    program ast Interpret.S.init
+    Interpret.S.init
+    |> program (Build.endow "std" ast)
     |> L.unsafe_cut
     |> Interpret.S.s
     |> List.rev_map V.show

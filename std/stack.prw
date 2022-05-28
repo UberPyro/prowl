@@ -1,4 +1,5 @@
 mod
+
   def (>-) t h = (;t,h)
   def empty = []
 
@@ -40,4 +41,5 @@ mod
   def filter = filter-rev rev
   def (<?>) {s} {f} = s {f} filter
   def (as?) = filter
+
 end
