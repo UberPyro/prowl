@@ -284,7 +284,7 @@ module Run (E : Eval.S) = struct
   
   and p (px, loc) st = match px with
     | PId s -> let v, st1 = !: st in pure (set s v st1)
-    | PBlank -> pure st
+    | PBlank -> let _, st1 = !: st in pure st1
     | PInt i1 -> 
       let v, st1 = !: st in
       if i1 = to_int v then pure st1
