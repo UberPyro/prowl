@@ -122,7 +122,16 @@ module Run (E : Eval.S) = struct
     | Quant (e1, Plus, gr) -> times_quant_while gr e1 1 st
     | Quant (e1, Opt, gr) -> times_quant gr e1 0 1 st
     
-    
+    | Mod lst -> List.fold_left begin fun a -> function
+        | Def (access, false, (PId s, _), e1, _), _ -> 
+          def_access access s e1 a
+          |> M.set s (VImm (C.of_mod e1 a))
+        (* | Def (access, false, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
+          let e2 = As ("", (PCat t, y), e1), z in
+          a |>  *)
+        
+        | _ -> a
+      end (M.make st) lst |> fun m -> lit (VMod m) st
   
     | _ -> failwith "Unimplemented - expression"
   
@@ -224,6 +233,11 @@ module Run (E : Eval.S) = struct
 
   and call c st =
     e (Capture.ast c) (st <-| c) <&> fun st' -> st' <-> st
+  
+  and def_access = function
+    | Pub -> Module.def
+    | Local -> fun _ _ -> identity
+    | Opaq -> failwith "Values cannot be opaque"
   
   and p = failwith "Implement"
 

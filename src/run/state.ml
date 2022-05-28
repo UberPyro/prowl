@@ -88,7 +88,8 @@ and Module : sig
 
   type t
 
-  val make : Context.t -> t
+  val make : State.t -> t
+  val c : t -> Context.t
 
   val def : string -> Ast.e -> t -> t
   val acc : string -> t -> Ast.e
@@ -113,12 +114,14 @@ end = struct
     c : Context.t;
   }
 
-  let make c = {
+  let make st = {
     def = Dict.empty;
     ty = Dict.empty;
     impl = Dict.empty;
-    c;
+    c = State.c st;
   }
+
+  let c st = st.c
 
   let def k v m = {m with def = Dict.add k v m.def}
   let acc k m = Dict.find k m.def
@@ -147,6 +150,7 @@ and Capture : sig
   val ast : t -> Ast.e
   val make : Ast.e -> Context.t -> t
   val of_st : Ast.e -> State.t -> t
+  val of_mod : Ast.e -> Module.t -> t
   val c : t -> Context.t
   val init : Ast.e -> t
 
@@ -167,6 +171,7 @@ end = struct
   let ast a = a.e
   let make e c = {e; c}
   let of_st e st = {e; c = State.c st}
+  let of_mod e m = {e; c = Module.c m}
   let c st = st.c
   let init e = {e; c = Context.init}
 
