@@ -25,7 +25,8 @@ let compile file args =
     String.nreplace ~str ~sub:"Ast." ~by:""
     |> print_endline end;
   begin if O.get interpret then try
-      R.program ast Interpret.S.(restack args init)
+      Interpret.S.(restack args init)
+      |> R.program (Build.endow "std" ast)
       |> L.unsafe_cut
       |> Interpret.S.s
       |> List.rev_map V.show
