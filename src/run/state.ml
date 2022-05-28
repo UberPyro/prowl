@@ -209,6 +209,7 @@ and State : sig
   val merge : Capture.t -> t -> t
   val merge_mod : Module.t -> t -> t
   val update : Capture.t -> t -> t
+  val update_mod : Module.t -> t -> t
   val switch : t -> t -> t
   val restack : stack -> t -> t
 
@@ -259,6 +260,7 @@ end = struct
   let merge vi st = {st with c = Capture.c vi}
   let merge_mod m st = {st with c = Module.c m}
   let update vi st = {st with c = Context.update st.c (Capture.c vi)}
+  let update_mod m st = {st with c = Context.update st.c (Module.c m)}
   let switch st1 st2 = {st1 with c = st2.c}
   let empty = {s = []; c = Context.empty}
   let init = {empty with c = Context.init}

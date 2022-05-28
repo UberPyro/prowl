@@ -143,7 +143,7 @@ module Run (E : Eval.S) = struct
         begin match v with
           | VMod m -> 
             begin try e (Module.acc s m) (merge_mod m st) with
-            | Not_found -> failwith "FIeld not found in module" end
+            | Not_found -> failwith "Field not found in module" end
           
           | _ -> failwith "Type Error: Accessing a non-module"
         end
@@ -210,8 +210,8 @@ module Run (E : Eval.S) = struct
       v1 >: ((v3, v2) >:: st3) |> pure
     | Rot _, _ -> failwith "Unimplemented - rot n"
     | Run i, _ -> 
-        restack (List.remove_at (i-1) (S.s st1)) st1
-        |> call (to_cap (List.at (S.s st1) (i-1)))
+      restack (List.remove_at (i-1) (S.s st1)) st1
+      |> call (to_cap (List.at (S.s st1) (i-1)))
   end (pure st)
 
   and alt_rel f g = g <|> f
@@ -227,7 +227,7 @@ module Run (E : Eval.S) = struct
     | Rel -> alt_rel
     | Cut -> alt_cut
   
-  and choose_alt_flip gr x y = choose_alt gr y x
+  and choose_alt_flip gr = choose_alt gr |> flip
 
   and times_quant gr e1 qmin qmax st = match qmax - qmin with
   | qdiff when qmin < 0 || qdiff < 0 -> null
@@ -259,6 +259,72 @@ module Run (E : Eval.S) = struct
     | Local -> fun _ _ -> identity
     | Opaq -> failwith "Values cannot be opaque"
   
-  and p = failwith "Implement"
+  and p (px, loc) st = match px with
+    | PId s -> let v, st1 = !: st in pure (set s v st1)
+    | PBlank -> pure st
+    | PInt i1 -> 
+      let v, st1 = !: st in
+      if i1 = to_int v then pure st1
+      else null
+    | PStr s1 -> 
+      let v, st1 = !: st in
+      if s1 = to_str v then pure st1
+      else null
+    | PCat lst -> 
+      List.fold_left (fun a p1 -> a >>= (p p1)) (pure st) (List.rev lst)
+    | PCapture (PId s, _) -> 
+      let v, st' = !: st in
+      ignore (to_cap v);
+      pure (set s v st')
+    | PCapture px -> 
+      let v, st' = !: st in
+      call (to_cap v) st' >>= p px
+    | PAsc (p1, _) -> p p1 st
+    | PPair ((PId s1, _), (PId s2, _)) -> 
+      let v, st' = !: st in
+      let l, r = to_pair v in
+      pure (set s2 (VImm r) (set s1 (VImm l) st'))
+    | PPair (px1, (PId s2, _)) -> 
+      let v, st' = !: st in
+      let l, r = to_pair v in
+      call l st' >>= p px1 >>= (set s2 (VImm r) >> pure)
+    | PPair ((PId s1, _), px2) -> 
+      let v, st' = !: st in
+      let l, r = to_pair v in
+      call r (set s1 (VImm l) st') >>= p px2
+    | PPair (px1, px2)  -> 
+      let v, st' = !: st in
+      let l, r = to_pair v in
+      call l st' >>= p px1 >>= call r >>= p px2
+    | PLeft (PId s, _) -> begin match !: st with
+        | VLeft l, st' -> pure (set s (VImm l) st')
+        | VRight _, _ -> null
+        | _ -> raise (ExpectedType "Either")
+      end
+    | PLeft px -> begin match !: st with
+        | VLeft l, st' -> call l st' >>= p px
+        | VRight _, _ -> null
+        | _ -> raise (ExpectedType "Either")
+      end
+    | PRight (PId s, _) -> begin match !: st with
+        | VRight r, st' -> pure (set s (VImm r) st')
+        | VLeft _, _ -> null
+        | _ -> raise (ExpectedType "Either")
+      end
+    | PRight px -> begin match !: st with
+        | VRight r, st' -> call r st' >>= p px
+        | VLeft _, _ -> null
+        | _ -> raise (ExpectedType "Either")
+      end
+    | POpen false -> 
+      let v, st1 = !: st in
+      update_mod (to_mod v) st1 |> pure
+    | PBop (p1, ">-", p2) -> p (PRight (PPair (p1, p2), loc), loc) st
+    | PList [] -> p (PLeft (PUnit, loc), loc) st
+    (* FIXME: delete above when the bottom is working since it's redundant *)
+    | PList plst -> p (encode_plst loc plst, loc) st
+    | PUnit -> let v, st1 = !: st in to_unit v; pure st1
+    
+    | _ -> failwith "Unimplemented - pattern"
 
 end
