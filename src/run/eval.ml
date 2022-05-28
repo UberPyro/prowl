@@ -3,6 +3,7 @@ module type S = sig
   open State
 
   type t
+  exception Rejected
 
   val (<&>) : t -> (State.t -> State.t) -> t
   val (>>=) : t -> (State.t -> t) -> t
@@ -26,6 +27,7 @@ module LazySearch : S = struct
   open State
 
   type t = State.t LazyList.t
+  exception Rejected
 
   let (<&>) x f = LazyList.map f x
   let (>>=) x f = x <&> f |> LazyList.concat
@@ -39,7 +41,7 @@ module LazySearch : S = struct
     | None -> LazyList.nil
   let unsafe_cut x = match LazyList.get x with
     | Some (h, _) -> h
-    | None -> failwith "Unsafe Cut on null"
+    | None -> raise Rejected
   let is_null = LazyList.is_empty
   let null = LazyList.nil
 

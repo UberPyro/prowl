@@ -83,16 +83,19 @@ let tests = [
   ]
 ]
 
+open Interpret
+module L = Eval.LazySearch
+open Run(L)
+
 let run_file fname = 
   File.open_in ("test/" ^ fname ^ ".prw")
-  |> Gen.parse
-  |> Interpret.(program init_st)
-  |> LazyList.get
-  |> function
-  | Some (v, _) -> 
-    List.rev_map Interpret.string_of_v v.stk
-    |> String.concat "\n"
-  | None -> "rejected"
+  |> Gen.parse |> fun ast -> try
+    program ast Interpret.S.init
+    |> L.unsafe_cut
+    |> Interpret.S.s
+    |> List.rev_map V.show
+    |> String.concat "\n" with
+  | L.Rejected -> "rejected"
 
 let check_file group file output () = 
   run_file (Printf.sprintf "%s/%s" group file)

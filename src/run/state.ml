@@ -34,7 +34,7 @@ module rec Value : sig
   val to_unit : t -> unit
   val to_mod : t -> Module.t
 
-  val string_of_v : t -> string
+  val show : t -> string
 
 end = struct
 
@@ -68,7 +68,7 @@ end = struct
 
   let show_c = Capture.ast >> enhanced_show_e
 
-  let string_of_v = function
+  let show = function
     | VInt i -> string_of_int i
     | VStr s -> s
     | VUnit -> "<>"
@@ -76,7 +76,7 @@ end = struct
     | VLeft c -> Printf.sprintf "(%s;)" (show_c c)
     | VRight c -> Printf.sprintf "(;%s)" (show_c c)
     
-    | _ -> failwith "Unimplemented - string_of_v"
+    | _ -> failwith "Unimplemented - show"
 
 end
 

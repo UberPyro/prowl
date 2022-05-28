@@ -3,6 +3,8 @@ module O = BatOptParse.Opt
 
 open Lib
 open Interpret
+module L = Eval.LazySearch
+module R = Run(L)
 open Cli
 
 open Gen
@@ -22,16 +24,14 @@ let compile file args =
     let str = show_program ast in
     String.nreplace ~str ~sub:"Ast." ~by:""
     |> print_endline end;
-  begin if O.get interpret then match
-      ast
-      (* |> Build.endow "std" *)
-      |> Interpret.(program {init_st with stk=args})
-      |> LazyList.get with
-      | Some (v, _) -> 
-        List.rev_map Interpret.string_of_v v.stk
-        |> List.iter print_endline
-      | None -> print_endline "rejected" end
+  begin if O.get interpret then try
+      R.program ast Interpret.S.(restack args init)
+      |> L.unsafe_cut
+      |> Interpret.S.s
+      |> List.rev_map V.show
+      |> List.iter print_endline with
+    | L.Rejected -> print_endline "rejected" end
 
 let () = match P.parse_argv op with
   | [] -> P.usage op ()
-  | lst :: args -> compile lst (List.map (fun x -> VStr x) args)
+  | lst :: args -> compile lst (List.map (fun x -> V.VStr x) args)
