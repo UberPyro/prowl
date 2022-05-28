@@ -59,6 +59,7 @@ rule token = parse
     if !mode == Cat then begin match z with
         | "*" -> TIMES
         | "+" -> PLUS
+        | "++" -> APPEND
         | "?" -> SYMBOL "?"
         | _ -> failwith "Unreachable case" end
     else QUANT (parse_quant s g)}
