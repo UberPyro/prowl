@@ -146,7 +146,7 @@ module Run (E : Eval.S) = struct
             | Not_found -> failwith "Field not found in module" end
           
           | _ -> failwith "Type Error: Accessing a non-module"
-        end
+        end <&> fun st2 -> st2 <-> st
     
     | Noncap e1 -> (e e1 *> pure) st
     | Atomic (Cat lst, _) ->
@@ -173,7 +173,7 @@ module Run (E : Eval.S) = struct
 
   and combinator o st = 
     let v2, v1, st' = !:: st in
-    let c1, c2 = V.(to_cap v2, to_cap v1) in
+    let c2, c1 = V.(to_cap v2, to_cap v1) in
     o (call c1) (call c2) st'
   
   and infix (_, loc as e1) o e2 st = 
