@@ -262,7 +262,7 @@ p_term: p_term_t {$1, $loc}
   | p_term DOT ID {PAccess ($1, $3)}
   | COMB {
     match $1 with
-    | StackComb [Dup _, _]  -> PBlank
+    | StackComb [Zap _, _]  -> PBlank
     | _ -> failwith "Stack Combinator in Pattern"
   }
   | BLANK {PBlank}

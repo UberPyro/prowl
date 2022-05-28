@@ -1,5 +1,6 @@
-mod
-  def s x = x + 1
-  def z = 0
-end as m -> 
-m.z m.s{7}
+let (>-) {t} {h} = (;t,h) -> 
+let rev-step = as (t >- h) a -> t (a >- h) -> 
+let rev = [] rev-step*+ _2 -> 
+
+[1, 3, 5, 7, 9] rev
+as _ >- h -> h
