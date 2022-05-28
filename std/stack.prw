@@ -10,5 +10,7 @@ mod
     [] map-step*+ _2
   
   def map = map-rev rev
+  def (<&>) {s} {f} = s {f} map
+  def (as+) {f} = {f} map
 
 end
