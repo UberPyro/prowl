@@ -82,6 +82,8 @@ let tests = [
     "rev", "1\n3\n5\n7\n9";
     "map", "2\n4\n6";
     (* "filter", "2"; *)
+    "cat", "1\n2\n3\n4";
+    "cat-rev", "1\n2\n4\n3";
   ]
 ]
 
