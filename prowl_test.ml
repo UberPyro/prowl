@@ -79,7 +79,9 @@ let tests = [
     "open", "7";
   ];
   "data", [
-    "rev", "1\n3\n5\n7\n9"
+    "rev", "1\n3\n5\n7\n9";
+    "map", "2\n4\n6";
+    (* "filter", "2"; *)
   ]
 ]
 
