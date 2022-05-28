@@ -32,6 +32,7 @@ module rec Value : sig
   val to_eith : t -> Capture.t
   val to_cap : t -> Capture.t
   val to_unit : t -> unit
+  val to_mod : t -> Module.t
 
   val string_of_v : t -> string
 
@@ -55,9 +56,10 @@ end = struct
   let to_int = function VInt i -> i | _ -> raise (ExpectedType "Int")
   let to_str = function VStr s -> s | _ -> raise (ExpectedType "Str")
   let to_pair = function VPair (c1, c2) -> c1, c2 | _ -> raise (ExpectedType "Pair")
-  let to_eith = function VLeft c | VRight c -> c | _ -> raise (ExpectedType "Eith")
+  let to_eith = function VLeft c | VRight c -> c | _ -> raise (ExpectedType "Either")
   let to_cap = function VImm c -> c | _ -> raise (ExpectedType "Capture")
   let to_unit = function VUnit -> () | _ -> raise (ExpectedType "Unit")
+  let to_mod = function VMod m -> m | _ -> raise (ExpectedType "Module")
 
   let enhanced_show_e = function
     | Ast.Int i, _ -> string_of_int i
@@ -89,9 +91,11 @@ and Module : sig
   type t
 
   val make : State.t -> t
+  val body : t -> Ast.e Dict.t * (string list * Ast.ty option) Dict.t * Ast.e Dict.t
   val c : t -> Context.t
 
   val def : string -> Ast.e -> t -> t
+  val def_open : t -> t -> t
   val acc : string -> t -> Ast.e
   val deft : string -> string list * Ast.ty option -> t -> t
   val acct : string -> t -> string list * Ast.ty option
@@ -121,7 +125,8 @@ end = struct
     c = State.c st;
   }
 
-  let c st = st.c
+  let body m = m.def, m.ty, m.impl
+  let c m = m.c
 
   let def k v m = {m with def = Dict.add k v m.def}
   let acc k m = Dict.find k m.def
@@ -140,6 +145,11 @@ end = struct
 
   let ins k i m = {m with c = Context.ins k i m.c}
   let dump k m = Context.dump k m.c
+
+  let def_open mo m = {
+    m with
+    c = Context.update m.c (Context.of_mod mo)
+  }
 
 end
 
@@ -197,6 +207,7 @@ and State : sig
   val c : t -> Context.t
   val init : t
   val merge : Capture.t -> t -> t
+  val merge_mod : Module.t -> t -> t
   val update : Capture.t -> t -> t
   val switch : t -> t -> t
   val restack : stack -> t -> t
@@ -246,6 +257,7 @@ end = struct
   let s st = st.s
   let c st = st.c
   let merge vi st = {st with c = Capture.c vi}
+  let merge_mod m st = {st with c = Module.c m}
   let update vi st = {st with c = Context.update st.c (Capture.c vi)}
   let switch st1 st2 = {st1 with c = st2.c}
   let empty = {s = []; c = Context.empty}
@@ -304,6 +316,7 @@ and Context : sig
 
   val empty : t
   val init : t
+  val of_mod : Module.t -> t
   val update : t -> t -> t
 
   val set : string -> Value.t -> t -> t
@@ -328,6 +341,14 @@ end = struct
     t = Dict.empty;
     i = Dict.empty;
   }
+
+  let of_mod m = 
+    let d, _, _ = Module.body m in {
+      v = Dict.map (fun x -> Value.VImm (Capture.of_mod x m)) d
+        |> Dict.union (fun _ _ c -> Some c) (Module.c m).v;
+      t = Dict.empty;
+      i = Dict.empty;
+    }
 
   let set k v c = {c with v = Dict.add k v c.v}
   let get k c = Dict.find k c.v

@@ -12,6 +12,7 @@ module type S = sig
   val ( *> ) : (State.t -> t) -> (State.t -> t) -> (State.t -> t)
   val annihilate : 'a -> t
   val cut : t -> t
+  val unsafe_cut : t -> State.t
   val is_null : t -> bool
   val null : t
 
@@ -36,7 +37,9 @@ module LazySearch : S = struct
   let cut x = match LazyList.get x with
     | Some (h, _) -> pure h
     | None -> LazyList.nil
-
+  let unsafe_cut x = match LazyList.get x with
+    | Some (h, _) -> h
+    | None -> failwith "Unsafe Cut on null"
   let is_null = LazyList.is_empty
   let null = LazyList.nil
 
