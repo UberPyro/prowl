@@ -57,7 +57,7 @@ module Run (E : Eval.S) = struct
 
     | Id "to-int" -> 
       let v, st1 = !: st in
-      VInt (V.to_int v) >: st1 |> pure
+      VInt (V.to_str v |> int_of_string) >: st1 |> pure
 
     | Id s -> begin match st --> s with
       | VBuiltin "add" -> arith_builtin (+) st
