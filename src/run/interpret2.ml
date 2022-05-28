@@ -136,6 +136,22 @@ module Run (E : Eval.S) = struct
           Module.def_open (!: st1 |> fst |> to_mod) a
       | _ -> a
       end (M.make st) lst |> fun m -> lit (VMod m) st
+    
+    | Access (e1, s) -> 
+      e e1 st >>= fun st1 -> 
+        let v, _ = !: st1 in
+        begin match v with
+          | VMod m -> 
+            begin try e (Module.acc s m) (merge_mod m st) with
+            | Not_found -> failwith "FIeld not found in module" end
+          
+          | _ -> failwith "Type Error: Accessing a non-module"
+        end
+    
+    | Noncap e1 -> (e e1 *> pure) st
+    | Atomic (Cat lst, _) ->
+      List.fold_left (fun a e1 -> a >>= e e1 |> cut) (pure st) lst
+    | Atomic e1 -> e (Atomic (Cat [e1], loc), loc) st
   
     | _ -> failwith "Unimplemented - expression"
   
