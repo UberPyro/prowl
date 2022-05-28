@@ -84,6 +84,7 @@ let tests = [
     (* "filter", "2"; *)
     "cat", "1\n2\n3\n4";
     "cat-rev", "1\n2\n4\n3";
+    (* "flatten", "1\n2\n3\n4"; *)  (* head is getting elems *)
   ]
 ]
 
