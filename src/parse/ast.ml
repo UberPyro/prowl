@@ -80,6 +80,15 @@ and stack_comb_t =
   | Run of int
   [@@deriving show]
 
+and det_control = bool * det_control_core [@@deriving show]
+and det_control_core =
+  | DNone
+  | DOne
+  | DCut
+  | DScore
+  | DMany
+  [@@deriving show]
+
 and e = e_t loc [@@deriving show]
 and e_t = 
   | Id of string
@@ -111,6 +120,7 @@ and e_t =
   | Cat of e list
   | Bop of e * string * e
   | StackComb of stack_comb list
+  | Det of det_control
 
   | Let of (string * implicit * p * e) list * e
   | As of string * p * e

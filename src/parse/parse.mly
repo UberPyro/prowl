@@ -11,13 +11,13 @@
 %}
 
 %token
-  DEF OPEN MIX IMPL SIG END
-  OPAQ TYPE DATA SPEC PRIV
-  MOD DO
+  DEF OPEN MIX IMPL SIG END DO
+  OPAQ TYPE DATA SPEC PRIV MOD
+  TRY ONE CUT SCORE MANY
 
   PLUS MINUS TIMES DIVIDE
   EXP RANGE SNOC CONS
-  APPEND BIND KLEISLI
+  APPEND BIND FISH
   ALT ALT_REL ALT_CUT CAT
 
   EQ NEQ LT LE GT GE
@@ -53,7 +53,7 @@
 %left ALT ALT_REL ALT_CUT
 %left INTERSECT
 %left BIND
-%left KLEISLI
+%left FISH
 %left EQ NEQ
 %left LT GT LE GE
 %left RANGE
@@ -159,6 +159,14 @@ s: s_t {$1, $loc}
   | IMPL {true}
   | {false}
 
+%inline det_control:
+  | ioption(TRY) det_control_t {Det ($1 <> None, $2)}
+%inline det_control_t: 
+  | ONE {DOne}
+  | CUT {DCut}
+  | SCORE {DScore}
+  | MANY {DMany}
+
 e: e_t {$1, $loc}
 %inline e_t: 
   | bop {Sect $1}
@@ -220,6 +228,7 @@ term: term_t {$1, $loc}
   | MOD list(s) END {Mod $2}
   | IMPL_LBRACK e IMPL_RBRACK {Impl $2}
   | LBRACE e rbrace {Capture $2}
+  | det_control {$1}
 
   | SYMBOL {Id $1}
   | COMB {$1}
@@ -236,7 +245,7 @@ term: term_t {$1, $loc}
   | PLUS {"+"} | MINUS {"-"} | TIMES {"*"} | DIVIDE {"/"} 
   | EXP {"**"} | RANGE {".."} | SNOC {">-"} | CONS {"-<"}
   | GT {">"} | GE {">="} | LT {"<"} | LE {"<="} | EQ {"=="} | NEQ {"/="}
-  | APPEND {"++"} | BIND {">>="} | KLEISLI {">=>"}
+  | APPEND {"++"} | BIND {">>="} | FISH {">=>"}
   | ALT {"|"} | ALT_REL {"|?"} | ALT_CUT {"|+"} | CAT {"&"} | INTERSECT {"&&"}
   | INFIX {$1}
 

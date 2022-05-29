@@ -78,7 +78,7 @@ let string_of_token = function
   | LE -> "<="
   | LBRACK -> "["
   | LBRACE -> "{"
-  | KLEISLI -> ">=>"
+  | FISH -> ">=>"
   | INV_BRACK -> "[^"
   | INTERSECT -> "&&"
   | INT i -> sprintf "INTEGER %d" i
@@ -120,6 +120,11 @@ let string_of_token = function
   | IMPL_LBRACK -> "[<"
   | IMPL_RBRACK -> ">]"
   | SPEC -> "SPEC"
+  | TRY -> "TRY"
+  | ONE -> "ONE"
+  | CUT -> "CUT"
+  | SCORE -> "SCORE"
+  | MANY -> "MANY"
 
 let lex ch = 
   let lexbuf = Lexing.from_channel ch in

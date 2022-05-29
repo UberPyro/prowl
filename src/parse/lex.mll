@@ -74,6 +74,12 @@ rule token = parse
   | "sig"   {SIG}
   | "data"  {DATA}
 
+  | "try"   {TRY}
+  | "one"   {ONE}
+  | "cut"   {CUT}
+  | "score" {SCORE}
+  | "many"  {MANY}
+
   | "+"  {PLUS}
   | "-"  {MINUS}
   | "*"  {TIMES}
@@ -86,7 +92,7 @@ rule token = parse
 
   | "++"   {APPEND}
   | ">>="  {BIND}
-  | ">=>"  {KLEISLI}
+  | ">=>"  {FISH}
   | "|"    {ALT}
   | "|?"   {ALT_REL}
   | "|+"   {ALT_CUT}
