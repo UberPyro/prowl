@@ -15,7 +15,7 @@ mod
   def (as+) = map
 
   def cat-rev = % rev-step*+ _2
-  def cat = rev % rev-step*+ _2
+  def cat = rev cat-rev
   def (++) {s1} {s2} = s1 s2 cat
 
   def bind-rev {f} = 
