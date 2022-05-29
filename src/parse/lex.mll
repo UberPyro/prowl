@@ -74,13 +74,13 @@ rule token = parse
   | "sig"   {SIG}
   | "data"  {DATA}
 
-  | "try"   {TRY}
+  | "try"      {TRY}
   | "parallel" {PARALLEL}
-  | "none"  {NONE}
-  | "one"   {ONE}
-  | "cut"   {CUT}
-  | "score" {SCORE}
-  | "many"  {MANY}
+  | "none"     {NONE}
+  | "one"      {ONE}
+  | "cut"      {CUT}
+  | "score"    {SCORE}
+  | "many"     {MANY}
 
   | "+"  {PLUS}
   | "-"  {MINUS}
