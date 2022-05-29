@@ -407,6 +407,9 @@ end = struct
     "|?", "alt-rel"; 
     "|+", "alt-cut"; 
     "&&", "intersect";
+
+    "to-str", "int-to-str";
+    "to-int", "str-to-int";
   ]
   |> List.map (fun (a, b) -> a, Value.VBuiltin b)
   |> List.enum

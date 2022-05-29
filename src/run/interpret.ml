@@ -55,14 +55,6 @@ module Run (E : Eval.S) = struct
     
     | List elst -> e (encode_lst loc elst, loc) st
 
-    | Id "to-int" -> 
-      let v, st1 = !: st in
-      VInt (V.to_str v |> int_of_string) >: st1 |> pure
-    
-    | Id "to-str" -> 
-      let v, st1 = !: st in
-      VStr (V.to_int v |> string_of_int) >: st1 |> pure
-
     | Id s -> begin match st --> s with
       | VBuiltin "add" -> arith_builtin (+) st
       | VBuiltin "sub" -> arith_builtin (-) st
@@ -82,6 +74,14 @@ module Run (E : Eval.S) = struct
       | VBuiltin "alt-rel" -> combinator alt_rel st
       | VBuiltin "alt-cut" -> combinator alt_cut st
       | VBuiltin "intersect" -> combinator ( *> ) st
+
+      | VBuiltin "str-to-int" -> 
+        let v, st1 = !: st in
+        VInt (V.to_str v |> int_of_string) >: st1 |> pure
+      
+      | VBuiltin "int-to-str" -> 
+        let v, st1 = !: st in
+        VStr (V.to_int v |> string_of_int) >: st1 |> pure
 
       | VCap c -> call c st
       | x -> lit x st
