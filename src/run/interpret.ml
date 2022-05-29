@@ -279,7 +279,7 @@ module Run (E : Eval.S) = struct
   
   and def_access = function
     | Pub -> Module.def
-    | Local -> fun _ _ -> identity
+    | Priv -> fun _ _ -> identity
     | Opaq -> failwith "Values cannot be opaque"
   
   and p (px, loc) st = match px with

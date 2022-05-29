@@ -63,7 +63,7 @@ let string_of_token = function
   | RANGE -> ".."
   | QUANT (q, g) -> 
     sprintf "QUANT %s%s" (string_of_quant q) (string_of_greed g)
-  | LOCAL -> "LOCAL"
+  | PRIV -> "PRIV"
   | PLUS -> "+"
   | OPEN -> "OPEN"
   | OPAQ -> "OPAQ"

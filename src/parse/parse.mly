@@ -12,7 +12,7 @@
 
 %token
   DEF OPEN MIX IMPL SIG END
-  OPAQ TYPE DATA SPEC LOCAL
+  OPAQ TYPE DATA SPEC PRIV
   MOD DO
 
   PLUS MINUS TIMES DIVIDE
@@ -75,7 +75,7 @@
 program: access e EOF {$1, $2}
 
 %inline access: 
-  | LOCAL {Local}
+  | PRIV {Priv}
   | OPAQ {Opaq}
   | {Pub}
 
