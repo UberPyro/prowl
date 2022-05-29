@@ -39,6 +39,9 @@ let tests = [
     "pair-func", "2";
     "eith-func", "1";
     "bin-func", "2";
+    "stack", "3\n4\n5";
+    "stack-rejected-low", "rejected";
+    "stack-rejected-high", "rejected";
   ]; 
   "flow", [
     "cat", "5";
