@@ -263,17 +263,19 @@ module Run (E : Eval.S) = struct
   
   and adv n e1 st = 
     List.fold_left (>=>) pure (List.make n (e e1)) st
-
-  and adv_alt gr n e1 = 
-    Enum.scanl (>=>) pure (Enum.repeat ~times:n (e e1))
-    |> Enum.fold (choose_alt_flip gr) annihilate
-
+  
+  and adv_alt gr n e1 st = 
+    let (</>) = choose_alt gr in
+    apply_for n (fun st1 -> st1 >>= (e e1 </> pure)) (pure st)
+  
+  (* still inefficient - does things twice *)
+  (* direct appending would be more efficient *)
   and adv_alt_while gr e1 st = 
-    Enum.unfold pure begin fun b -> 
-      let g = b >=> e e1 in
-      if is_null (g st) then None
-      else Some (g, g)
-    end |> Enum.fold (choose_alt_flip gr) annihilate <| st
+    let (</>) = choose_alt gr in
+    apply_while
+      (fst >> is_null >> not)
+      (fun (st1, st2) -> st1 >>= e e1, st2 >>= (e e1 </> pure))
+      (pure st, pure st) |> snd
 
   and call c st = e (Capture.ast c) (st <-| c) <&> flip (<->) st
   

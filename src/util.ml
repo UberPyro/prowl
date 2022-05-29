@@ -49,3 +49,16 @@ end
 type ('a, 'b) either = ('a, 'b) Either.t
 
 let dum = Lexing.(dummy_pos, dummy_pos)
+
+let rec apply_for n f x = 
+  if n > 0 then apply_for (n-1) f (f x)
+  else x
+
+let rec apply_while c f x = 
+  if c x then apply_while c f (f x)
+  else x
+
+let rec bind_while f x = 
+  match f x with
+  | Some y -> bind_while f y
+  | None -> x
