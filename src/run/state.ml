@@ -201,7 +201,7 @@ and State : sig
   type t
   type stack = Value.t list
 
-  exception Underflow of t
+  exception Underflow
 
   val s : t -> stack
   val c : t -> Context.t
@@ -257,7 +257,7 @@ end = struct
   }
   and stack = Value.t list
 
-  exception Underflow of t
+  exception Underflow
 
   let s st = st.s
   let c st = st.c
@@ -272,11 +272,11 @@ end = struct
 
   let pop = function
     | ({s = h :: s; _} as st) -> h, {st with s}
-    | st -> raise (Underflow st)
+    | _ -> raise Underflow
   
   let pop2 = function
     | ({s = h1 :: h2 :: s; _} as st) -> h1, h2, {st with s}
-    | st -> raise (Underflow st)
+    | _ -> raise Underflow
   
   let pop_opt = function
     | ({s = h :: s; _} as st) -> Some (h, {st with s})
