@@ -147,20 +147,6 @@ module Run (E : Eval.S) = struct
         | _ -> a
       end (VMod (M.make st) >: st |> pure) lst
     
-    (* | Mod lst -> List.fold_left begin fun a -> function
-      | Def (access, false, (PId s, _), e1, _), _ -> 
-        def_access access s e1 a
-        |> M.set s (VCap (C.of_mod e1 a))
-      | Def (access, false, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
-        let e2 = As ("", (PCat t, y), e1), z in
-        def_access access s e2 a
-        |> M.set s (VCap (C.of_mod e1 a))
-      | Open (_, e1), _ -> 
-        e e1 (State.merge_mod a st) |> unsafe_cut |> fun st1 -> 
-          Module.def_open (!: st1 |> fst |> to_mod) a
-      | _ -> a
-      end (M.make st) lst |> fun m -> lit (VMod m) st *)
-    
     | Access (e1, s) -> 
       e e1 st >>= fun st1 -> 
         let v, _ = !: st1 in
