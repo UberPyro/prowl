@@ -121,6 +121,8 @@ let string_of_token = function
   | IMPL_RBRACK -> ">]"
   | SPEC -> "SPEC"
   | TRY -> "TRY"
+  | PARALLEL -> "PARALLEL"
+  | NONE -> "NONE"
   | ONE -> "ONE"
   | CUT -> "CUT"
   | SCORE -> "SCORE"

@@ -75,6 +75,8 @@ rule token = parse
   | "data"  {DATA}
 
   | "try"   {TRY}
+  | "parallel" {PARALLEL}
+  | "none"  {NONE}
   | "one"   {ONE}
   | "cut"   {CUT}
   | "score" {SCORE}

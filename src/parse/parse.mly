@@ -13,7 +13,9 @@
 %token
   DEF OPEN MIX IMPL SIG END DO
   OPAQ TYPE DATA SPEC PRIV MOD
-  TRY ONE CUT SCORE MANY
+
+  TRY PARALLEL 
+  NONE ONE CUT SCORE MANY
 
   PLUS MINUS TIMES DIVIDE
   EXP RANGE SNOC CONS
@@ -160,9 +162,17 @@ s: s_t {$1, $loc}
   | {false}
 
 %inline det_control:
-  | ioption(TRY) det_control_t {Det ($1 <> None, $2)}
+  | ioption(TRY) ioption(PARALLEL) det_control_t {
+    Det {
+      d_try = $1 <> None;
+      d_parallel = $2 <> None;
+      det = $3
+    }
+  }
+
 %inline det_control_t: 
   | ONE {DOne}
+  | NONE {DNone}
   | CUT {DCut}
   | SCORE {DScore}
   | MANY {DMany}

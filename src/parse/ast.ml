@@ -80,7 +80,12 @@ and stack_comb_t =
   | Run of int
   [@@deriving show]
 
-and det_control = bool * det_control_core [@@deriving show]
+and det_control = {
+  d_try: bool;
+  d_parallel: bool;
+  det: det_control_core;
+} [@@deriving show]
+
 and det_control_core =
   | DNone
   | DOne
