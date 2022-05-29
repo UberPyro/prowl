@@ -127,28 +127,17 @@ module Run (E : Eval.S) = struct
     | Quant (e1, Opt, gr) -> times_quant gr e1 0 1 st
 
     | Mod lst -> 
-      List.fold_left begin fun a s1 -> a >>= fun st1 -> 
+      List.fold_left begin fun a slst -> a >>= fun st1 -> 
         let v, st2 = !: st1 in
-        let m = to_mod v in match s1 with
+        let m = to_mod v in match slst with
         | Def (access, false, (PId s, _), e1, _), _ -> 
           def_access access s e1 m
+          |> M.set s (VCap (C.of_mod e1 m))
           |> fun m1 -> VMod m1 >: st2 |> pure
         | Def (access, false, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
           let e2 = As ("", (PCat t, y), e1), z in
           def_access access s e2 m
-          |> fun m1 -> VMod m1 >: st2 |> pure
-        
-        | _ -> a
-      end (VMod (M.make st) >: st |> pure) lst |> fun e3 -> 
-      List.fold_left begin fun a s1 -> a >>= fun st1 -> 
-        let v, st2 = !: st1 in
-        let m = to_mod v in match s1 with
-        | Def (_, false, (PId s, _), e1, _), _ -> 
-          M.set s (VCap (C.of_mod e1 m)) m
-          |> fun m1 -> VMod m1 >: st2 |> pure
-        | Def (_, false, (PCat ((PId s, z) :: t), y), e1, _), _ -> 
-          let e2 = As ("", (PCat t, y), e1), z in
-          M.set s (VCap (C.of_mod e2 m)) m
+          |> M.set s (VCap (C.of_mod e2 m))
           |> fun m1 -> VMod m1 >: st2 |> pure
         | Open (false, e1), _ -> 
           e e1 (State.merge_mod m st2) >>= fun st3 -> 
@@ -156,7 +145,7 @@ module Run (E : Eval.S) = struct
             |> fun m1 -> VMod m1 >: st3 |> pure
         
         | _ -> a
-      end e3 lst
+      end (VMod (M.make st) >: st |> pure) lst
     
     | Access (e1, s) -> 
       e e1 st >>= fun st1 -> 

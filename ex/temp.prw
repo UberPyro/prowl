@@ -1,3 +1,6 @@
-stack as open -> 
-
-[1, 2, 3] <&> (* 2) & as _ >- h3 >- h2 >- h1 -> h3 h2 h1
+5 mod
+  def f = [
+    as 0 -> "hi";
+    as n -> n - 1 & f
+  ]
+end.f
