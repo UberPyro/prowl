@@ -102,7 +102,7 @@ module Run (E : Eval.S) = struct
         let l = VCap (C.of_st (As ("", px, e1), loc) st') in
         let r = VCap (C.of_st ex st') in
         e (Id ("let" ^ b), loc) ((l, r) >:: st')
-    end (pure st) lst >>= e e1 <&> fun stx -> stx <-> st
+    end (pure st) lst >>= e e1 <&> flip (<->) st
 
     | As ("", p1, e1) -> (p p1 st) >>= e e1 <&> flip (<->) st
     | As (s, p1, e1) -> 
