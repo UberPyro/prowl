@@ -104,7 +104,7 @@ module Run (E : Eval.S) = struct
         e (Id ("let" ^ b), loc) ((l, r) >:: st')
     end (pure st) lst >>= e e1 <&> fun stx -> stx <-> st
 
-    | As ("", p1, e1) -> (p p1 st) >>= e e1 <&> fun st1 -> st1 <-> st
+    | As ("", p1, e1) -> (p p1 st) >>= e e1 <&> flip (<->) st
     | As (s, p1, e1) -> 
       e (Id ("as" ^ s), loc) (VCap (C.of_st (As ("", p1, e1), loc) st) >: st)
     
