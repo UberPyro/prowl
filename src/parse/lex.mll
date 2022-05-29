@@ -60,8 +60,7 @@ rule token = parse
         | "*" -> TIMES
         | "+" -> PLUS
         | "++" -> APPEND
-        | "?" -> SYMBOL "?"
-        | _ -> failwith "Unreachable case" end
+        | s -> SYMBOL s end
     else QUANT (parse_quant s g)}
 
   | "def"   {DEF}
