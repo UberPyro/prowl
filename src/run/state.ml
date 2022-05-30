@@ -35,6 +35,7 @@ module rec Value : sig
   val to_mod : t -> Module.t
 
   val show : t -> string
+  val show_eval : (Capture.t -> State.t -> State.t) -> Value.t -> string
 
 end = struct
 
@@ -61,6 +62,10 @@ end = struct
   let to_unit = function VUnit -> () | _ -> raise (ExpectedType "Unit")
   let to_mod = function VMod m -> m | _ -> raise (ExpectedType "Module")
 
+  open Printf
+  open State
+  open Infix
+
   let enhanced_show_e = function
     | Ast.Int i, _ -> string_of_int i
     | Ast.Str s, _ -> s
@@ -72,11 +77,32 @@ end = struct
     | VInt i -> string_of_int i
     | VStr s -> s
     | VUnit -> "<>"
-    | VPair (c1, c2) -> Printf.sprintf "(%s, %s)" (show_c c1) (show_c c2)
-    | VLeft c -> Printf.sprintf "(%s;)" (show_c c)
-    | VRight c -> Printf.sprintf "(;%s)" (show_c c)
+    | VPair (c1, c2) -> sprintf "(%s, %s)" (show_c c1) (show_c c2)
+    | VLeft c -> sprintf "(%s;)" (show_c c)
+    | VRight c -> sprintf "(;%s)" (show_c c)
+
+    | VCap c -> sprintf "{%s}" (show_c c)
+    | VMod m -> 
+      let d, _, _ = Module.body m in
+      Dict.keys d |> List.of_enum |> String.concat " "
+      |> sprintf "mod %s end"
     
+    | VBuiltin b -> "$" ^ b
     | _ -> failwith "Unimplemented - show"
+  
+  let rec show_eval c = function
+    | VPair (c1, c2) -> 
+      (show_call c c1, show_call c c2)
+      ||> sprintf "(%s, %s)"
+    | VLeft c2 -> show_call c c2 |> sprintf "(%s;)"
+    | VRight c1 -> show_call c c1 |> sprintf "(;%s)"
+    | VCap c1 -> show_call c c1 |> sprintf "{%s}"
+    | v -> show v
+  
+  and show_call c c1 = 
+    try !: (c c1 init) |> fst |> show_eval c with
+      | Underflow -> "<function>"
+      | _ -> show_c c1
 
 end
 

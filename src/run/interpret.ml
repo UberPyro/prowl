@@ -2,6 +2,7 @@ open Batteries
 open Util
 
 open State
+open Error
 
 module V = Value
 module T = Type
@@ -17,6 +18,8 @@ module Run (E : Eval.S) = struct
   open S.Infix
   open E
 
+  let sprintf = Printf.sprintf
+
   let encode_lst loc = List.fold_left begin fun a ex -> 
     Right (Pair ((a, loc), ex), loc)
   end (Left (Unit, loc))
@@ -29,7 +32,7 @@ module Run (E : Eval.S) = struct
 
   let rec program (_, e1) = e e1
 
-  and e (e0, loc) st = match e0 with
+  and e (_, loc as e0) st = match fst e0 with
     | Int i -> lit (VInt i) st
     | Str s -> lit (VStr s) st
     | Unit -> lit VUnit st
@@ -86,10 +89,8 @@ module Run (E : Eval.S) = struct
       | VCap c -> call c st
       | x -> lit x st
       | exception Not_found -> 
-          failwith
-            (Printf.sprintf "Unbound id: %s @ [%d:%d]"
-            s
-            (fst loc).pos_lnum ((fst loc).pos_cnum - (fst loc).pos_bol))
+        sprintf "Error: Unbound Id [%s]" s
+        |> prowlfail loc
     end
     | Let (lst, e1) -> List.fold_left begin fun a -> function
       | "", false, (PId s, _), ex -> a <&> fun stx -> 
@@ -153,9 +154,15 @@ module Run (E : Eval.S) = struct
         begin match v with
           | VMod m -> 
             begin try e (Module.acc s m) (merge_mod m st) with
-            | Not_found -> failwith "Field not found in module" end
+            | Not_found -> 
+              sprintf "Field [%s] not found in module" s
+              |> prowlfail loc
+            end
           
-          | _ -> failwith "Type Error: Accessing a non-module"
+          | _ -> 
+            (s, show_call v)
+            ||> sprintf "Type Error: Accessing field [%s] of a non-module (%s)"
+            |> prowlfail loc
         end <&> fun st2 -> st2 <-> st
     
     | Noncap e1 -> (e e1 *> pure) st
@@ -163,7 +170,10 @@ module Run (E : Eval.S) = struct
       List.fold_left (fun a e1 -> a >>= e e1 |> cut) (pure st) lst
     | Atomic e1 -> e (Atomic (Cat [e1], loc), loc) st
   
-    | _ -> failwith "Unimplemented - expression"
+    | _ ->
+      show_e e0
+      |> sprintf "Unimplemented Error: expression <<%s>>"
+      |> prowlfail loc
   
   and arith_builtin o st = 
     let v2, v1, st' = !:: st in
@@ -218,7 +228,10 @@ module Run (E : Eval.S) = struct
       let v3, v2, st2 = !:: st1 in
       let v1, st3 = !: st2 in
       v1 >: ((v3, v2) >:: st3) |> pure
-    | Rot _, _ -> failwith "Unimplemented - rot n"
+    | Rot i, loc ->
+      let msg = "ROT N only implemented for N = 2, 3." in
+      sprintf "Unimplemented Error: ROT %d. %s" i msg
+      |> prowlfail loc
     | Run i, _ -> 
       restack (List.remove_at (i-1) (S.s st1)) st1
       |> call (to_cap (List.at (S.s st1) (i-1)))
@@ -268,9 +281,12 @@ module Run (E : Eval.S) = struct
   and def_access = function
     | Pub -> Module.def
     | Priv -> fun _ _ -> identity
-    | Opaq -> failwith "Values cannot be opaque"
+    | Opaq -> fun s (_, loc) ->
+      let msg = "Values cannot be opaque" in
+      sprintf "Definition [%s] is opaque. %s" s msg
+      |> prowlfail loc
   
-  and p (px, loc) st = match px with
+  and p (_, loc as p0) st = match fst p0 with
     | PId s -> let v, st1 = !: st in pure (set s v st1)
     | PBlank -> let _, st1 = !: st in pure st1
     | PInt i1 -> 
@@ -334,6 +350,11 @@ module Run (E : Eval.S) = struct
     | PList plst -> p (encode_plst loc plst, loc) st
     | PUnit -> let v, st1 = !: st in to_unit v; pure st1
     
-    | _ -> failwith "Unimplemented - pattern"
+    | _ -> 
+      show_p p0
+      |> sprintf "Unimplemented Error: pattern <<%s>>"
+      |> prowlfail loc
+  
+  and show_call v = show_eval (fun v1 -> call v1 >> unsafe_cut) v
 
 end
