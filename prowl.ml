@@ -31,7 +31,11 @@ let compile file args =
       |> Interpret.S.s
       |> List.rev_map V.show
       |> List.iter print_endline with
-    | L.Rejected -> print_endline "rejected" end
+    | L.Rejected -> print_endline "rejected"
+    | Error.ProwlError (loc, msg) ->
+      Error.show_err loc msg
+      |> print_endline
+  end
 
 let () = match P.parse_argv op with
   | [] -> P.usage op ()
