@@ -26,7 +26,7 @@ let compile file args =
     |> print_endline end;
   begin if O.get interpret then try
       Interpret.S.(restack args init)
-      |> R.program (Build.endow "std" ast)
+      |> R.program ast (* Build.endow "std" ast *)
       |> L.unsafe_cut
       |> Interpret.S.s
       |> List.rev_map V.show
