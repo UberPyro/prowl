@@ -53,7 +53,6 @@ module rec Mod : sig
     | Seals of string option * t * t
     | Lam of (string * t) list * t
     | Cat of t list
-    | Complete of t
     | Refine of t * Refinement.t list
     | USig of usig
     | Value of Expr.t * t
@@ -75,7 +74,7 @@ and Component : sig
     | Mod of impl * modtype * ascribed list * string * ascryption option * Mod.t
     | ModRec of (impl * ascribed list * ascribed * Mod.t) list
     | Open of impl * Mod.t
-    | Mix of Mod.t
+    | Include of Mod.t
     | Tag of Exn.tag
   
   and det_check = 
@@ -93,8 +92,7 @@ and Component : sig
 
   and modtype = 
     | Sig
-    | Struct
-    | Mixin
+    | Mix
 
 end = Component
 
@@ -120,7 +118,7 @@ and Type : sig
 
   and multistack = det * stack * string list
 
-  and stack = tail * head
+  and stack = tail * head list
 
   and head = 
     | Id of string
@@ -129,10 +127,11 @@ and Type : sig
     | Span of det
     | Quote of t
     | Map of t
-    | Mod of Component.modtype * Mod.t
+    | Mod of Mod.t
     | ImplMod of string * Mod.t
-    | Opt of string * t option
-    | Tensor of t * det list
+    | Opt of string * head option
+    | Tensor of det list * t
+    | Access of string * t
 
   and tail = 
     | Stackvar of int
