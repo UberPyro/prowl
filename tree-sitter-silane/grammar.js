@@ -89,7 +89,7 @@ module.exports = grammar({
 
     // Type Language
 
-    _common_type: $ => choice(
+    common_type: $ => choice(
       "int", 
       "float", 
       "string", 
@@ -97,7 +97,7 @@ module.exports = grammar({
     ),
 
     _head: $ => choice(
-      $._common_type,
+      $.common_type,
       $.id, 
       $.cap,
       $.lin_id, 
