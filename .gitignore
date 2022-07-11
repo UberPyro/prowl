@@ -5,6 +5,11 @@ _perf
 *.install
 .merlin
 *.corrected
+tree-sitter-silane/bindings
+tree-sitter-silane/node_modules
+tree-sitter-silane/src
+tree-sitter-silane/binding.*
+tree-sitter-silane/Cargo.*
 
 # vim swap files
 *.swp
