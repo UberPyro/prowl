@@ -14,11 +14,13 @@ module.exports = grammar({
   word: $ => $.id, 
 
   rules: {
-    source_file: $ => 'yo.',
+    source_file: $ => optional(_type),  // temp
 
     quant: $ => token.immediate(/[?+*][?+]?/),
     check: $ => token.immediate(/!!?/),
     id: $ => new RegExp("[a-z]" + id_tail),
+    lin_id: $ => new RegExp("![a-z]" + id_tail),
+    opt_id: $ => new RegExp("@[a-z]" + id_tail),
     cap: $ => new RegExp("[A-Z]" + id_tail),
     exn: $ => new RegExp("[A-Z]" + id_tail + "\\!"),
     err: $ => new RegExp("[A-Z]" + id_tail + "\\!\\!"),
@@ -68,8 +70,8 @@ module.exports = grammar({
       "failure", "semidet", "nondet",
     ),
 
-    _param_tail: $ => choice($.int, "."),
-    param_stack: $ => seq($._param_tail, repeat($.cap)),
+    _tail: $ => choice($.int, "."),
+    param_stack: $ => seq($._tail, repeat($.cap)),
     _param: $ => choice(
       $.cap, 
       seq("[", $.param_stack, "--", $.param_stack, "]"),
@@ -83,7 +85,48 @@ module.exports = grammar({
       seq("{", "and", token.immediate($.symbol), "}"),
     ),
 
+    // _modtype: $ => choice("sig", "mix"),
+
     // Type Language
+
+    _head: $ => choice(
+      $.id, 
+      $.cap,
+      $.lin_id, 
+      $._span, 
+      seq("[", $._type, "]"),
+      seq("%[", $._type, "]"),
+      // seq("{", $._mod, "}"),
+      // seq("<", $.cap, ":", $._mod, "}"),
+      seq($.opt_id, optional(seq("'", $._head))),
+      seq("#[", $._span, $._type, "]"),
+      seq($.cap, ".", $._head),
+    ),
+
+    simple_type: $ => seq(
+      optional($._tail), repeat($._head), 
+      "--", 
+      optional($._span), 
+      optional($._tail), repeat($._head), 
+      repeat($.exn),
+    ),
+
+    stack: $ => seq($._tail, repeat($._head)),
+    multistack: $ => seq(
+      optional($._span),
+      optional($._tail),
+      repeat($._head),
+      repeat($.exn),
+    ),
+
+    alge_stack: $ => algebra($.alge_stack, $.stack),
+    alge_multistack: $ => algebra($.alge_multistack, $.multistack),
+    advanced_type: $ => seq($.alge_stack, "--", $.alge_multistack),
+
+    _type: $ => choice(
+      $.simple_type,
+      $.advanced_type
+    ),
 
   }
 });
@@ -98,5 +141,14 @@ function sep1(delimiter, rule) {
     rule, 
     repeat(seq(delimiter, rule)), 
     optional(delimiter)
+  )
+}
+
+function algebra(selfref, rule) {
+  return choice(
+    rule, 
+    prec.left(2, seq(rule, "*", rule)),
+    prec.left(1, seq(rule, "+", rule)),
+    seq("(", selfref, ")"),
   )
 }
