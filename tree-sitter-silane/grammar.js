@@ -64,8 +64,8 @@ module.exports = grammar({
     // Type Language
     _bound: $ => choice($.int, $.id),
     _span: $ => choice(
-      seq("(", optional($._bound), ":", optional($._bound), ")"),
-      seq("(", optional($._bound), ")"),
+      seq("{", optional($._bound), ":", optional($._bound), "}"),
+      seq("{", optional($._bound), "}"),
       "erroneous", "det", "multi", 
       "failure", "semidet", "nondet",
     ),
@@ -99,21 +99,21 @@ module.exports = grammar({
       // seq("{", $._mod, "}"),
       // seq("<", $.cap, ":", $._mod, "}"),
       seq($.opt_id, optional(seq("'", $._head))),
-      seq("#[", $._span, $._type, "]"),
+      seq("#[", $._span, ",", $._type, "]"),
       seq($.cap, ".", $._head),
     ),
 
     simple_type: $ => seq(
       repeat($._head), 
       "--", 
-      optional($._span), 
+      optional(seq($._span, ",")), 
       repeat($._head), 
       repeat($.exn),
     ),
 
     stack: $ => seq($._tail, repeat($._head)),
     multistack: $ => seq(
-      optional($._span),
+      optional(seq($._span, ",")),
       $._tail,
       repeat($._head),
       repeat($.exn),
