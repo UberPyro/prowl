@@ -1,0 +1,8 @@
+(executable
+  (name silane)
+  (modules silane)
+  (libraries lib batteries))
+; (executable
+;   (name prowl_test)
+;   (modules prowl_test)
+;   (libraries lib))
