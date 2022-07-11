@@ -14,7 +14,7 @@ module.exports = grammar({
   word: $ => $.id, 
 
   rules: {
-    source_file: $ => optional(_type),  // temp
+    source_file: $ => optional($._type),  // temp
 
     quant: $ => token.immediate(/[?+*][?+]?/),
     check: $ => token.immediate(/!!?/),
@@ -82,7 +82,7 @@ module.exports = grammar({
       $.id, 
       seq("(", $.symbol, ")"), 
       seq("{", $.symbol, "}"),
-      seq("{", "and", token.immediate($.symbol), "}"),
+      seq("{", "and", token.immediate(new RegExp(sym)), "}"),
     ),
 
     // _modtype: $ => choice("sig", "mix"),
@@ -104,17 +104,17 @@ module.exports = grammar({
     ),
 
     simple_type: $ => seq(
-      optional($._tail), repeat($._head), 
+      repeat($._head), 
       "--", 
       optional($._span), 
-      optional($._tail), repeat($._head), 
+      repeat($._head), 
       repeat($.exn),
     ),
 
     stack: $ => seq($._tail, repeat($._head)),
     multistack: $ => seq(
       optional($._span),
-      optional($._tail),
+      $._tail,
       repeat($._head),
       repeat($.exn),
     ),
