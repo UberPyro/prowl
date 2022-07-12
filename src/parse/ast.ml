@@ -147,10 +147,12 @@ and Data : sig
   
   type t = 
     | Record of record
-    | Variant of Type.head list * string
-    | PointedVariant of record * string
+    | Variant of variant list
   
-  and record = string * Type.t option
+  and record = (string * Type.t option) list
+  and variant = 
+    | Tacit of Type.head list * string
+    | Pointed of record * string
 
 end = Data
 
