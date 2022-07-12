@@ -134,6 +134,23 @@ module.exports = grammar({
       $.advanced_type
     ),
 
+    record: $ => seq(
+      "{", 
+      sep1(",", seq($.id, optional(seq(":", $._type)))),
+      "}"
+    ),
+
+    tacit: $ => seq(repeat($._head), $.cap),
+    pointed: $ => seq($.record, $.cap),
+    variant: $ => sep1(";", choice($.tacit, $.pointed)),
+
+    _data: $ => choice(
+      $.record,
+      $.variant,
+    ),
+
+    tag: $ => seq(repeat($._head), $._exn),
+
   }
 });
 
