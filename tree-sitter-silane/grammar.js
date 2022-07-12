@@ -87,8 +87,6 @@ module.exports = grammar({
 
     // _modtype: $ => choice("sig", "mix"),
 
-    // Type Language
-
     common_type: $ => choice(
       "int", 
       "float", 
@@ -112,10 +110,10 @@ module.exports = grammar({
     ),
 
     simple_type: $ => seq(
-      repeat($._head), 
+      field("lhs", repeat($._head)), 
       "--", 
       optional(seq($._span, ",")), 
-      repeat($._head), 
+      field("rhs", repeat($._head)), 
       repeat($.exn),
     ),
 
