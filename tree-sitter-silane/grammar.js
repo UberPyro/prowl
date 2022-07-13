@@ -1,7 +1,93 @@
-const id_tail = "(\-?[A-Za-z0-9_\'])*";
+const id_tail = "(\-?[A-Za-z0-9_])*";
 const sym = "[~!@#$%^&*\\-=+\\.?:<>|/\\\\]+";
 const suffix = "[?+*!]|!!";
 const comment = /([^*\/]|\*[^\/]|\/[^*]|[ \t\n])*[^*\/]/;
+
+const seq_op = [
+  ["~", ",", "&","^~", "~^", "%"],
+  ["^", "|", ";", ":", "\\"],
+  ["=", "?", "!"],
+];
+
+const bin_op = [
+  [
+    ["$"], 
+    []
+  ], 
+  [
+    [">>=", "=>>"],
+    ["=<<", "<<="],
+  ],
+  [
+    [">=>"], ["=>="], 
+    ["<=<"], ["=<="], 
+  ],
+  [
+    [],
+    []
+  ],
+  [
+    [
+      ">>", "~>", 
+      ",,", ",>", 
+      "&&", "&>", 
+      "^>>", "^~>", 
+      ">>^", "~>^", 
+      "%%", "%>", 
+    ],
+    [
+      "<<", "<~", 
+      "<,", 
+      "<&", 
+      "^<<", "^<~", 
+      "<<^","<~^", 
+      "<%", 
+    ],
+  ],
+  [
+    [
+      "^^", "^>", 
+      "||", "|>", 
+      ";;", ";>", 
+      "::", ":>", 
+      "\\\\", "\\>", 
+    ],
+    [
+      "<^", 
+      "<|", 
+      "<;", 
+      "<:", 
+      "<\\", 
+    ],
+  ],
+  [
+    [
+      "==", "=>", 
+      "??", "?>", 
+      "!!", "!>", 
+    ],
+    [
+      "<?", 
+      "<!", 
+    ],
+  ],
+  [
+    ["<", "<=", ">", ">=", "!="],
+    [],
+  ],
+  [
+    [".."],
+    [],
+  ],
+  [
+    ["+", "-"],
+    [],
+  ],
+  [
+    ["*", "/"],
+    [],
+  ],
+];
 
 module.exports = grammar({
   name: 'silane',
@@ -26,7 +112,7 @@ module.exports = grammar({
     err: $ => new RegExp("[A-Z]" + id_tail + "\\!\\!"),
     _exn: $ => choice($.exn, $.err),
 
-    symbol: $ => new RegExp(sym), 
+    symbol: $ => new RegExp(sym),  // include tokens
     blank: $ => new RegExp("_" + id_tail),
     int: $ => /0|[1-9][0-9]*/, 
     float: $ => /[1-9]\.[0-9]*|\.[0-9]+/, 
@@ -80,12 +166,9 @@ module.exports = grammar({
 
     _name: $ => choice(
       $.id, 
-      seq("(", $.symbol, ")"), 
       seq("{", $.symbol, "}"),
       seq("{", "and", token.immediate(new RegExp(sym)), "}"),
     ),
-
-    // _modtype: $ => choice("sig", "mix"),
 
     common_type: $ => choice(
       "int", 
@@ -150,6 +233,29 @@ module.exports = grammar({
     ),
 
     tag: $ => seq(repeat($._head), $._exn),
+
+    // Expression Language
+    _expr: $ => choice(
+      
+    ),
+
+    _term: $ => choice(
+      $.id,
+
+      $.int,
+      $.float,
+      $.string,
+      $.char,
+
+      seq("[", $._term, "]"),
+      seq("%[", sep(",", seq($._term, "->", $._term)), "]"),
+      // seq("{", $.mod, ":", $.mod, "}"),
+      seq("#[", sep(",", sep(";", $._term))),
+
+      // finish
+    ),
+
+    // _modtype: $ => choice("sig", "mix"),
 
   }
 });

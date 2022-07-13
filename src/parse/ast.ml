@@ -32,12 +32,8 @@ module Name = struct
   
   type t = 
     | Word of string
-    | Symbol of string * hardness
+    | Symbol of string
     | Bindop of string
-
-  and hardness = 
-    | Soft
-    | Hard
 
 end
 
@@ -178,7 +174,7 @@ and Expr : sig
 
     | Quote of t
     | Map of (t * t) list
-    | Mod of Component.modtype * Mod.t * Mod.t option
+    | Mod of Mod.t * Mod.t option
     | Tensor of t list list
 
     | Variant of string
