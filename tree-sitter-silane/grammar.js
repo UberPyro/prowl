@@ -89,6 +89,21 @@ const bin_op = [
   ],
 ];
 
+function make_seq_ops(rule) {
+  return seq_op.map(arr => choice(...arr))
+    .reverse()
+    .reduce((acc, s) => sep1(s, acc), rule);
+};
+
+function make_bin_ops(selfref) {
+  return choice(...bin_op.map((arr, i) =>
+    arr[0].map(x => prec.left(i*2, seq(selfref, x, selfref)))
+    .concat(arr[1].map(x => prec.right(i*2 + 1, seq(selfref, x, selfref))))
+  ));
+};
+
+const ops = bin_op.flat().flat()
+
 module.exports = grammar({
   name: 'silane',
 
@@ -112,7 +127,8 @@ module.exports = grammar({
     err: $ => new RegExp("[A-Z]" + id_tail + "\\!\\!"),
     _exn: $ => choice($.exn, $.err),
 
-    symbol: $ => new RegExp(sym),  // include tokens
+    custom_symbol: $ => new RegExp(sym), 
+    symbol: $ => choice($.custom_symbol, ...ops), 
     blank: $ => new RegExp("_" + id_tail),
     int: $ => /0|[1-9][0-9]*/, 
     float: $ => /[1-9]\.[0-9]*|\.[0-9]+/, 
@@ -236,7 +252,23 @@ module.exports = grammar({
 
     // Expression Language
     _expr: $ => choice(
-      
+      $.symbol, 
+      seq($.expr_seq, $.symbol), 
+      seq($.symbol, $.expr_seq), 
+      $.expr_seq, 
+      $.binding, 
+      seq($.expr_seq, $.binding), 
+      seq($.expr_seq, $.symbol, $.binding),
+    ),
+
+    
+
+    expr_seq: $ => make_seq_ops($._expr_group),
+
+    _expr_group: $ => choice(
+      make_bin_ops($._expr_group),
+      prec.left(6, seq($._expr_group, $.custom_symbol, $._expr_group)),
+      $._term,
     ),
 
     _term: $ => choice(
