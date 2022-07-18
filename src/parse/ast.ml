@@ -1,36 +1,21 @@
-module Span = struct
-
-  type bound = 
-    | Int of int
-    | Mul of bound * bound
-    | Add of bound * bound
-    | Id of string
-    | Unbound
-  
-  type t = 
-    | Exact of bound
-    | Range of bound * bound
-
-end
-
-module Param = struct
+module rec Param : sig
 
   type t = 
     | TyVal of string
     | TyStack of int
-    | Span of Span.t
+    | Span of string
 
-end
+end = Param
 
-module Name = struct
+and Name : sig
   
   type t = 
     | Word of string
     | Symbol of string
 
-end
+end = Name
 
-module rec Mod : sig
+and Mod : sig
 
   type t =
     | Id of string
@@ -53,7 +38,7 @@ and Component : sig
 
   type t = 
     | Val of (Pat.t * Expr.t) list
-    | Fun of (Quant.t * Pat.t * Name.t * Expr.t) list
+    | Fun of (Quant.opt * Pat.t * Name.t * Expr.t) list
     | Spec of Name.t * Type.t
     | Type of Param.t list * string * Type.head
     | Data of Param.t list * string * Data.t
@@ -79,13 +64,18 @@ and Quant : sig
 
   type t = Mark | Plus | Star
   type greed = Greedy | Reluctant | Possessive
+  type opt = t option
+  type param = 
+    | Quant of t
+    | Unit
+    | Id of string
 
 end = Quant
 
 
 and Type : sig
 
-  type t = stack * Span.t * stack
+  type t = stack * Quant.opt * stack
   and stack = 
     | StackLit of tail * head list
     | Both of stack * stack
@@ -101,7 +91,6 @@ and Type : sig
     | Mod of Mod.t
     | ImplMod of string * Mod.t
     | Opt of string * head option
-    | Tensor of Span.t list * t
     | Access of string * t
   
   and tail = 
@@ -111,7 +100,7 @@ and Type : sig
   and param = 
     | TyStack of stack
     | TyVar of head
-    | Span of Span.t
+    | Span of Quant.param
 
 end = Type
 
@@ -160,9 +149,9 @@ and Expr : sig
     | Exclaim of t
 
     | AsExpr of Pat.t * Type.t option * t
-    | LamExpr of Pat.t * Name.t * Type.t option * t
+    | LamExpr of Quant.opt * Pat.t * Name.t * Type.t option * t
     | ValExpr of (Pat.t * t * Type.t option) list
-    | FunExpr of (Quant.t * Pat.t * Name.t * Expr.t * Type.t option) list * t
+    | FunExpr of (Quant.opt * Pat.t * Name.t * Expr.t * Type.t option) list * t
 
   and bkind = Pointy | Smooth
 
