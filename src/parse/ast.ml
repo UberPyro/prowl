@@ -132,7 +132,6 @@ and Expr : sig
     | Quote of t
     | Map of (t * t) list
     | Mod of Mod.t * Mod.t option
-    | Tensor of t list list
 
     | Variant of string
     | Record of string option * (string * t option) list
@@ -173,7 +172,6 @@ and Pat : sig
     | Quote of t
     | Map of (Expr.t * t) list
     | Mod of Mod.t * Mod.t option
-    | Tensor of t list list
 
     | Variant of string
     | Record of (string * t option) list * bool  (* true = more args *)
