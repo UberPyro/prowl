@@ -2,6 +2,8 @@ module Span = struct
 
   type bound = 
     | Int of int
+    | Mul of bound * bound
+    | Add of bound * bound
     | Id of string
     | Unbound
   
@@ -11,32 +13,22 @@ module Span = struct
 
 end
 
-
-module Parameter = struct
+module Param = struct
 
   type t = 
-    | Var of string
-    | Quote of stack * stack
+    | TyVal of string
+    | TyStack of int
     | Span of Span.t
-  
-  and stack = tail * string list
-  
-  and tail = 
-    | Stackvar of int
-    | Bottom
 
 end
-
 
 module Name = struct
   
   type t = 
     | Word of string
     | Symbol of string
-    | Bindop of string
 
 end
-
 
 module rec Mod : sig
 
@@ -49,13 +41,10 @@ module rec Mod : sig
     | Seals of string option * t * t
     | Lam of (string * t) list * t
     | Cat of t list
-    | Refine of t * Refinement.t list
-    | USig of usig
+    | USig of port * t * string list
     | Value of Expr.t * t
-
-  and usig = 
-    | Import of t * string list
-    | Export of t * string list
+  
+  and port = Import | Export
 
 end = Mod
 
@@ -63,78 +52,66 @@ end = Mod
 and Component : sig
 
   type t = 
-    | Def of Pat.t list * Name.t * det_check * Type.t option * Expr.t
+    | Val of (Pat.t * Expr.t) list
+    | Fun of (Quant.t * Pat.t * Name.t * Expr.t) list
     | Spec of Name.t * Type.t
-    | Type of Parameter.t list * string * Type.head
-    | Kind of Parameter.t list * string
-    | Mod of impl * modtype * ascribed list * string * ascryption option * Mod.t
-    | ModRec of (impl * ascribed list * ascribed * Mod.t) list
+    | Type of Param.t list * string * Type.head
+    | Data of Param.t list * string * Data.t
+    | Kind of Param.t list * string
+    | Sig of impl * string * Mod.t
+    | Mod of (impl * pat list * string * ascription * Mod.t) list
     | Open of impl * Mod.t
+    | From of Mod.t * Name.t list
     | Include of Mod.t
-    | Tag of Exn.tag
-  
-  and det_check = 
-    | Mark
-    | Plus
-    | Star
-  
-  and ascribed = Mod.t * ascryption
-  
-  and ascryption = 
-    | Opaque of Mod.t
-    | Transparent of Mod.t
   
   and impl = Implicit | Explicit
 
-  and modtype = 
-    | Sig
-    | Mix
+  and pat = string * ascription
+  and ascription = 
+    | Opaque of Mod.t
+    | Transparent of Mod.t
+    | Blank
 
 end = Component
 
 
-and Refinement : sig
-  
-  type t = 
-    | Type of Parameter.t list * string * Type.head
-    | Kind of Parameter.t list * string
+and Quant : sig
 
-end = Refinement
+  type t = Mark | Plus | Star
+  type greed = Greedy | Reluctant | Possessive
+
+end = Quant
 
 
 and Type : sig
 
-  type t = stack algebra * multistack algebra
-
-  and 'a algebra = 
-    | Product of 'a algebra * 'a algebra
-    | Left of 'a algebra
-    | Right of 'a algebra
-    | Self of 'a
-
-  and multistack = det * stack * string list
-
-  and stack = tail * head list
+  type t = stack * Span.t * stack
+  and stack = 
+    | StackLit of tail * head list
+    | Both of stack * stack
+    | Either of stack * stack
 
   and head = 
     | Id of string
     | Var of string
-    | Linear of string
-    | Span of det
+    | Param of head * param list
     | Quote of t
     | Map of t
+    | Sig of Mod.t
     | Mod of Mod.t
     | ImplMod of string * Mod.t
     | Opt of string * head option
-    | Tensor of det list * t
+    | Tensor of Span.t list * t
     | Access of string * t
-
+  
   and tail = 
-    | Stackvar of int
-    | Fresh
+    | Num of int
     | Bottom
-
-  and det = Span.t
+  
+  and param = 
+    | TyStack of stack
+    | TyVar of head
+    | Span of Span.t
 
 end = Type
 
@@ -151,15 +128,6 @@ and Data : sig
     | Pointed of record * string
 
 end = Data
-
-
-and Exn : sig
-
-  type tag = Type.head list * string * errtype
-
-  and errtype = Checked | Panic
-
-end = Exn
 
 
 and Expr : sig
@@ -180,37 +148,23 @@ and Expr : sig
     | Variant of string
     | Record of string option * (string * t option) list
     | Opt of string * t option
-    | Impl of Mod.t
+    | Implicit of Mod.t
 
     | BinOp of t * string * t
-    | SectLeft of string * t
-    | SectRight of t * string
-    | Sect of string
-
-    | HardBind of string
-    | HardLeft of string * t
-    | HardRight of t * string
-    | Hard of string
+    | Sect of string * bkind
+    | SectLeft of string * t * bkind
+    | SectRight of t * string * bkind
 
     | SeqOp of string * t list
-    | Suffix of t * quant * greed
-    | Exclaim of t * Exn.errtype
-    | Linear of t
+    | Suffix of t * Quant.t * Quant.greed
+    | Exclaim of t
 
-    | AsExpr of Pat.t list * t
-    | AsOp of string * Pat.t list * t
-    | LetExpr of (Pat.t list * Name.t * Component.det_check * Type.t option) list * t
-    | LetRec of (Pat.t list * Name.t * Component.det_check * Type.t option) list * t
-  
-  and quant = 
-    | Mark
-    | Plus
-    | Star
-  
-  and greed = 
-    | Greedy
-    | Reluctant
-    | Possessive
+    | AsExpr of Pat.t * Type.t option * t
+    | LamExpr of Pat.t * Name.t * Type.t option * t
+    | ValExpr of (Pat.t * t * Type.t option) list
+    | FunExpr of (Quant.t * Pat.t * Name.t * Expr.t * Type.t option) list * t
+
+  and bkind = Pointy | Smooth
 
 end = Expr
 
@@ -220,6 +174,7 @@ and Pat : sig
   type t = 
     | Id of string
     | Asc of t * Type.head
+    | Stack of string
 
     | Int of int
     | Float of float
@@ -228,17 +183,17 @@ and Pat : sig
 
     | Quote of t
     | Map of (Expr.t * t) list
-    | Mod of Component.modtype * Mod.t * Mod.t option
+    | Mod of Mod.t * Mod.t option
     | Tensor of t list list
 
     | Variant of string
     | Record of (string * t option) list * bool  (* true = more args *)
     | Opt of string * t
-    | Impl of string * Mod.t
+    | Implicit of string * Mod.t
 
     | BinOp of t * string * t
     | SeqOp of string * t list
-    | Suffix of t * Expr.quant * Expr.greed
-    | Linear of t
+    | Suffix of t * Quant.t * Quant.greed
+    | Exclaim of t
 
 end = Pat
