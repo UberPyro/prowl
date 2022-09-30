@@ -1,0 +1,5 @@
+(ocamllex lex lex_comb)
+(menhir
+  (modules parse parse_comb)
+  ; (flags --explain --strict)
+  )
