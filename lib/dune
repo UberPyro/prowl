@@ -1,2 +1,4 @@
+(include_subdirs unqualified)
 (library
- (name prowl))
+ (name prowl)
+ (libraries batteries))
