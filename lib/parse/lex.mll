@@ -33,7 +33,7 @@ let exp = op_exp op_body
 let post = op_postfix op_body
 
 let integer = '0' | sig_digits
-let float = sig_digits '.' digit* | '.' digit+
+(* let float = sig_digits '.' digit* | '.' digit+ *)
 
 let char_body = [^ '\'']
 let string_body = ([^ '"'] | "\\\"")*
@@ -48,6 +48,7 @@ rule token = parse
   | "fn" {FN}
   | '=' {ASSIGN}
   | '|' {ALT}
+  | ',' {COMMA}
 
   | "(" {LPAREN}
   | ")" {RPAREN}
@@ -57,9 +58,8 @@ rule token = parse
   | "}" {RBRACE}
 
   | (integer as i) {INT (int_of_string i)}
-  | (float as f) {FLOAT (float_of_string f)}
   | '"' (string_body as s) '"' {STR (decode s)}
-  | '\'' (char_body as s) '\'' {CHAR (decode_char s)}
+  | '\'' (char_body as s) '\'' {CHAR s}
 
   | id as s {ID s}
   | slow as s {SLOW s}

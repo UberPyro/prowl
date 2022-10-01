@@ -1,15 +1,16 @@
 (lang dune 3.3)
+(using menhir 2.1)
 
 (name prowl)
 
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github UberPyro/prowl))
 
-(authors "Author Name")
+(authors "UberPyro")
 
-(maintainers "Maintainer Name")
+(maintainers "UberPyro")
 
 (license LICENSE)
 
@@ -17,10 +18,10 @@
 
 (package
  (name prowl)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "Typed Biconcatenative Language")
+ (description "A costack-stack-based programming language inspired by Kitten and Vinegar")
  (depends ocaml dune)
  (tags
-  (topics "to describe" your project)))
+  (stack-based functional)))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
