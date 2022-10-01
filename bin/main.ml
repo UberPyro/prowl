@@ -11,5 +11,6 @@ let () = match P.parse_argv op with
   | file :: _ -> 
     File.open_in file
     |> parse
-    |> show_ast
+    |> ContentAst.show_p
+    |> (fun str -> String.nreplace ~str ~sub:"Ast.Wrap." ~by:"")
     |> print_endline

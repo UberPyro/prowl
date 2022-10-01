@@ -8,6 +8,11 @@ type 'a content = <
   loc : loc;
 >
 
+let pp_content f z y = f z y#ast
+
+type 'a test = 'a * string [@@deriving show]
+let x = pp_test
+
 let create ast loc = object
   method ast = ast
   method loc = loc
@@ -34,34 +39,6 @@ module Wrap(W : Wrapper) = struct
 
 end
 
-module PPNotImplemented = struct
-  let pp = failwith "pretty printing not implemented for content"
-  let show = failwith "show not implemented for content"
-end
-
 module ContentAst = Wrap(struct
-  type 'a t = 'a content
-  include PPNotImplemented
+  type 'a t = 'a content [@@deriving show]
 end)
-
-module Sast = Wrap(struct
-  type 'a t = 'a [@@deriving show]
-end)
-
-module Simplify = struct
-  let rec p y : Sast.p = List.map (fun x -> let a, b = x#ast in a, e b) y
-  and e y = _e y#ast
-  and _e y = List.map (List.map w) y
-  and w y = _w y#ast
-  and _w = function
-    | ContentAst.QuoteLit z -> Sast.QuoteLit (e z)
-    | ListLit z -> Sast.ListLit (List.map e z)
-    | Expr z -> Expr (e z)
-    | IntLit i -> Sast.IntLit i
-    | CharLit c -> Sast.CharLit c
-    | Id z -> Sast.Id z
-end
-
-let print_ast z = Sast.pp_p z % Simplify.p
-let show_ast : <ast : string * ContentAst.e; loc : loc> list -> string = 
-    Sast.show_p % Simplify.p
