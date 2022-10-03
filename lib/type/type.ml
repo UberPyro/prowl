@@ -17,7 +17,14 @@ module Var = struct
     | Duo of duo * 'a * 'a
   and mono = Int | Char
   and duo = Quote | List
-  
+
+  let show = function
+    | Mono Int -> "int"
+    | Mono Char -> "char"
+    | Var s -> Printf.sprintf "var A%d" s
+    | Duo (Quote, _, _) -> "quote"
+    | Duo (List, _, _) -> "list"
+
   let rec unify f r = 
     unite ~sel:begin fun t0 u0 -> match t0, u0 with
       | Duo (d0, i0, o0) as g, Duo (d1, i1, o1) when d0 = d1 -> 
@@ -26,8 +33,11 @@ module Var = struct
         g
       | x, Var _ | Var _, x -> x
       | x, y when x = y -> x
-      | _, _ -> 
-        Printf.sprintf "type error" |> failwith
+      | x, y -> 
+        Printf.sprintf "type error: [%s] not compatible with [%s]"
+          (show x)
+          (show y)
+        |> failwith
     end r
 end
 
