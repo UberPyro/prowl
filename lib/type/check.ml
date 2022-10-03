@@ -85,18 +85,29 @@ and type_word c (w : ContentAst.w) : TypedAst.w =
   | Expr e -> 
     let te = type_expr c e in
     ascribe (Expr te) te#ty w
-
   
-  (* | CharLit _ -> ascribe_lit (uref Var.(Mono Char)) w *)
-  (* | Id s -> ascribe Fun.id (Dict.find s c) w *)
-  (* | QuoteLit e -> 
-    let ty = type_expr c e in *)
+let rec infer e = 
+  let i0, o0 = e#ty in
+  let rec cat = function
+    | h1 :: (h2 :: _ as t) -> 
+      let _, o1 = h1#ty in
+      let i2, _ = h2#ty in
+      infer_word h1; 
+      unify o1 i2; 
+      cat t
+    | [x] -> 
+      let i, o = x#ty in
+      infer_word x; 
+      unify i0 i; 
+      unify o0 o
+    | [] -> unify i0 o0 in
+  
+    
+  ()
 
-
-(* let rec type_expr e = 
-  ascribe_node (new_endo ()) (e#ast <- List.map type_word e#ast) *)
-
-(* and type_word = 
-  let open TypedAst in
-  | ContentAst.IntLit *)
-
+and infer_word w = 
+  let open TypedAst in match w#ast with
+  | IntLit _ | CharLit _ | Id _ -> ()
+  | QuoteLit e -> infer e
+  | ListLit es -> List.iter infer es
+  | Expr e -> infer e
