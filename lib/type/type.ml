@@ -1,11 +1,17 @@
 open Batteries
 open Uref
 
-module Var = struct
+module type Unifier = sig
+  type 'a t
+  val unify : ('a -> 'a -> unit) -> 'a t -> 'a t -> unit
+end
+
+module Var : Unifier = struct
   let count = ref (-1)
   let fresh () = incr count; !count
 
-  type 'a t = 
+  type 'a t = 'a _t uref
+  and 'a _t = 
     | Int
     | Char
     | Var of int
@@ -24,13 +30,13 @@ module Var = struct
     end r
 end
 
-module MakeStack () = struct
+module MakeStack () : Unifier = struct
   let count = ref (-1)
   let fresh () = incr count; !count
 
   type 'a t = 'a _t uref
   and 'a _t = 
-    | Seq of 'a uref * 'a t
+    | Seq of 'a * 'a t
     | Bot of int
   
   let rec unify f r = 
@@ -49,15 +55,5 @@ module Costack = MakeStack ()
 
 type t = T of t Var.t Stack.t Costack.t
 
-(* let _unify f = Costack.unify (Stack.unify (Var.unify f)) *)
-
-(* let _unify f (T u) = Costack.unify (Stack.unify (Var.unify f)) u *)
-
-type u = U of u Var.t Stack.t
-let _unify f (U u) (U v) = Stack.unify (Var.unify f) u v
+let _unify f (T u) (T v) = (Costack.unify (Stack.unify (Var.unify f))) u v
 let rec unify u v = _unify unify u v
-
-
-
-(* let rec unify u v =
-  Costack.unify (Stack.unify (Var.unify unify)) u v *)
