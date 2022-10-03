@@ -10,9 +10,6 @@ type 'a content = <
 
 let pp_content f z y = f z y#ast
 
-type 'a test = 'a * string [@@deriving show]
-let x = pp_test
-
 let create ast loc = object
   method ast = ast
   method loc = loc
