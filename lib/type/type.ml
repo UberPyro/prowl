@@ -1,25 +1,26 @@
 open Batteries
 open Uref
 
-module type Unifier = sig
+(* module type Unifier = sig
   type 'a t
   val unify : ('a -> 'a -> unit) -> 'a t -> 'a t -> unit
-end
+end *)
 
-module Var : Unifier = struct
+module Var = struct
   let count = ref (-1)
   let fresh () = incr count; !count
 
   type 'a t = 'a _t uref
   and 'a _t = 
-    | Int
-    | Char
+    | Mono of mono
     | Var of int
-    | Fun of 'a * 'a
+    | Duo of duo * 'a * 'a
+  and mono = Int | Char
+  and duo = Quote | List
   
   let rec unify f r = 
     unite ~sel:begin fun t0 u0 -> match t0, u0 with
-      | Fun (i0, o0) as g, Fun (i1, o1) -> 
+      | Duo (d0, i0, o0) as g, Duo (d1, i1, o1) when d0 = d1 -> 
         f i0 i1; 
         f o0 o1; 
         g
@@ -30,7 +31,7 @@ module Var : Unifier = struct
     end r
 end
 
-module MakeStack () : Unifier = struct
+module MakeSeq () = struct
   let count = ref (-1)
   let fresh () = incr count; !count
 
@@ -50,8 +51,8 @@ module MakeStack () : Unifier = struct
     end r
 end
 
-module Stack = MakeStack ()
-module Costack = MakeStack ()
+module Stack = MakeSeq ()
+module Costack = MakeSeq ()
 
 type t = T of t Var.t Stack.t Costack.t
 
