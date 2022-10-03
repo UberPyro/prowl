@@ -40,7 +40,7 @@ let push_var v s =
   uref @@ Stack.Seq (v, s)
 
 let new_distack () = 
-  push_stack (new_stack ()) (new_costack ())
+  T (push_stack (new_stack ()) (new_costack ()))
 
 let new_fn () = 
   new_costack (), new_costack ()
@@ -68,9 +68,21 @@ and type_word c (w : ContentAst.w) : TypedAst.w =
   | IntLit i -> ascribe (IntLit i) (new_lit (uref Var.(Mono Int))) w
   | CharLit c -> ascribe (CharLit c) (new_lit (uref Var.(Mono Char))) w
   | Id s -> ascribe (Id s) (Dict.find s c) w
-  (* | QuoteLit e -> 
+  | QuoteLit e -> 
     let te = type_expr c e in
-    ascribe (QuoteLit te) *)
+    let i, o = te#ty in
+    ascribe (QuoteLit te) (new_lit (uref Var.(Duo (Quote, i, o)))) w
+  | ListLit es -> 
+    match List.map (type_expr c) es with
+    | [] ->
+      ascribe 
+        (ListLit [])
+        (new_lit (uref Var.(Duo (List, new_distack (), new_distack ()))))
+        w
+    | h :: _ as tes -> 
+      let i, o = h#ty in
+      ascribe (ListLit tes) (new_lit (uref Var.(Duo (List, i, o)))) w
+
   
   (* | CharLit _ -> ascribe_lit (uref Var.(Mono Char)) w *)
   (* | Id s -> ascribe Fun.id (Dict.find s c) w *)
