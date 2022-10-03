@@ -85,6 +85,22 @@ and type_word c (w : ContentAst.w) : TypedAst.w =
   | Expr e -> 
     let te = type_expr c e in
     ascribe (Expr te) te#ty w
+
+let bin_alt i0 o0 h1 h2 = 
+  let i1, o1 = h1#ty in
+  let i2, o2 = h2#ty in
+  let s1 = new_stack () in
+  let s2 = new_stack () in
+  let c1 = new_costack () in
+  let c2 = push_stack s1 c1 in
+  let c3 = push_stack s2 c2 in
+  let c4 = push_stack s2 c1 in
+  let t1, t2, t3, t4 = T c1, T c2, T c3, T c4 in
+  unify i0 i1; 
+  unify o1 t3; 
+  unify t2 i2; 
+  unify o2 t1; 
+  unify t4 o0
   
 let rec infer e = 
   let i0, o0 = e#ty in
@@ -101,9 +117,11 @@ let rec infer e =
       unify i0 i; 
       unify o0 o
     | [] -> unify i0 o0 in
-  
-  (* Todo: altnernation rule *)
-  
+
+  (* let rec alt ix ox = function
+    | h1 :: (h2 :: _ as t) -> 
+      bin_alt ix ox (alt ) *)
+
   ()
 
 and infer_word w = 
