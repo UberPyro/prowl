@@ -25,7 +25,7 @@ module Var = struct
     | Duo (Quote, _, _) -> "quote"
     | Duo (List, _, _) -> "list"
 
-  let rec unify f r = 
+  let unify f r = 
     unite ~sel:begin fun t0 u0 -> match t0, u0 with
       | Duo (d0, i0, o0) as g, Duo (d1, i1, o1) when d0 = d1 -> 
         f i0 i1; 

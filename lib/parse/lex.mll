@@ -57,7 +57,7 @@ rule token = parse
   | "{" {LBRACE}
   | "}" {RBRACE}
 
-  | (integer as i) {INT (int_of_string i)}
+  | integer as i {INT (int_of_string i)}
   | '"' (string_body as s) '"' {STR (decode s)}
   | '\'' (char_body as s) '\'' {CHAR s}
 
