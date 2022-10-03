@@ -73,15 +73,18 @@ and type_word c (w : ContentAst.w) : TypedAst.w =
     let i, o = te#ty in
     ascribe (QuoteLit te) (new_lit (uref Var.(Duo (Quote, i, o)))) w
   | ListLit es -> 
-    match List.map (type_expr c) es with
-    | [] ->
-      ascribe 
-        (ListLit [])
-        (new_lit (uref Var.(Duo (List, new_distack (), new_distack ()))))
-        w
-    | h :: _ as tes -> 
-      let i, o = h#ty in
-      ascribe (ListLit tes) (new_lit (uref Var.(Duo (List, i, o)))) w
+    begin match List.map (type_expr c) es with
+      | [] ->
+        ascribe 
+          (ListLit [])
+          (new_lit (uref Var.(Duo (List, new_distack (), new_distack ()))))
+          w
+      | h :: _ as tes -> 
+        let i, o = h#ty in
+        ascribe (ListLit tes) (new_lit (uref Var.(Duo (List, i, o)))) w end
+  | Expr e -> 
+    let te = type_expr c e in
+    ascribe (Expr te) te#ty w
 
   
   (* | CharLit _ -> ascribe_lit (uref Var.(Mono Char)) w *)
