@@ -47,7 +47,7 @@ let new_fn () =
 
 let new_endo () = 
   let c = new_costack () in
-  c, c
+  T c, T c
 
 let new_stack_endo () = 
   let c = new_distack () in
@@ -59,12 +59,19 @@ let new_lit v =
   let s2 = push_var v s1 in
   T (push_stack s1 c1), T (push_stack s2 c1)
 
-let rec type_expr c e = 
-  ascribe (List.map (type_word c)) (new_endo ()) e
+let rec type_expr c (e : ContentAst.e) : TypedAst.e = 
+  ascribe (List.map (List.map (type_word c)) e#ast) (new_endo ()) e
 
-and type_word (c : (Type.t * Type.t) Dict.t) (w : ContentAst.w) : TypedAst.w = 
+and type_word c (w : ContentAst.w) : TypedAst.w = 
+  let open TypedAst in
   match w#ast with
-  | IntLit i -> ascribe (TypedAst.IntLit i) (new_lit (uref Var.(Mono Int))) w
+  | IntLit i -> ascribe (IntLit i) (new_lit (uref Var.(Mono Int))) w
+  | CharLit c -> ascribe (CharLit c) (new_lit (uref Var.(Mono Char))) w
+  | Id s -> ascribe (Id s) (Dict.find s c) w
+  (* | QuoteLit e -> 
+    let te = type_expr c e in
+    ascribe (QuoteLit te) *)
+  
   (* | CharLit _ -> ascribe_lit (uref Var.(Mono Char)) w *)
   (* | Id s -> ascribe Fun.id (Dict.find s c) w *)
   (* | QuoteLit e -> 
@@ -77,3 +84,4 @@ and type_word (c : (Type.t * Type.t) Dict.t) (w : ContentAst.w) : TypedAst.w =
 (* and type_word = 
   let open TypedAst in
   | ContentAst.IntLit *)
+
