@@ -102,7 +102,8 @@ let rec infer e =
       unify o0 o
     | [] -> unify i0 o0 in
   
-    
+  (* Todo: altnernation rule *)
+  
   ()
 
 and infer_word w = 
