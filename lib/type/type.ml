@@ -1,11 +1,6 @@
 open Batteries
 open Uref
 
-(* module type Unifier = sig
-  type 'a t
-  val unify : ('a -> 'a -> unit) -> 'a t -> 'a t -> unit
-end *)
-
 module Var = struct
   let count = ref (-1)
   let fresh () = incr count; !count
@@ -33,11 +28,10 @@ module Var = struct
         g
       | x, Var _ | Var _, x -> x
       | x, y when x = y -> x
-      | x, y -> 
+      | x, y -> failwith @@ 
         Printf.sprintf "type error: [%s] not compatible with [%s]"
           (show x)
           (show y)
-        |> failwith
     end r
 end
 

@@ -42,16 +42,9 @@ let push_var v s =
 let new_distack () = 
   T (push_stack (new_stack ()) (new_costack ()))
 
-let new_fn () = 
-  new_costack (), new_costack ()
-
 let new_endo () = 
   let c = new_costack () in
   T c, T c
-
-let new_stack_endo () = 
-  let c = new_distack () in
-  c, c
 
 let new_lit v = 
   let c1 = new_costack () in
@@ -75,10 +68,8 @@ and type_word c (w : ContentAst.w) : TypedAst.w =
   | ListLit es -> 
     begin match List.map (type_expr c) es with
       | [] ->
-        ascribe 
-          (ListLit [])
-          (new_lit (uref Var.(Duo (List, new_distack (), new_distack ()))))
-          w
+        let d1, d2 = new_distack (), new_distack () in
+        ascribe (ListLit []) (new_lit (uref Var.(Duo (List, d1, d2)))) w
       | h :: _ as tes -> 
         let i, o = h#ty in
         ascribe (ListLit tes) (new_lit (uref Var.(Duo (List, i, o)))) w end
