@@ -118,7 +118,7 @@ let rec infer e =
         unify ix i; 
         unify ox o
       | [] -> failwith "The empty alternation is syntactically void" in
-        aux ix in
+    aux ix in
   let i0, o0 = e#ty in
   alt i0 o0 e#ast
 
