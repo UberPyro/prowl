@@ -22,11 +22,11 @@ end
 
 module type S = sig
 
-  module Seq : functor (U : UNIFIABLE) -> sig
+  module Seq : functor (M : UNIFIABLE) -> sig
     include COUNTER
     type t = _t uref
     and _t = 
-      | Push of t * U.t
+      | Push of t * M.t
       | Empty of int
     val unify : t -> t -> unit
   end
@@ -63,12 +63,12 @@ end
 
 module rec T : S = struct
 
-  module Seq (U : UNIFIABLE) = struct
+  module Seq (M : UNIFIABLE) = struct
     include Counter ()
 
     type t = _t uref
     and _t = 
-      | Push of t * U.t
+      | Push of t * M.t
       | Empty of int
 
     let rec unify r = 
@@ -76,7 +76,7 @@ module rec T : S = struct
         | Empty _ as s, Empty _ -> s
         | Push _ as s, Empty _ | Empty _, (Push _ as s) -> s
         | Push (a, t) as s, Push (b, u) -> 
-          U.unify t u; 
+          M.unify t u; 
           unify a b; 
           s
     end r
@@ -103,7 +103,7 @@ module rec T : S = struct
         | v, Var _ | Var _, v -> v
         | _, _ -> 
           raise @@ Type_error begin
-            Printf.sprintf "Error Usg Todo"
+            Printf.sprintf "Error Msg Todo"
           end
       end r
   end
