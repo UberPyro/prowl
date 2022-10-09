@@ -134,5 +134,9 @@ module Make () = struct
     let s = Stack.fresh () in
     Costack.push (Stack.push e s) c
     |> fun x -> (x, x)
+  
+  let ascr node ty = node, object
+    method ty = ty
+  end
 
 end

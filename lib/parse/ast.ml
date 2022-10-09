@@ -20,7 +20,7 @@ and 'a _word =
   | Int of int
   | Char of char
   | Quote of 'a expr
-  | List of 'a expr
+  | List of 'a expr list
   | Id of string
   | SectLeft of string * 'a expr
   | SectRight of 'a expr * string

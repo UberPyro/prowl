@@ -10,7 +10,7 @@ and 'a _word =
   | Int of int
   | Char of char
   | Quote of 'a expr
-  | List of 'a expr
+  | List of 'a expr list
   | Id of string
 
 module Ast_to_hir = struct
@@ -34,7 +34,7 @@ module Ast_to_hir = struct
     | Int i -> [Int i]
     | Char c -> [Char c]
     | Quote q -> [Quote (expr q)]
-    | List q -> [List (expr q)]
+    | List qs -> [List (List.map expr qs)]
     | Id x -> [Id x]
     | SectLeft (x, q) -> [Quote (expr q); Id x; Id "call"]
     | SectRight (q, x) -> [Quote (expr q); Id "swap"; Id x; Id "call"]
