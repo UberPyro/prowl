@@ -5,16 +5,6 @@ exception Type_error of string
 
 let pp_uref f z y = f z (uget y)
 
-module type COUNTER = sig
-  val count : int ref
-  val fresh : unit -> int
-end
-
-module Counter () = struct
-  let count = ref (-1)
-  let fresh () = incr count; !count
-end
-
 module type UNIFIABLE = sig
   type t
   val unify : t -> t -> unit
@@ -23,7 +13,6 @@ end
 module type S = sig
 
   module Seq : functor (M : UNIFIABLE) -> sig
-    include COUNTER
     type t = _t uref
     and _t = 
       | Push of t * M.t
@@ -32,7 +21,6 @@ module type S = sig
   end
 
   module rec Var : sig
-    include COUNTER
     type t = _t uref
     and _t = 
       | Var of int
@@ -42,7 +30,6 @@ module type S = sig
   end
 
   and Stack : sig
-    include COUNTER
     type t = _t uref
     and _t = 
       | Push of t * Var.t
@@ -51,7 +38,6 @@ module type S = sig
   end
 
   and Costack : sig
-    include COUNTER
     type t = _t uref
     and _t = 
       | Push of t * Stack.t
@@ -64,7 +50,6 @@ end
 module rec T : S = struct
 
   module Seq (M : UNIFIABLE) = struct
-    include Counter ()
 
     type t = _t uref
     and _t = 
@@ -86,7 +71,6 @@ module rec T : S = struct
   module Costack = Seq (Stack)
 
   module Var = struct
-    include Counter ()
 
     type t = _t uref
     and _t = 
