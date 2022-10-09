@@ -55,6 +55,7 @@ module Seq (M : UNIFIABLE) = struct
         unify a b; 
         s
   end r
+
 end
 
 module rec T : S = struct
@@ -82,6 +83,7 @@ module rec T : S = struct
             Printf.sprintf "Error Msg Todo"
           end
       end r
+    
   end
 
 end
