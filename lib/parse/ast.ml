@@ -3,6 +3,7 @@ open Lexing
 
 type loc = position * position
 
+(* location ascription *)
 let ascr node loc = node, object
   method loc = loc
 end
