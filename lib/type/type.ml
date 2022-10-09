@@ -6,7 +6,7 @@ exception Type_error of string
 let pp_uref f z y = f z (uget y)
 
 module type UNIFIABLE = sig
-  type t
+  type t [@@deriving show]
   val unify : t -> t -> unit
 end
 
@@ -18,6 +18,7 @@ module type S = sig
       | Var of int
       | Mono of string
       | Duo of string * Costack.t * Costack.t
+      [@@deriving show]
     val unify : t -> t -> unit
   end
 
@@ -26,6 +27,7 @@ module type S = sig
     and _t = 
       | Push of t * Var.t
       | Empty of int
+      [@@deriving show]
     val unify : t -> t -> unit
   end
 
@@ -34,6 +36,7 @@ module type S = sig
     and _t = 
       | Push of t * Stack.t
       | Empty of int
+      [@@deriving show]
     val unify : t -> t -> unit
   end
 
@@ -45,6 +48,7 @@ module Seq (M : UNIFIABLE) = struct
   and _t = 
     | Push of t * M.t
     | Empty of int
+    [@@deriving show]
 
   let rec unify r = 
     unite ~sel:begin curry @@ function
@@ -70,6 +74,7 @@ module rec T : S = struct
       | Var of int
       | Mono of string
       | Duo of string * Costack.t * Costack.t
+      [@@deriving show]
     
     let unify (r : t) : t -> unit = 
       unite ~sel:begin curry @@ function
@@ -78,9 +83,12 @@ module rec T : S = struct
           Costack.unify o0 o1; 
           q
         | v, Var _ | Var _, v -> v
-        | _, _ -> 
+        | u, v -> 
           raise @@ Type_error begin
-            Printf.sprintf "Error Msg Todo"
+            Printf.sprintf
+              "Type [%s] not compatible with [%s]"
+              (show__t u)
+              (show__t v)
           end
       end r
     
