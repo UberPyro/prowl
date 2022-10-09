@@ -3,6 +3,10 @@ open Lexing
 
 type loc = position * position
 
+let ascr node loc = node, object
+  method loc = loc
+end
+
 type 'a expr = 'a _expr * 'a
 and 'a _expr = 
   | Cat of 'a word list
@@ -18,4 +22,4 @@ and 'a _word =
   | List of 'a expr
   | Id of string
   | SectLeft of string * 'a expr
-  | SectRight of string * 'a expr
+  | SectRight of 'a expr * string

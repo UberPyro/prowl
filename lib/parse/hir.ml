@@ -1,3 +1,5 @@
+open Batteries
+
 type 'a expr = 'a _expr * 'a
 and 'a _expr = 
   | Cat of 'a word list
@@ -11,19 +13,29 @@ and 'a _word =
   | List of 'a expr
   | Id of string
 
-(* module Ast_to_hir = struct
+module Ast_to_hir = struct
   let rec expr (e, l) = _expr e, l
   and _expr : 'a Ast._expr -> 'a _expr = function
-    | Cat ws -> Cat (List.map word ws)
+    | Cat ws -> Cat (List.map word ws |> List.flatten)
     | Let (b, s, ss, e1, e2) -> Let (b, s, ss, expr e1, expr e2)
     | As (s, ss, e) -> As (s, ss, expr e)
+    | Bop (e1, bop, e2) -> Cat [
+      Quote (expr e1), snd e1; 
+      Quote (expr e2), snd e2; 
+      Id bop, snd e2; 
+    ]
+    | Uop (e1, uop) -> Cat [
+      Quote (expr e1), snd e1; 
+      Id uop, snd e1; 
+    ]
 
-  and word (w, l) = _word w, l
+  and word (w, l) = List.map (fun x -> x, l) (_word w)
   and _word = function
-    | Int i -> Int i
-    | Char c -> Char c
-    | Quote q -> Quote (expr q)
-    | List q -> List (expr q)
-    | Id x -> Id x
-  
-end *)
+    | Int i -> [Int i]
+    | Char c -> [Char c]
+    | Quote q -> [Quote (expr q)]
+    | List q -> [List (expr q)]
+    | Id x -> [Id x]
+    | SectLeft (x, q) -> [Quote (expr q); Id x; Id "call"]
+    | SectRight (q, x) -> [Quote (expr q); Id "swap"; Id x; Id "call"]
+end
