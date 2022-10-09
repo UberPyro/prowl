@@ -12,14 +12,6 @@ end
 
 module type S = sig
 
-  module Seq : functor (U : UNIFIABLE) -> sig
-    type t = _t uref
-    and _t = 
-      | Push of t * U.t
-      | Empty of int
-    val unify : t -> t -> unit
-  end
-
   module rec Var : sig
     type t = _t uref
     and _t = 
@@ -47,25 +39,25 @@ module type S = sig
 
 end
 
+module Seq (M : UNIFIABLE) = struct
+
+  type t = _t uref
+  and _t = 
+    | Push of t * M.t
+    | Empty of int
+
+  let rec unify r = 
+    unite ~sel:begin curry @@ function
+      | Empty _ as s, Empty _ -> s
+      | Push _ as s, Empty _ | Empty _, (Push _ as s) -> s
+      | Push (a, t) as s, Push (b, u) -> 
+        M.unify t u; 
+        unify a b; 
+        s
+  end r
+end
+
 module rec T : S = struct
-
-  module Seq (M : UNIFIABLE) = struct
-
-    type t = _t uref
-    and _t = 
-      | Push of t * M.t
-      | Empty of int
-
-    let rec unify r = 
-      unite ~sel:begin curry @@ function
-        | Empty _ as s, Empty _ -> s
-        | Push _ as s, Empty _ | Empty _, (Push _ as s) -> s
-        | Push (a, t) as s, Push (b, u) -> 
-          M.unify t u; 
-          unify a b; 
-          s
-    end r
-  end
 
   module Stack   = Seq (T.Var)
   module Costack = Seq (Stack)
