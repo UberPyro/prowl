@@ -12,10 +12,10 @@ end
 
 module type S = sig
 
-  module Seq : functor (M : UNIFIABLE) -> sig
+  module Seq : functor (U : UNIFIABLE) -> sig
     type t = _t uref
     and _t = 
-      | Push of t * M.t
+      | Push of t * U.t
       | Empty of int
     val unify : t -> t -> unit
   end
