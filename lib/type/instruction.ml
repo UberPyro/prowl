@@ -2,8 +2,7 @@ open Batteries
 open Uref
 
 open Hir
-module T = Type.Make ()
-open T
+open Type
 
 type ty_meta = <ty : Costack.t * Costack.t>
 
