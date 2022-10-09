@@ -4,9 +4,6 @@ exception Type_error of string
 
 let pp_uref f z y = f z (uget y)
 
-(* restart:  *)
-(* put everything inside a *single* recursive module *)
-
 module type COUNTER = sig
   val count : int ref
   val fresh : unit -> int
@@ -68,8 +65,8 @@ module rec T : S = struct
       | Empty of int
   end
 
-  module Stack = Seq(T.Var)
-  module Costack = Seq(Stack)
+  module Stack   = Seq (T.Var)
+  module Costack = Seq (Stack)
 
   module Var = struct
     include Counter ()
