@@ -87,3 +87,5 @@ module rec T : S = struct
   end
 
 end
+
+include T
