@@ -50,9 +50,9 @@ let rec expr (env : Env.t) (dat, m0) =
   
   | Let (`Rec, name, args, body, e) -> 
     let m = Costack.(fresh (), fresh ()) in
-    let env' = Env.save name m env in
+    let env' = Env.set name m env in
     sub env' args m body; 
-    expr env' e
+    expr (Env.promote name env') e
 
 and word env (dat, _) = 
   match dat with
