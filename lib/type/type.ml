@@ -165,5 +165,3 @@ let endo e =
 let ascr node ty = node, object
   method ty = ty
 end
-
-let refresh = Costack.refresh @@ HT.create 8
