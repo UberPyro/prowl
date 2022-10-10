@@ -21,4 +21,5 @@ let _list es : ty_meta Hir.word =
       lit (uref @@ Var.Duo ("list", i, o)) in
   ascr (List es) q
 let list = expr % _list
-let id x : ty_meta Hir.word = ascr (Id x) Costack.(fresh (), fresh ())
+let id x = ascr (Id x) Costack.(fresh (), fresh ())
+let builtin x ty : ty_meta Hir.word = ascr (Id x) ty

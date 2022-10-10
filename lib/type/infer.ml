@@ -54,7 +54,6 @@ let rec expr (env : Env.t) (dat, m0) =
     sub env' args m body; 
     expr env' e
 
-(* Id x must have its type added at some point *)
 and word env (dat, _) = 
   match dat with
   | Int _ | Char _ | Id _ -> ()
