@@ -135,7 +135,7 @@ let endo e =
   let c = Costack.fresh () in
   let s = Stack.fresh () in
   Costack.push (Stack.push e s) c
-  |> fun x -> (x, x)
+  |> fun x -> x, x
 
 let ascr node ty = node, object
   method ty = ty
