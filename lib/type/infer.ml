@@ -5,6 +5,7 @@ module Env = Map.Make(struct
   let compare = compare
 end)
 
+(* todo: generalize this beyond Cat *)
 let rec expr env (dat, m0) = 
   let open Costack in
   let i0, o0 = m0#ty in
@@ -20,7 +21,7 @@ let rec expr env (dat, m0) =
         word env h; 
         unify o1 i2; 
         cat t
-      | [(_, m) as x] -> 
+      | [_, m as x] -> 
         let _, o = m#ty in
         word env x; 
         unify o0 o
