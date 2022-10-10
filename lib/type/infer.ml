@@ -2,13 +2,8 @@ open Batteries
 
 open Type
 open Hir
-
-module Env = Map.Make(struct
-  type t = string
-  let compare = compare
-end)
-
-let rec expr env (dat, m0) = 
+ 
+let rec expr (env : Env.t) (dat, m0) = 
   let open Costack in
   let i0, o0 = m0#ty in
   match dat with
@@ -35,16 +30,14 @@ let rec expr env (dat, m0) =
     let env', s' = 
       List.fold_left begin fun (e0, s0) s -> 
         let v = Var.fresh () in
-        Env.add s (lit v) e0, Stack.push v s0
+        Env.set s (lit v) e0, Stack.push v s0
       end (Env.empty, s) ss in
     let c' = Costack.(fresh () |> push s') in
     expr env' e; 
     unify i0 c'; 
     unify o0 c
-
-  (* next is let *)
-  (* consider changing Env to a custom data structure
-     to make let generalization easier *)
+  (* Todo *)
+  (* | Let (false, name, args, body, e) ->  *)
   | _ -> failwith "todo"
 
 (* Id x must have its type added at some point *)

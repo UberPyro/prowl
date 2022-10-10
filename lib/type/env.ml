@@ -12,6 +12,8 @@ end)
 type t = (gen * Costack.t * Costack.t) Dict.t
 and gen = General | Special
 
+let empty = Dict.empty
+
 let get k e = 
   match Dict.find_opt k e with
   | Some (Special, c1, c2) -> c1, c2
