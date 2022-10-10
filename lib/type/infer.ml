@@ -1,12 +1,25 @@
 open Batteries
 
 open Type
+open Costack
 open Hir
  
 let rec expr (env : Env.t) (dat, m0) = 
 
-  let open Costack in
   let i0, o0 = m0#ty in
+
+  let sub args e = 
+    let s = Stack.fresh () in
+    let c = Costack.(fresh () |> push s) in
+    let env', s' = 
+      List.fold_left begin fun (e0, s0) s -> 
+        let v = Var.fresh () in
+        Env.set s (lit v) e0, Stack.push v s0
+      end (Env.empty, s) args in
+    let c' = Costack.(fresh () |> push s') in
+    expr env' e; 
+    unify i0 c'; 
+    unify o0 c in
 
   match dat with
   | Cat [] -> unify i0 o0
@@ -27,20 +40,7 @@ let rec expr (env : Env.t) (dat, m0) =
       | [] -> failwith "Unreachable" in
     cat ws
 
-  | As (ss, e) -> 
-    let s = Stack.fresh () in
-    let c = Costack.(fresh () |> push s) in
-    let env', s' = 
-      List.fold_left begin fun (e0, s0) s -> 
-        let v = Var.fresh () in
-        Env.set s (lit v) e0, Stack.push v s0
-      end (Env.empty, s) ss in
-    let c' = Costack.(fresh () |> push s') in
-    expr env' e; 
-    unify i0 c'; 
-    unify o0 c
-    
-  (* Todo *)
+  | As (args, e) -> sub args e
   (* | Let (false, name, args, body, e) ->  *)
   | _ -> failwith "todo"
 
