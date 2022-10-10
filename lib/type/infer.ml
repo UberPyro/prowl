@@ -1,14 +1,26 @@
 open Batteries
 
 open Type
-open Costack
 open Hir
+
+let handle f locs = try f with
+  | Error.Unification (u, v) -> 
+    raise @@ Ast.Prowl_error begin
+      Printf.sprintf
+        "Type Error: Cannot unify type [%s] with type [%s]."
+        (Var.show__t u)
+        (Var.show__t v), 
+      locs
+    end
+
+let unify_exn = Costack.unify
+let unify = handle Costack.unify
 
 let rec expr (env : Env.t) (dat, m0) = 
 
   let i0, o0 = m0#ty in
 
-  let sub env args (i, o) e = 
+  let sub_exn env args (i, o) e = 
     let s = Stack.fresh () in
     let c = Costack.(fresh () |> push s) in
     let env', s' = 
@@ -18,25 +30,28 @@ let rec expr (env : Env.t) (dat, m0) =
       end (env, s) args in
     let c' = Costack.(fresh () |> push s') in
     expr env' e; 
-    unify i c'; 
-    unify o c in
+    unify_exn i c'; 
+    unify_exn o c in
+  
+  let sub env args m e = 
+    (handle sub_exn [(snd e)#loc]) env args m e in
 
   match dat with
-  | Cat [] -> unify i0 o0
+  | Cat [] -> unify [m0#loc] i0 o0
   | Cat ((_, m) :: _ as ws) -> 
     let i, _ = m#ty in
-    unify i0 i; 
+    unify [m#loc] i0 i; 
     let rec cat = function
       | (_, m1) as h :: (_, m2) :: _ as t -> 
         let _, o1 = m1#ty in
         let i2, _ = m2#ty in
         word env h; 
-        unify o1 i2; 
+        unify [m1#loc; m2#loc] o1 i2; 
         cat t
       | [_, m as x] -> 
         let _, o = m#ty in
         word env x; 
-        unify o0 o
+        unify [m#loc] o0 o
       | [] -> failwith "Unreachable" in
     cat ws
 

@@ -3,6 +3,8 @@ open Lexing
 
 type loc = position * position
 
+exception Prowl_error of string * loc list
+
 (* location ascription *)
 let ascr node loc = node, object
   method loc = loc

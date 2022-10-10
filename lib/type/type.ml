@@ -1,8 +1,6 @@
 open Batteries
 open Uref
 
-exception Type_error of string
-
 let pp_uref f z y = f z (uget y)
 
 module HT = Hashtbl.Make(struct
@@ -120,13 +118,7 @@ module rec T : S = struct
           Costack.unify o0 o1; 
           q
         | v, Var _ | Var _, v -> v
-        | u, v -> 
-          raise @@ Type_error begin
-            Printf.sprintf
-              "Type [%s] not compatible with [%s]"
-              (show__t u)
-              (show__t v)
-          end
+        | u, v -> raise @@ Error.Unification (u, v)
       end r
 
     let fresh () = 
@@ -141,6 +133,12 @@ module rec T : S = struct
     
   end
 
+end
+
+and Error : sig
+  exception Unification of T.Var._t * T.Var._t
+end = struct
+  exception Unification of T.Var._t * T.Var._t
 end
 
 include T
