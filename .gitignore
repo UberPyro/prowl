@@ -6,6 +6,12 @@ _perf
 .merlin
 *.corrected
 
+tree-sitter-prowl/bindings
+tree-sitter-prowl/node_modules
+tree-sitter-prowl/src
+tree-sitter-prowl/binding.gyp
+tree-sitter-prowl/Cargo.toml
+
 # vim swap files
 *.swp
 *.swo
