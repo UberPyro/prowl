@@ -1,4 +1,5 @@
 open Type
+open Hir
 
 module Env = Map.Make(struct
   type t
@@ -10,8 +11,8 @@ let rec expr env (dat, m0) =
   let open Costack in
   let i0, o0 = m0#ty in
   match dat with
-  | [] -> unify i0 o0
-  | (_, m) :: _ -> 
+  | Cat [] -> unify i0 o0
+  | Cat ((_, m) :: _ as ws) -> 
     let i, _ = m#ty in
     unify i0 i; 
     let rec cat = function
@@ -26,7 +27,8 @@ let rec expr env (dat, m0) =
         word env x; 
         unify o0 o
       | [] -> failwith "Unreachable" in
-    cat dat
+    cat ws
+  | _ -> failwith "todo"
 
 and word _ _ = failwith "todo"
 
