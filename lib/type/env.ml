@@ -24,8 +24,7 @@ let get k e =
 
 let set k (c1, c2) = Dict.add k (Special, c1, c2)
 let save k (c1, c2) = Dict.add k (General, c1, c2)
-let promote k e = begin 
-    Dict.find k e
-    |> (fun (_, c1, c2) -> General, c1, c2)
-    |> Dict.add k
-  end e
+let promote k e = 
+  e |> Dict.add k @@ begin fun (_, c1, c2) -> 
+    General, c1, c2
+  end @@ Dict.find k e
