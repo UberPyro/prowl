@@ -3,7 +3,7 @@ open Batteries
 type 'a expr = 'a _expr * 'a
 and 'a _expr = 
   | Cat of 'a word list
-  | Let of bool * string * string list * 'a expr * 'a expr
+  | Let of [`Seq | `Rec] * string * string list * 'a expr * 'a expr
   | As of string list * 'a expr
 and 'a word = 'a _word * 'a
 and 'a _word = 

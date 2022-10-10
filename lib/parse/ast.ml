@@ -13,7 +13,7 @@ and 'a _expr =
   | Cat of 'a word list
   | Bop of 'a expr * string * 'a expr
   | Uop of 'a expr * string
-  | Let of bool * string * string list * 'a expr * 'a expr
+  | Let of [`Seq | `Rec] * string * string list * 'a expr * 'a expr
   | As of string list * 'a expr
 and 'a word = 'a _word * 'a
 and 'a _word = 

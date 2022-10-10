@@ -8,18 +8,18 @@ let rec expr (env : Env.t) (dat, m0) =
 
   let i0, o0 = m0#ty in
 
-  let sub args e = 
+  let sub env args (i, o) e = 
     let s = Stack.fresh () in
     let c = Costack.(fresh () |> push s) in
     let env', s' = 
       List.fold_left begin fun (e0, s0) s -> 
         let v = Var.fresh () in
         Env.set s (lit v) e0, Stack.push v s0
-      end (Env.empty, s) args in
+      end (env, s) args in
     let c' = Costack.(fresh () |> push s') in
     expr env' e; 
-    unify i0 c'; 
-    unify o0 c in
+    unify i c'; 
+    unify o c in
 
   match dat with
   | Cat [] -> unify i0 o0
@@ -40,9 +40,19 @@ let rec expr (env : Env.t) (dat, m0) =
       | [] -> failwith "Unreachable" in
     cat ws
 
-  | As (args, e) -> sub args e
-  (* | Let (false, name, args, body, e) ->  *)
-  | _ -> failwith "todo"
+  | As (args, e) -> sub env args (i0, o0) e
+
+  | Let (`Seq, name, args, body, e) -> 
+    let m = Costack.(fresh (), fresh ()) in
+    sub env args m body; 
+    let env' = Env.save name m env in
+    expr env' e
+  
+  | Let (`Rec, name, args, body, e) -> 
+    let m = Costack.(fresh (), fresh ()) in
+    let env' = Env.save name m env in
+    sub env' args m body; 
+    expr env' e
 
 (* Id x must have its type added at some point *)
 and word env (dat, _) = 
