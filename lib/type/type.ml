@@ -16,7 +16,7 @@ let find_memo rf k ht =
   | Some v -> v
   | None -> rf ()
 
-let uupdate f = uref % f % uget
+let unew f = uref % f % uget
 
 module type UNIFIABLE = sig
   type t [@@deriving show]
@@ -90,7 +90,7 @@ module Seq (M : UNIFIABLE) = struct
     uref @@ Empty (next ())
   
   let rec refresh c = 
-    uupdate @@ function
+    unew @@ function
       | Empty r -> Empty (find_memo next r c)
       | Push (s, v) -> Push (refresh c s, M.refresh c v)
   
@@ -133,7 +133,7 @@ module rec T : S = struct
       uref @@ Var (next ())
     
     let refresh c = 
-      uupdate @@ function
+      unew @@ function
         | Var r -> Var (find_memo next r c)
         | Mono s -> Mono s
         | Duo (s, c1, c2) -> 
