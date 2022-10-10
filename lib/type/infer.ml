@@ -4,8 +4,10 @@ open Type
 open Hir
  
 let rec expr (env : Env.t) (dat, m0) = 
+
   let open Costack in
   let i0, o0 = m0#ty in
+
   match dat with
   | Cat [] -> unify i0 o0
   | Cat ((_, m) :: _ as ws) -> 
@@ -24,6 +26,7 @@ let rec expr (env : Env.t) (dat, m0) =
         unify o0 o
       | [] -> failwith "Unreachable" in
     cat ws
+
   | As (ss, e) -> 
     let s = Stack.fresh () in
     let c = Costack.(fresh () |> push s) in
@@ -36,6 +39,7 @@ let rec expr (env : Env.t) (dat, m0) =
     expr env' e; 
     unify i0 c'; 
     unify o0 c
+    
   (* Todo *)
   (* | Let (false, name, args, body, e) ->  *)
   | _ -> failwith "todo"
