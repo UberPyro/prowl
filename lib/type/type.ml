@@ -20,6 +20,7 @@ module type S = sig
       | Duo of string * Costack.t * Costack.t
       [@@deriving show]
     val unify : t -> t -> unit
+    val fresh : unit -> t
   end
 
   and Stack : sig
@@ -109,6 +110,9 @@ module rec T : S = struct
               (show__t v)
           end
       end r
+
+    let fresh () = 
+      uref @@ Var (VarC.fresh ())
     
   end
 

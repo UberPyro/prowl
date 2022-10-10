@@ -1,8 +1,10 @@
+open Batteries
+
 open Type
 open Hir
 
 module Env = Map.Make(struct
-  type t
+  type t = string
   let compare = compare
 end)
 
@@ -28,6 +30,18 @@ let rec expr env (dat, m0) =
         unify o0 o
       | [] -> failwith "Unreachable" in
     cat ws
+  | As (ss, e) -> 
+    let s = Stack.fresh () in
+    let c = Costack.(fresh () |> push s) in
+    let env', s' = 
+      List.fold_left begin fun (e0, s0) s -> 
+        let v = Var.fresh () in
+        Env.add s (lit v) e0, Stack.push v s0
+      end (Env.empty, s) ss in
+    let c' = Costack.(fresh () |> push s') in
+    expr env' e; 
+    unify i0 c'; 
+    unify o0 c
   | _ -> failwith "todo"
 
 and word _ _ = failwith "todo"

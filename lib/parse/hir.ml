@@ -4,7 +4,7 @@ type 'a expr = 'a _expr * 'a
 and 'a _expr = 
   | Cat of 'a word list
   | Let of bool * string * string list * 'a expr * 'a expr
-  | As of string * string list * 'a expr
+  | As of string list * 'a expr
 and 'a word = 'a _word * 'a
 and 'a _word = 
   | Int of int
@@ -18,7 +18,7 @@ module Ast_to_hir = struct
   and _expr : 'a Ast._expr -> 'a _expr = function
     | Cat ws -> Cat (List.map word ws |> List.flatten)
     | Let (b, s, ss, e1, e2) -> Let (b, s, ss, expr e1, expr e2)
-    | As (s, ss, e) -> As (s, ss, expr e)
+    | As (ss, e) -> As (ss, expr e)
     | Bop (e1, bop, e2) -> Cat [
       Quote (expr e1), snd e1; 
       Quote (expr e2), snd e2; 
