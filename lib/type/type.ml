@@ -5,9 +5,24 @@ exception Type_error of string
 
 let pp_uref f z y = f z (uget y)
 
+module HT = Hashtbl.Make(struct
+  type t = int
+  let hash = Hashtbl.hash
+  let equal = (=)
+end)
+
+let find_memo rf k ht = 
+  match HT.find_option ht k with
+  | Some v -> v
+  | None -> rf ()
+
+let uupdate f = uref % f % uget
+
 module type UNIFIABLE = sig
   type t [@@deriving show]
   val unify : t -> t -> unit
+  val fresh : unit -> t
+  val refresh : int HT.t -> t -> t
 end
 
 module type S = sig
@@ -21,6 +36,7 @@ module type S = sig
       [@@deriving show]
     val unify : t -> t -> unit
     val fresh : unit -> t
+    val refresh : int HT.t -> t -> t
   end
 
   and Stack : sig
@@ -31,6 +47,7 @@ module type S = sig
       [@@deriving show]
     val unify : t -> t -> unit
     val fresh : unit -> t
+    val refresh : int HT.t -> t -> t
     val push : Var.t -> t -> t
   end
 
@@ -42,18 +59,14 @@ module type S = sig
       [@@deriving show]
     val unify : t -> t -> unit
     val fresh : unit -> t
+    val refresh : int HT.t -> t -> t
     val push : Stack.t -> t -> t
   end
 
 end
 
-module Counter () = struct
-  let count = ref (-1)
-  let fresh () = incr count; !count
-end
-
-module VarC = Counter ()
-module SeqC = Counter ()
+let count = ref (-1)
+let next () = incr count; !count
 
 module Seq (M : UNIFIABLE) = struct
 
@@ -74,7 +87,12 @@ module Seq (M : UNIFIABLE) = struct
   end r
 
   let fresh () = 
-    uref @@ Empty (SeqC.fresh ())
+    uref @@ Empty (next ())
+  
+  let rec refresh c = 
+    uupdate @@ function
+      | Empty r -> Empty (find_memo next r c)
+      | Push (s, v) -> Push (refresh c s, M.refresh c v)
   
   let push s v = 
     uref @@ Push (v, s)
@@ -112,7 +130,14 @@ module rec T : S = struct
       end r
 
     let fresh () = 
-      uref @@ Var (VarC.fresh ())
+      uref @@ Var (next ())
+    
+    let refresh c = 
+      uupdate @@ function
+        | Var r -> Var (find_memo next r c)
+        | Mono s -> Mono s
+        | Duo (s, c1, c2) -> 
+          Duo (s, Costack.refresh c c1, Costack.refresh c c2)
     
   end
 
