@@ -8,7 +8,6 @@ module Env = Map.Make(struct
   let compare = compare
 end)
 
-(* todo: generalize this beyond Cat *)
 let rec expr env (dat, m0) = 
   let open Costack in
   let i0, o0 = m0#ty in
@@ -42,10 +41,15 @@ let rec expr env (dat, m0) =
     expr env' e; 
     unify i0 c'; 
     unify o0 c
+
+  (* next is let *)
+  (* consider changing Env to a custom data structure
+     to make let generalization easier *)
   | _ -> failwith "todo"
 
-and word _ _ = failwith "todo"
-
-(* and word env (dat, _) = 
+(* Id x must have its type added at some point *)
+and word env (dat, _) = 
   match dat with
-  |  *)
+  | Int _ | Char _ | Id _ -> ()
+  | Quote e -> expr env e
+  | List es -> List.iter (expr env) es
