@@ -1,5 +1,5 @@
 const id_tail = "(\-?[A-Za-z0-9_\'])*";
-const sym = "[~!@#$%^&*\\-=+\\.?:<>|/\\\\]+";
+const sym = "[~!@#$%^&*\\-=+\\.?:<>|/\\\\]*";
 const comment = /([^*\/]|\*[^\/]|\/[^*]|[ \t\n])*[^*\/]/;
 
 module.exports = grammar({
@@ -67,12 +67,13 @@ module.exports = grammar({
       prec(0, seq(
         "let", optional("rec"), 
         repeat1($.id), "=", 
-        $.expr, ";", 
+        $.expr, "in", 
         $.expr
       )), 
       prec(0, seq(
         "as", repeat1($.id), "->", $.expr
       )), 
+      prec(-1, sep1("|", $.expr)),
     ), 
 
     word: $ => choice(
@@ -81,6 +82,9 @@ module.exports = grammar({
       seq("[", $.expr, "]"), 
       seq("(", $.expr, ")"), 
       seq("{", sep1(",", $.expr), "}"), 
+      seq("[", "]"), 
+      seq("(", ")"), 
+      seq("{", "}"), 
       $.string, 
       $.id, 
       seq("(", $.bop, $.expr, ")"), 
