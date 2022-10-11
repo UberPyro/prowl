@@ -72,5 +72,5 @@ let rec expr (env : Env.t) (dat, m0) =
 and word env (dat, _) = 
   match dat with
   | Int _ | Char _ | Id _ -> ()
-  | Quote e -> expr env e
+  | Quote e | Group e -> expr env e
   | List es -> List.iter (expr env) es
