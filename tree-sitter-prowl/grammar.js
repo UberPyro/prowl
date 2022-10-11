@@ -13,7 +13,7 @@ module.exports = grammar({
   word: $ => $.id, 
 
   rules: {
-    source_file: $ => 'hello', 
+    source_file: $ => optional($.expr), 
 
     id: $ => new RegExp("[a-z]" + id_tail), 
     int: $ => /0|[1-9][0-9]*/, 
@@ -73,7 +73,7 @@ module.exports = grammar({
       prec(0, seq(
         "as", repeat1($.id), "->", $.expr
       )), 
-      prec(-1, sep1("|", $.expr)),
+      prec.left(-1, seq($.expr, "|", $.expr)),
     ), 
 
     word: $ => choice(
