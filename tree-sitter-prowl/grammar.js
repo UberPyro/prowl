@@ -21,13 +21,14 @@ module.exports = grammar({
     char: $ => seq("'", optional($.character_content), "'"),
 
     uop: $ => new RegExp("[~!?]" + sym), 
-    op1: $ => new RegExp("[$&|=]" + sym), 
+    op0: $ => new RegExp("\\|" + sym), 
+    op1: $ => new RegExp("[$&=]" + sym), 
     op2: $ => new RegExp("[@:]" + sym), 
     op3: $ => new RegExp("[+\\-]" + sym), 
     op4: $ => new RegExp("[*\\/%]" + sym), 
     op5: $ => new RegExp("[\\.\\^#]" + sym), 
 
-    bop: $ => choice($.op1, $.op2, $.op3, $.op4, $.op5), 
+    bop: $ => choice($.op0, $.op1, $.op2, $.op3, $.op4, $.op5), 
 
     string_content: $ => choice(
       token.immediate(' '),
@@ -73,7 +74,7 @@ module.exports = grammar({
       prec(0, seq(
         "as", repeat1($.id), "->", $.expr
       )), 
-      prec.left(-1, seq($.expr, "|", $.expr)),
+      prec.left(-1, seq($.expr, $.op0, $.expr)),
     ), 
 
     word: $ => choice(
