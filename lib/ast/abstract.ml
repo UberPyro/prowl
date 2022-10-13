@@ -98,3 +98,7 @@ and expr : CST.expr -> <span: Span.t> Ast.expr = function
 and bop_expr ce1 (_, x) ce2 = 
   let e1, e2 = expr ce1, expr ce2 in
   ascr (Bop (e1, x, e2)) (node_join e1 e2)
+
+let source_file = function
+  | Some e -> expr e
+  | None -> ascr (Cat []) (make_span 0 0 0 0)
