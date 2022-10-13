@@ -12,6 +12,9 @@ tree-sitter-prowl/src
 tree-sitter-prowl/binding.gyp
 tree-sitter-prowl/Cargo.toml
 
+tmp
+ocaml-tree-sitter-core
+
 # vim swap files
 *.swp
 *.swo

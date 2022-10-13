@@ -1,5 +1,5 @@
 (include_subdirs unqualified)
 (library
  (name prowl)
- (preprocess (pps ppx_deriving.show))
- (libraries batteries))
+ (preprocess (pps ppx_deriving.show ppx_sexp_conv))
+ (libraries batteries sexplib tree-sitter.run))
