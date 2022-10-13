@@ -2,6 +2,9 @@ const id_tail = "(\-?[A-Za-z0-9_\'])*";
 const sym = "[~!@#$%^&*\\-=+\\.?:<>|/\\\\]*";
 const comment = /([^*\/]|\*[^\/]|\/[^*]|[ \t\n])*[^*\/]/;
 
+const lpr = new RegExp("\\(|beg")
+const rpr = new RegExp("\\)|end")
+
 module.exports = grammar({
   name: 'prowl',
 
@@ -81,17 +84,17 @@ module.exports = grammar({
       $.int, 
       $.char, 
       seq("[", $.expr, "]"), 
-      seq("(", $.expr, ")"), 
+      seq(lpr, $.expr, rpr), 
       seq("{", sep1(",", $.expr), "}"), 
       seq("[", "]"), 
-      seq("(", ")"), 
+      seq(lpr, rpr), 
       seq("{", "}"), 
       $.string, 
       $.id, 
-      seq("(", $.bop, $.expr, ")"), 
-      seq("(", $.expr, $.bop, ")"), 
-      seq("(", $.bop, ")"), 
-      seq("(", $.uop, ")"), 
+      seq(lpr, $.bop, $.expr, rpr), 
+      seq(lpr, $.expr, $.bop, rpr), 
+      seq(lpr, $.bop, rpr), 
+      seq(lpr, $.uop, rpr), 
       seq("[", $.bop, $.expr, "]"), 
       seq("[", $.expr, $.bop, "]"), 
       seq("[", $.bop, "]"), 
