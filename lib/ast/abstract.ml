@@ -16,11 +16,11 @@ let string_content : CST.string_content -> string * Span.t = function
   | `Esc_seq _ -> failwith "Todo escapes"
 
 let bop : CST.bop -> string = function
-  | `Op0 (_, s) -> s
-  | `Op1 (_, s) -> s
-  | `Op2 (_, s) -> s
-  | `Op3 (_, s) -> s
-  | `Op4 (_, s) -> s
+  | `Op0 (_, s)
+  | `Op1 (_, s)
+  | `Op2 (_, s)
+  | `Op3 (_, s)
+  | `Op4 (_, s)
   | `Op5 (_, s) -> s
 
 let rec word : CST.word -> <span: Span.t> Ast.word = function
