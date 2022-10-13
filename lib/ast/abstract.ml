@@ -1,7 +1,6 @@
 open Batteries
 
 open Span
-(* open CST *)
 open Ast
 
 let j (x, _) (y, _) = join x y
