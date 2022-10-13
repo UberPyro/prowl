@@ -3,14 +3,14 @@ open Batteries
 open Type
 open Hir
 
-let handle f locs = try f with
+let handle f spans = try f with
   | Error.Unification (u, v) -> 
     raise @@ Ast.Prowl_error begin
       Printf.sprintf
         "Type Error: Cannot unify type [%s] with type [%s]."
         (Var.show__t u)
         (Var.show__t v), 
-      locs
+      spans
     end
 
 let unify_exn = Costack.unify
@@ -34,24 +34,24 @@ let rec expr (env : Env.t) (dat, m0) =
     unify_exn o c in
   
   let sub env args m e = 
-    (handle sub_exn [(snd e)#loc]) env args m e in
+    (handle sub_exn [(snd e)#span]) env args m e in
 
   match dat with
-  | Cat [] -> unify [m0#loc] i0 o0
+  | Cat [] -> unify [m0#span] i0 o0
   | Cat ((_, m) :: _ as ws) -> 
     let i, _ = m#ty in
-    unify [m#loc] i0 i; 
+    unify [m#span] i0 i; 
     let rec cat = function
       | (_, m1) as h :: (_, m2) :: _ as t -> 
         let _, o1 = m1#ty in
         let i2, _ = m2#ty in
         word env h; 
-        unify [m1#loc; m2#loc] o1 i2; 
+        unify [m1#span; m2#span] o1 i2; 
         cat t
       | [_, m as x] -> 
         let _, o = m#ty in
         word env x; 
-        unify [m#loc] o0 o
+        unify [m#span] o0 o
       | [] -> failwith "Unreachable" in
     cat ws
 

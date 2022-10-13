@@ -1,13 +1,10 @@
-open Batteries
-open Lexing
+open Span
 
-type loc = position * position
+exception Prowl_error of string * span list
 
-exception Prowl_error of string * loc list
-
-(* location ascription *)
-let ascr node loc = node, object
-  method loc = loc
+(* span ascription *)
+let ascr node span = node, object
+  method span = span
 end
 
 type 'a expr = 'a _expr * 'a
