@@ -30,7 +30,7 @@ let map_l (env : env) (tok : CST.l) =
   (* pattern \(|beg *) token env tok
 
 let map_op0 (env : env) (tok : CST.op0) =
-  (* pattern \|[~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+  (* pattern \|&[~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
 
 let map_id (env : env) (tok : CST.id) =
   (* pattern "[a-z](-?[A-Za-z0-9_'])*" *) token env tok
@@ -42,7 +42,7 @@ let map_character_content1 (env : env) (tok : CST.character_content1) =
   (* pattern "[^\\\\']" *) token env tok
 
 let map_op1 (env : env) (tok : CST.op1) =
-  (* pattern [$&=][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+  (* pattern [$=][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
 
 let map_r (env : env) (tok : CST.r) =
   (* pattern \)|end *) token env tok
@@ -100,9 +100,9 @@ let map_escape_sequence (env : env) (x : CST.escape_sequence) =
 let map_bop (env : env) (x : CST.bop) =
   (match x with
   | `Op0 tok ->
-      (* pattern \|[~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+      (* pattern \|&[~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
   | `Op1 tok ->
-      (* pattern [$&=][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+      (* pattern [$=][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
   | `Op2 tok ->
       (* pattern [@:][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
   | `Op3 tok ->
@@ -170,7 +170,7 @@ let rec map_expr (env : env) (x : CST.expr) =
   | `Expr_op1_expr (v1, v2, v3) ->
       let v1 = map_expr env v1 in
       let v2 =
-        (* pattern [$&=][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env v2
+        (* pattern [$=][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env v2
       in
       let v3 = map_expr env v3 in
       todo env (v1, v2, v3)
@@ -200,7 +200,7 @@ let rec map_expr (env : env) (x : CST.expr) =
   | `Expr_op0_expr (v1, v2, v3) ->
       let v1 = map_expr env v1 in
       let v2 =
-        (* pattern \|[~!@#$%^&*\-=+\.?:<>|/\\]* *) token env v2
+        (* pattern \|&[~!@#$%^&*\-=+\.?:<>|/\\]* *) token env v2
       in
       let v3 = map_expr env v3 in
       todo env (v1, v2, v3)

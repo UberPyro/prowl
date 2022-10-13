@@ -17,7 +17,7 @@ type string_content1 = Token.t (* pattern "[^\\\\\"]+" *)
 type l = Token.t (* pattern \(|beg *)
 [@@deriving sexp_of]
 
-type op0 = Token.t (* pattern \|[~!@#$%^&*\-=+\.?:<>|/\\]* *)
+type op0 = Token.t (* pattern \|&[~!@#$%^&*\-=+\.?:<>|/\\]* *)
 [@@deriving sexp_of]
 
 type id = Token.t (* pattern "[a-z](-?[A-Za-z0-9_'])*" *)
@@ -29,7 +29,7 @@ type escape3 = Token.t (* pattern \\x[0-9A-Fa-f][0-9A-Fa-f] *)
 type character_content1 = Token.t (* pattern "[^\\\\']" *)
 [@@deriving sexp_of]
 
-type op1 = Token.t (* pattern [$&=][~!@#$%^&*\-=+\.?:<>|/\\]* *)
+type op1 = Token.t (* pattern [$=][~!@#$%^&*\-=+\.?:<>|/\\]* *)
 [@@deriving sexp_of]
 
 type r = Token.t (* pattern \)|end *)
