@@ -5,6 +5,7 @@ open Span
 open Ast
 
 let j (x, _) (y, _) = join x y
+let node_join (_, m1) (_, m2) = join m1#span m2#span
 
 let express _w t = ascr (Cat [ascr _w t]) t
 
@@ -65,4 +66,25 @@ let rec word : CST.word -> <span: Span.t> Ast.word = function
   | `LBRACK_uop_RBRACK (l, (_, x), r) -> 
     ascr (Quote (express (Id x) (j l r))) (j l r)
 
-and expr _ = failwith "todo"
+and expr : CST.expr -> <span: Span.t> Ast.expr = function
+  | `Rep1_word xs -> 
+    let ws = List.map word xs in
+    let t = node_join (List.hd ws) (List.last ws) in
+    ascr (Cat ws) t
+  | `Expr_op5_expr (ce1, b, ce2)
+  | `Expr_op4_expr (ce1, b, ce2)
+  | `Expr_op3_expr (ce1, b, ce2) 
+  | `Expr_op2_expr (ce1, b, ce2)
+  | `Expr_op1_expr (ce1, b, ce2)
+  | `Expr_op0_expr (ce1, b, ce2) -> bop_expr ce1 b ce2
+  | `Expr_uop (ce, (t, x)) -> 
+    let e = expr ce in
+    ascr (Uop (e, x)) (join (snd e)#span t)
+  (* | `Let_opt_rec_rep1_id_EQ_expr_in_expr (l, rc, ids, _, e1, _, e2) ->  *)
+
+
+  | _ -> failwith "Todo: implement"
+
+and bop_expr ce1 (_, x) ce2 = 
+  let e1, e2 = expr ce1, expr ce2 in
+  ascr (Bop (e1, x, e2)) (node_join e1 e2)
