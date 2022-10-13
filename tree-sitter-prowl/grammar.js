@@ -1,9 +1,5 @@
 const id_tail = "(\-?[A-Za-z0-9_\'])*";
 const sym = "[~!@#$%^&*\\-=+\\.?:<>|/\\\\]*";
-const comment = /([^*\/]|\*[^\/]|\/[^*]|[ \t\n])*[^*\/]/;
-
-const lpr = new RegExp("\\(|beg")
-const rpr = new RegExp("\\)|end")
 
 module.exports = grammar({
   name: 'prowl',
@@ -33,30 +29,40 @@ module.exports = grammar({
 
     bop: $ => choice($.op0, $.op1, $.op2, $.op3, $.op4, $.op5), 
 
+    l: $ => new RegExp("\\(|beg"), 
+    r: $ => new RegExp("\\)|end"), 
+
+    string_content1: $ => /[^\\"]+/, 
     string_content: $ => choice(
       token.immediate(' '),
       token.immediate('\n'),
       token.immediate('\t'),
-      /[^\\"]+/,
+      $.string_content1,
       $.escape_sequence
     ),
 
+    character_content1: $ => /[^\\']/,
     character_content: $ => choice(
-      /[^\\']/,
+      $.character_content1,
       $.escape_sequence
     ),
 
+    escape1: $ => /\\[\\"'ntbr ]/,
+    escape2: $ => /\\[0-9][0-9][0-9]/,
+    escape3: $ => /\\x[0-9A-Fa-f][0-9A-Fa-f]/, 
+    escape4: $ => /\\o[0-3][0-7][0-7]/, 
     escape_sequence: $ => choice(
-      /\\[\\"'ntbr ]/,
-      /\\[0-9][0-9][0-9]/,
-      /\\x[0-9A-Fa-f][0-9A-Fa-f]/,
-      /\\o[0-3][0-7][0-7]/
+      $.escape1, 
+      $.escape2, 
+      $.escape3, 
+      $.escape4, 
     ),
 
+    comment_contents: $ => /([^*\/]|\*[^\/]|\/[^*]|[ \t\n])*[^*\/]/, 
     comment: $ => seq(
       "/*", choice(
-        comment, 
-        comment, $.comment, comment
+        $.comment_contents, 
+        $.comment_contents, $.comment, $.comment_contents
       ), "*/"
     ),
 
@@ -84,17 +90,17 @@ module.exports = grammar({
       $.int, 
       $.char, 
       seq("[", $.expr, "]"), 
-      seq(lpr, $.expr, rpr), 
+      seq($.l, $.expr, $.r), 
       seq("{", sep1(",", $.expr), "}"), 
       seq("[", "]"), 
-      seq(lpr, rpr), 
+      seq($.l, $.r), 
       seq("{", "}"), 
       $.string, 
       $.id, 
-      seq(lpr, $.bop, $.expr, rpr), 
-      seq(lpr, $.expr, $.bop, rpr), 
-      seq(lpr, $.bop, rpr), 
-      seq(lpr, $.uop, rpr), 
+      seq($.l, $.bop, $.expr, $.r), 
+      seq($.l, $.expr, $.bop, $.r), 
+      seq($.l, $.bop, $.r), 
+      seq($.l, $.uop, $.r), 
       seq("[", $.bop, $.expr, "]"), 
       seq("[", $.expr, $.bop, "]"), 
       seq("[", $.bop, "]"), 

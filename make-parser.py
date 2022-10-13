@@ -11,5 +11,6 @@ if __name__ == "__main__":
 
     os.system("ocaml-tree-sitter gen --out-dir=tmp prowl tree-sitter-prowl/src/grammar.json")
     shutil.copytree("tmp/lib", "lib/parse")
+    shutil.rmtree("tmp")
 
     os.system("dune build")

@@ -20,62 +20,81 @@ let blank (env : env) () =
 let todo (env : env) _ =
    failwith "not implemented"
 
-let map_escape_sequence (env : env) (x : CST.escape_sequence) =
-  (match x with
-  | `Blank () -> todo env ()
-  )
+let map_op3 (env : env) (tok : CST.op3) =
+  (* pattern [+\-][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+
+let map_string_content1 (env : env) (tok : CST.string_content1) =
+  (* pattern "[^\\\\\"]+" *) token env tok
+
+let map_l (env : env) (tok : CST.l) =
+  (* pattern \(|beg *) token env tok
+
+let map_op0 (env : env) (tok : CST.op0) =
+  (* pattern \|[~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+
+let map_id (env : env) (tok : CST.id) =
+  (* pattern "[a-z](-?[A-Za-z0-9_'])*" *) token env tok
+
+let map_escape3 (env : env) (tok : CST.escape3) =
+  (* pattern \\x[0-9A-Fa-f][0-9A-Fa-f] *) token env tok
+
+let map_character_content1 (env : env) (tok : CST.character_content1) =
+  (* pattern "[^\\\\']" *) token env tok
+
+let map_op1 (env : env) (tok : CST.op1) =
+  (* pattern [$&=][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+
+let map_r (env : env) (tok : CST.r) =
+  (* pattern \)|end *) token env tok
+
+let map_uop (env : env) (tok : CST.uop) =
+  (* pattern [~!?][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+
+let map_escape4 (env : env) (tok : CST.escape4) =
+  (* pattern \\o[0-3][0-7][0-7] *) token env tok
+
+let map_int_ (env : env) (tok : CST.int_) =
+  (* pattern 0|[1-9][0-9]* *) token env tok
 
 let map_op4 (env : env) (tok : CST.op4) =
   (* pattern [*\/%][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
 
-let map_op0 (env : env) (tok : CST.op0) =
-  (* pattern \|[~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+let map_op2 (env : env) (tok : CST.op2) =
+  (* pattern [@:][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+
+let map_escape1 (env : env) (tok : CST.escape1) =
+  (* pattern "\\\\[\\\\\"'ntbr ]" *) token env tok
+
+let map_comment_contents (env : env) (tok : CST.comment_contents) =
+  (* pattern ([^*\/]|\*[^\/]|\/[^*]|[ \t\n])*[^*\/] *) token env tok
+
+let map_escape2 (env : env) (tok : CST.escape2) =
+  (* pattern \\[0-9][0-9][0-9] *) token env tok
+
+let map_op5 (env : env) (tok : CST.op5) =
+  (* pattern [\.\^#][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
 
 let rec map_comment (env : env) ((v1, v2, v3) : CST.comment) =
   let v1 = (* "/*" *) token env v1 in
   let v2 =
     (match v2 with
-    | `Blank () -> todo env ()
+    | `Comm_content tok ->
+        (* pattern ([^*\/]|\*[^\/]|\/[^*]|[ \t\n])*[^*\/] *) token env tok
     | `Comm x -> map_comment env x
     )
   in
   let v3 = (* "*/" *) token env v3 in
   todo env (v1, v2, v3)
 
-let map_op3 (env : env) (tok : CST.op3) =
-  (* pattern [+\-][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
-
-let map_op1 (env : env) (tok : CST.op1) =
-  (* pattern [$&=][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
-
-let map_op5 (env : env) (tok : CST.op5) =
-  (* pattern [\.\^#][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
-
-let map_uop (env : env) (tok : CST.uop) =
-  (* pattern [~!?][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
-
-let map_id (env : env) (tok : CST.id) =
-  (* pattern "[a-z](-?[A-Za-z0-9_'])*" *) token env tok
-
-let map_op2 (env : env) (tok : CST.op2) =
-  (* pattern [@:][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
-
-let map_int_ (env : env) (tok : CST.int_) =
-  (* pattern 0|[1-9][0-9]* *) token env tok
-
-let map_string_content (env : env) (x : CST.string_content) =
+let map_escape_sequence (env : env) (x : CST.escape_sequence) =
   (match x with
-  | `SPACE tok -> (* " " *) token env tok
-  | `LF tok -> (* "\n" *) token env tok
-  | `HT tok -> (* "\t" *) token env tok
-  | `Blank () -> todo env ()
-  | `Esc_seq x -> map_escape_sequence env x
-  )
-
-let map_character_content (env : env) (x : CST.character_content) =
-  (match x with
-  | `Blank () -> todo env ()
-  | `Esc_seq x -> map_escape_sequence env x
+  | `Esc1 tok ->
+      (* pattern "\\\\[\\\\\"'ntbr ]" *) token env tok
+  | `Esc2 tok -> (* pattern \\[0-9][0-9][0-9] *) token env tok
+  | `Esc3 tok ->
+      (* pattern \\x[0-9A-Fa-f][0-9A-Fa-f] *) token env tok
+  | `Esc4 tok ->
+      (* pattern \\o[0-3][0-7][0-7] *) token env tok
   )
 
 let map_bop (env : env) (x : CST.bop) =
@@ -92,6 +111,23 @@ let map_bop (env : env) (x : CST.bop) =
       (* pattern [*\/%][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
   | `Op5 tok ->
       (* pattern [\.\^#][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env tok
+  )
+
+let map_string_content (env : env) (x : CST.string_content) =
+  (match x with
+  | `SPACE tok -> (* " " *) token env tok
+  | `LF tok -> (* "\n" *) token env tok
+  | `HT tok -> (* "\t" *) token env tok
+  | `Str_content1 tok ->
+      (* pattern "[^\\\\\"]+" *) token env tok
+  | `Esc_seq x -> map_escape_sequence env x
+  )
+
+let map_character_content (env : env) (x : CST.character_content) =
+  (match x with
+  | `Char_content1 tok ->
+      (* pattern "[^\\\\']" *) token env tok
+  | `Esc_seq x -> map_escape_sequence env x
   )
 
 let rec map_expr (env : env) (x : CST.expr) =
@@ -187,10 +223,10 @@ and map_word (env : env) (x : CST.word) =
       let v2 = map_expr env v2 in
       let v3 = (* "]" *) token env v3 in
       todo env (v1, v2, v3)
-  | `Blank_expr_blank (v1, v2, v3) ->
-      let v1 = blank env v1 in
+  | `L_expr_r (v1, v2, v3) ->
+      let v1 = (* pattern \(|beg *) token env v1 in
       let v2 = map_expr env v2 in
-      let v3 = blank env v3 in
+      let v3 = (* pattern \)|end *) token env v3 in
       todo env (v1, v2, v3)
   | `LCURL_opt_COMMA_expr_rep_COMMA_expr_opt_COMMA_RCURL (v1, v2, v3, v4, v5, v6) ->
       let v1 = (* "{" *) token env v1 in
@@ -218,9 +254,9 @@ and map_word (env : env) (x : CST.word) =
       let v1 = (* "[" *) token env v1 in
       let v2 = (* "]" *) token env v2 in
       todo env (v1, v2)
-  | `Blank_blank (v1, v2) ->
-      let v1 = blank env v1 in
-      let v2 = blank env v2 in
+  | `L_r (v1, v2) ->
+      let v1 = (* pattern \(|beg *) token env v1 in
+      let v2 = (* pattern \)|end *) token env v2 in
       todo env (v1, v2)
   | `LCURL_RCURL (v1, v2) ->
       let v1 = (* "{" *) token env v1 in
@@ -233,29 +269,29 @@ and map_word (env : env) (x : CST.word) =
       todo env (v1, v2, v3)
   | `Id tok ->
       (* pattern "[a-z](-?[A-Za-z0-9_'])*" *) token env tok
-  | `Blank_bop_expr_blank (v1, v2, v3, v4) ->
-      let v1 = blank env v1 in
+  | `L_bop_expr_r (v1, v2, v3, v4) ->
+      let v1 = (* pattern \(|beg *) token env v1 in
       let v2 = map_bop env v2 in
       let v3 = map_expr env v3 in
-      let v4 = blank env v4 in
+      let v4 = (* pattern \)|end *) token env v4 in
       todo env (v1, v2, v3, v4)
-  | `Blank_expr_bop_blank (v1, v2, v3, v4) ->
-      let v1 = blank env v1 in
+  | `L_expr_bop_r (v1, v2, v3, v4) ->
+      let v1 = (* pattern \(|beg *) token env v1 in
       let v2 = map_expr env v2 in
       let v3 = map_bop env v3 in
-      let v4 = blank env v4 in
+      let v4 = (* pattern \)|end *) token env v4 in
       todo env (v1, v2, v3, v4)
-  | `Blank_bop_blank (v1, v2, v3) ->
-      let v1 = blank env v1 in
+  | `L_bop_r (v1, v2, v3) ->
+      let v1 = (* pattern \(|beg *) token env v1 in
       let v2 = map_bop env v2 in
-      let v3 = blank env v3 in
+      let v3 = (* pattern \)|end *) token env v3 in
       todo env (v1, v2, v3)
-  | `Blank_uop_blank (v1, v2, v3) ->
-      let v1 = blank env v1 in
+  | `L_uop_r (v1, v2, v3) ->
+      let v1 = (* pattern \(|beg *) token env v1 in
       let v2 =
         (* pattern [~!?][~!@#$%^&*\-=+\.?:<>|/\\]* *) token env v2
       in
-      let v3 = blank env v3 in
+      let v3 = (* pattern \)|end *) token env v3 in
       todo env (v1, v2, v3)
   | `LBRACK_bop_expr_RBRACK (v1, v2, v3, v4) ->
       let v1 = (* "[" *) token env v1 in

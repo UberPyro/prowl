@@ -33,36 +33,30 @@ let extras = [
 ]
 
 let children_regexps : (string * Run.exp option) list = [
+  "op3", None;
+  "string_content1", None;
+  "l", None;
+  "op0", None;
+  "id", None;
+  "escape3", None;
+  "character_content1", None;
+  "op1", None;
+  "r", None;
+  "uop", None;
+  "escape4", None;
+  "int", None;
+  "op4", None;
+  "op2", None;
+  "escape1", None;
+  "escape2", None;
+  "op5", None;
   "escape_sequence",
   Some (
     Alt [|
-      Nothing;
-    |];
-  );
-  "op4", None;
-  "op0", None;
-  "op3", None;
-  "op1", None;
-  "op5", None;
-  "uop", None;
-  "id", None;
-  "op2", None;
-  "int", None;
-  "string_content",
-  Some (
-    Alt [|
-      Token (Literal " ");
-      Token (Literal "\n");
-      Token (Literal "\t");
-      Nothing;
-      Token (Name "escape_sequence");
-    |];
-  );
-  "character_content",
-  Some (
-    Alt [|
-      Nothing;
-      Token (Name "escape_sequence");
+      Token (Name "escape1");
+      Token (Name "escape2");
+      Token (Name "escape3");
+      Token (Name "escape4");
     |];
   );
   "bop",
@@ -74,6 +68,23 @@ let children_regexps : (string * Run.exp option) list = [
       Token (Name "op3");
       Token (Name "op4");
       Token (Name "op5");
+    |];
+  );
+  "string_content",
+  Some (
+    Alt [|
+      Token (Literal " ");
+      Token (Literal "\n");
+      Token (Literal "\t");
+      Token (Name "string_content1");
+      Token (Name "escape_sequence");
+    |];
+  );
+  "character_content",
+  Some (
+    Alt [|
+      Token (Name "character_content1");
+      Token (Name "escape_sequence");
     |];
   );
   "string",
@@ -170,9 +181,9 @@ let children_regexps : (string * Run.exp option) list = [
         Token (Literal "]");
       ];
       Seq [
-        Nothing;
+        Token (Name "l");
         Token (Name "expr");
-        Nothing;
+        Token (Name "r");
       ];
       Seq [
         Token (Literal "{");
@@ -196,8 +207,8 @@ let children_regexps : (string * Run.exp option) list = [
         Token (Literal "]");
       ];
       Seq [
-        Nothing;
-        Nothing;
+        Token (Name "l");
+        Token (Name "r");
       ];
       Seq [
         Token (Literal "{");
@@ -206,26 +217,26 @@ let children_regexps : (string * Run.exp option) list = [
       Token (Name "string");
       Token (Name "id");
       Seq [
-        Nothing;
+        Token (Name "l");
         Token (Name "bop");
         Token (Name "expr");
-        Nothing;
+        Token (Name "r");
       ];
       Seq [
-        Nothing;
+        Token (Name "l");
         Token (Name "expr");
         Token (Name "bop");
-        Nothing;
+        Token (Name "r");
       ];
       Seq [
-        Nothing;
+        Token (Name "l");
         Token (Name "bop");
-        Nothing;
+        Token (Name "r");
       ];
       Seq [
-        Nothing;
+        Token (Name "l");
         Token (Name "uop");
-        Nothing;
+        Token (Name "r");
       ];
       Seq [
         Token (Literal "[");
@@ -259,19 +270,17 @@ let children_regexps : (string * Run.exp option) list = [
   );
 ]
 
-let trans_escape_sequence ((kind, body) : mt) : CST.escape_sequence =
+let trans_op3 ((kind, body) : mt) : CST.op3 =
   match body with
-  | Children v ->
-      (match v with
-      | Alt (0, v) ->
-          `Blank (
-            Run.nothing v
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
+  | Leaf v -> v
+  | Children _ -> assert false
 
-let trans_op4 ((kind, body) : mt) : CST.op4 =
+let trans_string_content1 ((kind, body) : mt) : CST.string_content1 =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+let trans_l ((kind, body) : mt) : CST.l =
   match body with
   | Leaf v -> v
   | Children _ -> assert false
@@ -281,8 +290,17 @@ let trans_op0 ((kind, body) : mt) : CST.op0 =
   | Leaf v -> v
   | Children _ -> assert false
 
+let trans_id ((kind, body) : mt) : CST.id =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
 
-let trans_op3 ((kind, body) : mt) : CST.op3 =
+let trans_escape3 ((kind, body) : mt) : CST.escape3 =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+let trans_character_content1 ((kind, body) : mt) : CST.character_content1 =
   match body with
   | Leaf v -> v
   | Children _ -> assert false
@@ -292,7 +310,7 @@ let trans_op1 ((kind, body) : mt) : CST.op1 =
   | Leaf v -> v
   | Children _ -> assert false
 
-let trans_op5 ((kind, body) : mt) : CST.op5 =
+let trans_r ((kind, body) : mt) : CST.r =
   match body with
   | Leaf v -> v
   | Children _ -> assert false
@@ -302,12 +320,7 @@ let trans_uop ((kind, body) : mt) : CST.uop =
   | Leaf v -> v
   | Children _ -> assert false
 
-let trans_id ((kind, body) : mt) : CST.id =
-  match body with
-  | Leaf v -> v
-  | Children _ -> assert false
-
-let trans_op2 ((kind, body) : mt) : CST.op2 =
+let trans_escape4 ((kind, body) : mt) : CST.escape4 =
   match body with
   | Leaf v -> v
   | Children _ -> assert false
@@ -317,45 +330,52 @@ let trans_int_ ((kind, body) : mt) : CST.int_ =
   | Leaf v -> v
   | Children _ -> assert false
 
-let trans_string_content ((kind, body) : mt) : CST.string_content =
+let trans_op4 ((kind, body) : mt) : CST.op4 =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+let trans_op2 ((kind, body) : mt) : CST.op2 =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+let trans_escape1 ((kind, body) : mt) : CST.escape1 =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+
+let trans_escape2 ((kind, body) : mt) : CST.escape2 =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+let trans_op5 ((kind, body) : mt) : CST.op5 =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+
+let trans_escape_sequence ((kind, body) : mt) : CST.escape_sequence =
   match body with
   | Children v ->
       (match v with
       | Alt (0, v) ->
-          `SPACE (
-            Run.trans_token (Run.matcher_token v)
+          `Esc1 (
+            trans_escape1 (Run.matcher_token v)
           )
       | Alt (1, v) ->
-          `LF (
-            Run.trans_token (Run.matcher_token v)
+          `Esc2 (
+            trans_escape2 (Run.matcher_token v)
           )
       | Alt (2, v) ->
-          `HT (
-            Run.trans_token (Run.matcher_token v)
+          `Esc3 (
+            trans_escape3 (Run.matcher_token v)
           )
       | Alt (3, v) ->
-          `Blank (
-            Run.nothing v
-          )
-      | Alt (4, v) ->
-          `Esc_seq (
-            trans_escape_sequence (Run.matcher_token v)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_character_content ((kind, body) : mt) : CST.character_content =
-  match body with
-  | Children v ->
-      (match v with
-      | Alt (0, v) ->
-          `Blank (
-            Run.nothing v
-          )
-      | Alt (1, v) ->
-          `Esc_seq (
-            trans_escape_sequence (Run.matcher_token v)
+          `Esc4 (
+            trans_escape4 (Run.matcher_token v)
           )
       | _ -> assert false
       )
@@ -388,6 +408,50 @@ let trans_bop ((kind, body) : mt) : CST.bop =
       | Alt (5, v) ->
           `Op5 (
             trans_op5 (Run.matcher_token v)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_string_content ((kind, body) : mt) : CST.string_content =
+  match body with
+  | Children v ->
+      (match v with
+      | Alt (0, v) ->
+          `SPACE (
+            Run.trans_token (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `LF (
+            Run.trans_token (Run.matcher_token v)
+          )
+      | Alt (2, v) ->
+          `HT (
+            Run.trans_token (Run.matcher_token v)
+          )
+      | Alt (3, v) ->
+          `Str_content1 (
+            trans_string_content1 (Run.matcher_token v)
+          )
+      | Alt (4, v) ->
+          `Esc_seq (
+            trans_escape_sequence (Run.matcher_token v)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_character_content ((kind, body) : mt) : CST.character_content =
+  match body with
+  | Children v ->
+      (match v with
+      | Alt (0, v) ->
+          `Char_content1 (
+            trans_character_content1 (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Esc_seq (
+            trans_escape_sequence (Run.matcher_token v)
           )
       | _ -> assert false
       )
@@ -587,13 +651,13 @@ and trans_word ((kind, body) : mt) : CST.word =
             )
           )
       | Alt (3, v) ->
-          `Blank_expr_blank (
+          `L_expr_r (
             (match v with
             | Seq [v0; v1; v2] ->
                 (
-                  Run.nothing v0,
+                  trans_l (Run.matcher_token v0),
                   trans_expr (Run.matcher_token v1),
-                  Run.nothing v2
+                  trans_r (Run.matcher_token v2)
                 )
             | _ -> assert false
             )
@@ -643,12 +707,12 @@ and trans_word ((kind, body) : mt) : CST.word =
             )
           )
       | Alt (6, v) ->
-          `Blank_blank (
+          `L_r (
             (match v with
             | Seq [v0; v1] ->
                 (
-                  Run.nothing v0,
-                  Run.nothing v1
+                  trans_l (Run.matcher_token v0),
+                  trans_r (Run.matcher_token v1)
                 )
             | _ -> assert false
             )
@@ -673,51 +737,51 @@ and trans_word ((kind, body) : mt) : CST.word =
             trans_id (Run.matcher_token v)
           )
       | Alt (10, v) ->
-          `Blank_bop_expr_blank (
+          `L_bop_expr_r (
             (match v with
             | Seq [v0; v1; v2; v3] ->
                 (
-                  Run.nothing v0,
+                  trans_l (Run.matcher_token v0),
                   trans_bop (Run.matcher_token v1),
                   trans_expr (Run.matcher_token v2),
-                  Run.nothing v3
+                  trans_r (Run.matcher_token v3)
                 )
             | _ -> assert false
             )
           )
       | Alt (11, v) ->
-          `Blank_expr_bop_blank (
+          `L_expr_bop_r (
             (match v with
             | Seq [v0; v1; v2; v3] ->
                 (
-                  Run.nothing v0,
+                  trans_l (Run.matcher_token v0),
                   trans_expr (Run.matcher_token v1),
                   trans_bop (Run.matcher_token v2),
-                  Run.nothing v3
+                  trans_r (Run.matcher_token v3)
                 )
             | _ -> assert false
             )
           )
       | Alt (12, v) ->
-          `Blank_bop_blank (
+          `L_bop_r (
             (match v with
             | Seq [v0; v1; v2] ->
                 (
-                  Run.nothing v0,
+                  trans_l (Run.matcher_token v0),
                   trans_bop (Run.matcher_token v1),
-                  Run.nothing v2
+                  trans_r (Run.matcher_token v2)
                 )
             | _ -> assert false
             )
           )
       | Alt (13, v) ->
-          `Blank_uop_blank (
+          `L_uop_r (
             (match v with
             | Seq [v0; v1; v2] ->
                 (
-                  Run.nothing v0,
+                  trans_l (Run.matcher_token v0),
                   trans_uop (Run.matcher_token v1),
-                  Run.nothing v2
+                  trans_r (Run.matcher_token v2)
                 )
             | _ -> assert false
             )
