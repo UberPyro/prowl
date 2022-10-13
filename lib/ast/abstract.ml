@@ -80,10 +80,20 @@ and expr : CST.expr -> <span: Span.t> Ast.expr = function
   | `Expr_uop (ce, (t, x)) -> 
     let e = expr ce in
     ascr (Uop (e, x)) (join (snd e)#span t)
-  (* | `Let_opt_rec_rep1_id_EQ_expr_in_expr (l, rc, ids, _, e1, _, e2) ->  *)
-
-
-  | _ -> failwith "Todo: implement"
+  | `Let_opt_rec_rep1_id_EQ_expr_in_expr ((t, _), rc, cids, _, ce1, _, ce2) -> 
+    let ids = List.map snd cids in
+    let front = List.rev ids |> List.tl |> List.rev in
+    let e1, e2 = expr ce1, expr ce2 in
+    let reckind = match rc with
+      | Some _ -> `Rec
+      | None -> `Seq in
+    ascr
+      (Let (reckind, List.last ids, front, e1, e2))
+      (join t (snd e2)#span)
+  | `As_rep1_id_DASHGT_expr ((t, _), cids, _, ce) -> 
+    let ids = List.map snd cids in
+    let e = expr ce in
+    ascr (As (ids, e)) (join t (snd e)#span)
 
 and bop_expr ce1 (_, x) ce2 = 
   let e1, e2 = expr ce1, expr ce2 in
