@@ -20,8 +20,8 @@ module.exports = grammar({
     char: $ => seq("'", optional($.character_content), "'"),
 
     uop: $ => new RegExp("[~!?]" + sym), 
-    op0: $ => new RegExp("\\|&" + sym), 
-    op1: $ => new RegExp("[$=]" + sym), 
+    op0: $ => new RegExp("\\|" + sym), 
+    op1: $ => new RegExp("[$=&]" + sym), 
     op2: $ => new RegExp("[@:]" + sym), 
     op3: $ => new RegExp("[+\\-]" + sym), 
     op4: $ => new RegExp("[*\\/%]" + sym), 
