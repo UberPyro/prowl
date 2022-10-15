@@ -1,4 +1,4 @@
-open Batteries
+(* open Batteries
 
 open Prowl
 open Cli
@@ -24,5 +24,5 @@ let process file =
 let () = match P.parse_argv op with
   | [] -> P.usage op ()
   | lst :: _ -> 
-    process lst
+    process lst *)
   
