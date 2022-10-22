@@ -118,6 +118,7 @@ module rec T : S = struct
           Costack.unify o0 o1; 
           q
         | v, Var _ | Var _, v -> v
+        | u, v when u = v -> u
         | u, v -> raise @@ Error.Unification (u, v)
       end r
 
@@ -152,7 +153,7 @@ let monoid m =
   let c = Costack.fresh () in
   let s = Stack.fresh () in
   Costack.push (s |> Stack.push m |> Stack.push m) c, 
-  Costack.push (s |> Stack.push m)
+  Costack.push (s |> Stack.push m) c
 
 let endo e = 
   let c = Costack.fresh () in
