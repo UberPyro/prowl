@@ -4,10 +4,7 @@ open Type
 
 exception Unbound_variable of string
 
-module Dict = Map.Make(struct
-  type t = string
-  let compare = compare
-end)
+module Dict = Map.Make(String)
 
 type t = (gen * Costack.t * Costack.t) Dict.t
 and gen = General | Special

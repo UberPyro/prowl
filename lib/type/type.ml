@@ -4,9 +4,8 @@ open Uref
 let pp_uref f z y = f z (uget y)
 
 module HT = Hashtbl.Make(struct
-  type t = int
+  include Int
   let hash = Hashtbl.hash
-  let equal = (=)
 end)
 
 let find_memo rf k ht = 
