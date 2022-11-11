@@ -1,4 +1,4 @@
-open Batteries
+(* open Batteries
 open Lexing
 
 let tabsize = ref 2
@@ -33,4 +33,4 @@ let decode =
 let decode_char = 
   decode
   %> String.to_seq
-  %> Seq.hd
+  %> Seq.hd *)

@@ -1,4 +1,4 @@
-{ open Batteries
+(* { open Batteries
   open Lexing
   
   open Lex_proc
@@ -90,4 +90,4 @@ and comment level = parse
   | ";)" {if level = 0 then token lexbuf
           else comment (level-1) lexbuf}
   | "(;" {comment (level+1) lexbuf}
-  | _    {comment level lexbuf}
+  | _    {comment level lexbuf} *)
