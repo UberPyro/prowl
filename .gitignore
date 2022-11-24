@@ -1,0 +1,24 @@
+_opam
+_build
+/_boot
+_perf
+*.install
+.merlin
+*.corrected
+
+tmp
+
+# vim swap files
+*.swp
+*.swo
+
+# emacs lock files
+.#*
+
+.duneboot.*
+/boot/*.cm*
+dune.exe
+Makefile.dev
+src/dune/setup.ml
+
+.DS_Store
