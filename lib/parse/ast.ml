@@ -1,17 +1,19 @@
 type dir = string list
-type path = dir * string
 
 (* Signature *)
 type sign = 
-  | SId of path
+  | SId of string
+  | SDir of dir * sign
   | SCon of spec list
 
 and spec = 
   | SOpen of modl
   | SMix of sign
-  | SKind of string list * string
+  | SKind of int * string
   | STy of param list * string * vl
   | SSpec of string * ty
+  | SSign of string * sign
+  | SModl of (string * sign) list * string * sign
 
 and param = 
   | RGen of string
@@ -26,11 +28,17 @@ and modl =
   | MAbs of (string * sign) list * modl
   | MThunk of modl
   | MCon of defn list
+  | MExpr of dir * string
 
 and defn = 
-  | 
-
-and recr = Rec | Seq
+  | DOpen of modl
+  | DMix of modl
+  | DKind of int * string
+  | DTy of param list * string * vl
+  | DDef of pat list * string * ty option * expr
+  | DSign of string * sign
+  | DModl of (string * sign) list * string * sign option * modl
+  | DRec of ((string * sign) list * string * sign * modl) list
 
 
 (* Type *)
