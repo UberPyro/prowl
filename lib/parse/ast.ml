@@ -63,6 +63,7 @@ and vl =
   | VGen of string
   | VFun of ty
   | VList of ty
+  | VMap of vl * ty
   | VMod of sign
 
 and data = 
@@ -82,8 +83,10 @@ and expr =
   | EInt of int
   | EFloat of float
   | EChar of char
+  | EString of string
   | EQuote of expr
-  | EList of expr
+  | EList of expr list
+  | EMap of (expr * expr) list
   | EId of string
   | EDir of dir * expr
 
@@ -107,4 +110,21 @@ and refclass =
 
 
 (* Pattern *)
-and pat
+and pat = 
+  | PCat of pat list
+  | PInt of int
+  | PFloat of float
+  | PChar of char
+  | PString of string
+  | PQuote of pat
+  | PList of pat list
+  | PMap of (expr * pat) list
+  | PId of string
+  | PDir of dir * pat
+
+  | PVariant of string
+  | PRecord of (string * pat) list
+
+  | PSnoc of pat * pat
+  | PConj of pat * pat
+  | PDisj of pat * pat
