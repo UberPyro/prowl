@@ -71,7 +71,39 @@ and data =
 
 
 (* Expression *)
-and expr
+and expr = 
+  | ECat of expr list
+  | EBop of expr * string * expr
+  | EUop of expr * string
+  | ELet of pat list * string * ty option * expr * expr
+  | ELetRec of ((pat list * string * ty option) * expr) list * expr
+  | EAs of pat list * expr
+
+  | EInt of int
+  | EFloat of float
+  | EChar of char
+  | EQuote of expr
+  | EList of expr
+  | EId of string
+  | EDir of dir * expr
+
+  | EVariant of string
+  | ERecord of (string * expr) list
+  | ECase of refclass * ((pat list) * expr) list
+  | EAlt of expr list
+  | EDrive of expr list
+
+  | SoftSect of string
+  | HardSect of string
+  | SoftLeft of string * expr
+  | HardLeft of string * expr
+  | SoftRight of expr * string
+  | HardRight of expr * string
+
+and refclass = 
+  | Irrefutable
+  | Refutable
+  | Silent
 
 
 (* Pattern *)
