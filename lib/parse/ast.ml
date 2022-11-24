@@ -14,11 +14,14 @@ and spec =
   | SData of param list * string * data
   | SSpec of string * ty
   | SSign of string * sign
-  | SModl of (string * sign) list * string * sign
+  | SModl of string * sign
 
 and param = 
   | RGen of string
   | RFun of int * int
+
+and args = (string * string) list
+and args2 = args * args  (* first for implicits *)
 
 
 (* Module *)
@@ -26,7 +29,7 @@ and modl =
   | MId of string
   | MDir of dir * modl
   | MCat of modl list
-  | MAbs of (string * sign) list * modl
+  | MAbs of args2 * modl
   | MThunk of modl
   | MCon of defn list
   | MExpr of dir * string
@@ -39,12 +42,12 @@ and defn =
   | DData of param list * string * data
   | DDef of pat list * string * ty option * expr
   | DSign of string * sign
-  | DModl of (string * sign) list * string * sign option * modl
-  | DRec of ((string * sign) list * string * sign * modl) list
+  | DModl of args2 * string * sign option * modl
+  | DRec of (args2 * string * sign * modl) list
 
 
 (* Type *)
-and ty = costack * costack
+and ty = args * costack * costack
 
 and costack = 
   | CImpl of stack list
@@ -60,6 +63,7 @@ and vl =
   | VGen of string
   | VFun of ty
   | VList of ty
+  | VMod of sign
 
 and data = 
   | Record of (string * ty) list
