@@ -20,8 +20,8 @@ and param =
   | RGen of string
   | RFun of int * int
 
-and args = (string * string) list
-and args2 = args * args  (* first for implicits *)
+and mod_args = (string * string) list
+and mod_args2 = mod_args * mod_args  (* first for implicits *)
 
 
 (* Module *)
@@ -29,7 +29,7 @@ and modl =
   | MId of string
   | MDir of dir * modl
   | MCat of modl list
-  | MAbs of args2 * modl
+  | MAbs of mod_args2 * modl
   | MThunk of modl
   | MCon of defn list
   | MExpr of dir * string
@@ -42,12 +42,12 @@ and defn =
   | DData of param list * string * data
   | DDef of pat list * string * ty option * expr
   | DSign of string * sign
-  | DModl of args2 * string * sign option * modl
-  | DRec of (args2 * string * sign * modl) list
+  | DModl of mod_args2 * string * sign option * modl
+  | DRec of (mod_args2 * string * sign * modl) list
 
 
 (* Type *)
-and ty = args * costack * costack
+and ty = mod_args * costack * costack
 
 and costack = 
   | CImpl of stack list
@@ -76,9 +76,9 @@ and expr =
   | ECat of expr list
   | EBop of expr * string * expr
   | EUop of expr * string
-  | ELet of pat list * string * ty option * expr * expr
-  | ELetRec of ((pat list * string * ty option) * expr) list * expr
-  | EAs of pat list * expr
+  | ELet of args * string * ty option * expr * expr
+  | ELetRec of ((args * string * ty option) * expr) list * expr
+  | EAs of args * expr
 
   | EInt of int
   | EFloat of float
@@ -92,9 +92,10 @@ and expr =
 
   | EVariant of string
   | ERecord of (string * expr) list
-  | ECase of refclass * ((pat list) * expr) list
+  | ECase of refclass * (args * expr) list
   | EAlt of expr list
   | EDrive of expr list
+  | EModl of string * sign option
 
   | SoftSect of string
   | HardSect of string
@@ -102,6 +103,8 @@ and expr =
   | HardLeft of string * expr
   | SoftRight of expr * string
   | HardRight of expr * string
+
+and args = mod_args * pat list
 
 and refclass = 
   | Irrefutable
@@ -124,6 +127,7 @@ and pat =
 
   | PVariant of string
   | PRecord of (string * pat) list
+  | PModl of string * sign
 
   | PSnoc of pat * pat
   | PConj of pat * pat
