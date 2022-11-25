@@ -1,6 +1,8 @@
 open Batteries
 open Uref
 
+type path = string list * string [@@deriving show]
+
 let pp_uref f z y = f z (uget y)
 
 module HT = Hashtbl.Make(struct
@@ -27,7 +29,7 @@ module type S = sig
     type t = _t uref
     and _t = 
       | Var of int
-      | Name of string * param list
+      | Name of path * param list
     and param = 
       | Val of Var.t
       | Del of Costack.t * Costack.t
@@ -35,7 +37,7 @@ module type S = sig
     val unify : t -> t -> unit
     val fresh : unit -> t
     val refresh : int HT.t -> t -> t
-    val show_name : string -> param list -> string
+    val show_name : path -> param list -> string
   end
 
   and Stack : sig
@@ -108,7 +110,7 @@ module rec T : S = struct
     type t = _t uref
     and _t = 
       | Var of int
-      | Name of string * param list
+      | Name of path * param list
     and param = 
       | Val of t
       | Del of Costack.t * Costack.t
@@ -121,7 +123,7 @@ module rec T : S = struct
           List.map (show_param %> Printf.sprintf "%s ") us
           |> String.concat ""
         end
-        u
+        (show_path u)
     
     let rec unify (r : t) : t -> unit = 
       unite ~sel:begin curry @@ function
@@ -158,8 +160,8 @@ end
 
 and Error : sig
   exception Unification of string
-  val var_mismatch : string * T.Var.param list -> 
-      string * T.Var.param list -> 'a
+  val var_mismatch : path * T.Var.param list -> 
+      path * T.Var.param list -> 'a
 end = struct
   exception Unification of string
 
