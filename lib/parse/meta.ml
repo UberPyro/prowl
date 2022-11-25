@@ -1,3 +1,5 @@
+open Util
+
 type span = (int * int) * (int * int)
 
 type 'a node = <
@@ -8,5 +10,11 @@ type 'a node = <
 type 'a expr_node = <
   ast : 'a;
   span : span;
-  (* Need typing structures *)
+  ty : Type.t;
+>
+
+type 'a mod_node = <
+  ast : 'a;
+  span : span;
+  sign : Type.t Dict.t;
 >
