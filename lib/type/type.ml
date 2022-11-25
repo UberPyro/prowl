@@ -127,6 +127,9 @@ module rec T : S = struct
     
     let rec unify (r : t) : t -> unit = 
       unite ~sel:begin curry @@ function
+        | Name (u, us), Name (v, vs)  (* differently kinded *)
+        when u = v && List.compare_lengths us vs = 0 -> 
+          Error.var_mismatch (u, us) (v, vs)
         | Name (u, us) as n, Name (v, vs) when u = v -> 
           List.iter2 begin curry @@ function
             | Val x, Val y -> unify x y
@@ -138,7 +141,7 @@ module rec T : S = struct
           n
         | v, Var _ | Var _, v -> v
         | Name (u, us), Name (v, vs) -> 
-          raise @@ Error.(Unification (var_mismatch (u, us) (v, vs)))
+          Error.var_mismatch (u, us) (v, vs)
       end r
 
     let fresh () = 
@@ -167,7 +170,7 @@ end = struct
 
   let var_mismatch (s0, ps0) (s1, ps1) = 
     raise @@ Unification begin Printf.sprintf
-      "Cannot unify type [%s] with type [%s]."
+      "Cannot unify incompatible types [%s] and [%s]."
       (T.Var.show_name s0 ps0)
       (T.Var.show_name s1 ps1)
   end
