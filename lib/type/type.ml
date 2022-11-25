@@ -176,3 +176,24 @@ end = struct
   end
 
 end
+
+include T
+
+type t = Costack.t * Costack.t
+
+let lit l : t = 
+  let c = Costack.fresh () in
+  let s = Stack.fresh () in
+  Costack.push s c, Costack.push (Stack.push l s) c
+
+let monoid m : t = 
+  let c = Costack.fresh () in
+  let s = Stack.fresh () in
+  Costack.push (s |> Stack.push m |> Stack.push m) c, 
+  Costack.push (s |> Stack.push m) c
+
+let endo e : t = 
+  let c = Costack.fresh () in
+  let s = Stack.fresh () in
+  Costack.push (Stack.push e s) c
+  |> fun x -> x, x
