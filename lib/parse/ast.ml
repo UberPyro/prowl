@@ -1,12 +1,16 @@
-type dir = string list
+open Meta
+
+type dir = string node list
 
 (* Signature *)
-type sign = 
+type sign = _sign node
+and _sign = 
   | SId of string
   | SDir of dir * sign
   | SCon of spec list
 
-and spec = 
+and spec = _spec node
+and _spec = 
   | SOpen of modl
   | SMix of sign
   | SKind of int * string
@@ -16,16 +20,18 @@ and spec =
   | SSign of string * sign
   | SModl of string * sign
 
-and param = 
+and param = _param node
+and _param = 
   | RGen of string
   | RFun of int * int
 
-and mod_args = (string * string) list
+and mod_args = (string * string) node list
 and mod_args2 = mod_args * mod_args  (* first for implicits *)
 
 
 (* Module *)
-and modl = 
+and modl = _modl mod_node
+and _modl = 
   | MId of string
   | MDir of dir * modl
   | MCat of modl list
@@ -34,7 +40,8 @@ and modl =
   | MCon of defn list
   | MExpr of dir * string
 
-and defn = 
+and defn = _defn node
+and _defn = 
   | DOpen of modl
   | DMix of modl
   | DKind of int * string
@@ -47,17 +54,20 @@ and defn =
 
 
 (* Type *)
-and ty = mod_args * costack * costack
+and ty = (mod_args * costack * costack) node
 
-and costack = 
+and costack = _costack node
+and _costack = 
   | CImpl of stack list
   | CExpl of int * stack list
 
-and stack = 
+and stack = _stack node
+and _stack = 
   | KImpl of vl list
   | KExpl of string * vl list
 
-and vl = 
+and vl = _vl node
+and _vl = 
   | VId of string
   | VDir of dir * vl
   | VGen of string
@@ -66,13 +76,15 @@ and vl =
   | VMap of vl * ty
   | VMod of sign
 
-and data = 
+and data = _data node
+and _data = 
   | Record of (string * ty) list
   | Variant of (vl list * string) list
 
 
 (* Expression *)
-and expr = 
+and expr = _expr expr_node
+and _expr = 
   | ECat of expr list
   | EBop of expr * string * expr
   | EUop of expr * string
@@ -106,14 +118,16 @@ and expr =
 
 and args = mod_args * pat list
 
-and refclass = 
+and refclass = _refclass node
+and _refclass = 
   | Irrefutable
   | Refutable
   | Silent
 
 
 (* Pattern *)
-and pat = 
+and pat = _pat node
+and _pat = 
   | PCat of pat list
   | PInt of int
   | PFloat of float
