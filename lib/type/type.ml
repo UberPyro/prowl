@@ -1,8 +1,6 @@
 open Batteries
 open Uref
 
-type path = string list * string [@@deriving show]
-
 let pp_uref f z y = f z (uget y)
 
 module HT = Hashtbl.Make(struct
@@ -29,7 +27,7 @@ module type S = sig
     type t = _t uref
     and _t = 
       | Var of int
-      | Name of path * param list
+      | Name of int * param list
     and param = 
       | Val of Var.t
       | Del of Costack.t * Costack.t
@@ -37,7 +35,6 @@ module type S = sig
     val unify : t -> t -> unit
     val fresh : unit -> t
     val refresh : int HT.t -> t -> t
-    val show_name : path -> param list -> string
   end
 
   and Stack : sig
@@ -110,20 +107,11 @@ module rec T : S = struct
     type t = _t uref
     and _t = 
       | Var of int
-      | Name of path * param list
+      | Name of int * param list
     and param = 
       | Val of t
       | Del of Costack.t * Costack.t
       [@@deriving show]
-    
-    let show_name u us = 
-      Printf.sprintf
-        "%s%s"
-        begin if List.is_empty us then "" else
-          List.map (show_param %> Printf.sprintf "%s ") us
-          |> String.concat ""
-        end
-        (show_path u)
     
     let rec unify (r : t) : t -> unit = 
       unite ~sel:begin curry @@ function
@@ -163,22 +151,22 @@ end
 
 and Error : sig
   exception Unification of string
-  val var_mismatch : path * T.Var.param list -> 
-      path * T.Var.param list -> 'a
+  val var_mismatch : int * T.Var.param list -> 
+    int * T.Var.param list -> 'a
 end = struct
   exception Unification of string
 
-  let var_mismatch (s0, ps0) (s1, ps1) = 
+  let var_mismatch (s0, _) (s1, _) = 
     raise @@ Unification begin Printf.sprintf
-      "Cannot unify incompatible types [%s] and [%s]."
-      (T.Var.show_name s0 ps0)
-      (T.Var.show_name s1 ps1)
+      "Cannot unify incompatible types [%d] and [%d]."
+      s0 s1
   end
 
 end
 
 include T
 
+(* update this to include implicits? *)
 type t = Costack.t * Costack.t
 
 let lit l : t = 
@@ -197,3 +185,23 @@ let endo e : t =
   let s = Stack.fresh () in
   Costack.push (Stack.push e s) c
   |> fun x -> x, x
+
+let free () : t = 
+  let mk () = 
+    Costack.push
+      (Stack.push (Var.fresh ()) (Stack.fresh ()))
+      (Costack.fresh ()) in
+  mk (), mk ()
+
+let tyint = next ()
+let tyfloat = next ()
+let tychar = next ()
+let tystring = next ()
+let tyquote = next ()
+let tylist = next ()
+let tymap = next ()
+
+let mono id = Var.Name (id, []) |> uref |> lit
+let duo id = 
+  Var.Name (id, [Val (uref @@ Var.Var (next ()))])
+  |> uref |> lit
