@@ -18,3 +18,20 @@ type 'a mod_node = <
   span : span;
   sign : Type.t Dict.t;
 >
+
+let node ast span = object
+  method ast = ast
+  method span = span
+end
+
+let exnode ast span ty = object
+  method ast = ast
+  method span = span
+  method ty = ty
+end
+
+let modnode ast span sign = object
+  method ast = ast
+  method span = span
+  method sign = sign
+end
