@@ -1,0 +1,4 @@
+(library
+ (name concrete)
+ (libraries batteries abstract)
+ (preprocess (pps ppx_deriving.show)))

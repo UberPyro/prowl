@@ -1,0 +1,123 @@
+# dune build
+# OCAMLPARAM: unset
+# Shared cache: disabled
+# Workspace root: /home/pyro/prowl
+# Auto-detected concurrency: 16
+$ /home/pyro/.opam/default/bin/ocamlc.opt -config > /tmp/dune_4b47e8_output
+# Dune context:
+#  { name = "default"
+#  ; kind = "default"
+#  ; profile = Dev
+#  ; merlin = true
+#  ; for_host = None
+#  ; fdo_target_exe = None
+#  ; build_dir = "default"
+#  ; toplevel_path = Some External "/home/pyro/.opam/default/lib/toplevel"
+#  ; ocaml_bin = External "/home/pyro/.opam/default/bin"
+#  ; ocaml = Ok External "/home/pyro/.opam/default/bin/ocaml"
+#  ; ocamlc = External "/home/pyro/.opam/default/bin/ocamlc.opt"
+#  ; ocamlopt = Ok External "/home/pyro/.opam/default/bin/ocamlopt.opt"
+#  ; ocamldep = Ok External "/home/pyro/.opam/default/bin/ocamldep.opt"
+#  ; ocamlmklib = Ok External "/home/pyro/.opam/default/bin/ocamlmklib.opt"
+#  ; env =
+#      map
+#        { "DUNE_OCAML_HARDCODED" :
+#            "/home/pyro/.opam/default/lib/ocaml:/home/pyro/.opam/default/lib"
+#        ; "DUNE_OCAML_STDLIB" : "/home/pyro/.opam/default/lib/ocaml"
+#        ; "DUNE_SOURCEROOT" : "/home/pyro/prowl"
+#        ; "INSIDE_DUNE" : "/home/pyro/prowl/_build/default"
+#        ; "OCAMLFIND_IGNORE_DUPS_IN" :
+#            "/home/pyro/prowl/_build/install/default/lib"
+#        ; "OCAMLPATH" : "/home/pyro/prowl/_build/install/default/lib"
+#        ; "OCAMLTOP_INCLUDE_PATH" :
+#            "/home/pyro/prowl/_build/install/default/lib/toplevel"
+#        ; "OCAML_COLOR" : "always"
+#        ; "OPAMCOLOR" : "always"
+#        }
+#  ; findlib_paths =
+#      [ External "/home/pyro/.opam/default/lib/ocaml"
+#      ; External "/home/pyro/.opam/default/lib"
+#      ]
+#  ; arch_sixtyfour = true
+#  ; natdynlink_supported = true
+#  ; supports_shared_libraries = true
+#  ; ocaml_config =
+#      { version = "5.0.0"
+#      ; standard_library_default = "/home/pyro/.opam/default/lib/ocaml"
+#      ; standard_library = "/home/pyro/.opam/default/lib/ocaml"
+#      ; standard_runtime = "the_standard_runtime_variable_was_deleted"
+#      ; ccomp_type = "cc"
+#      ; c_compiler = "gcc"
+#      ; ocamlc_cflags =
+#          [ "-O2"; "-fno-strict-aliasing"; "-fwrapv"; "-pthread"; "-fPIC" ]
+#      ; ocamlc_cppflags = [ "-D_FILE_OFFSET_BITS=64" ]
+#      ; ocamlopt_cflags =
+#          [ "-O2"; "-fno-strict-aliasing"; "-fwrapv"; "-pthread"; "-fPIC" ]
+#      ; ocamlopt_cppflags = [ "-D_FILE_OFFSET_BITS=64" ]
+#      ; bytecomp_c_compiler =
+#          [ "gcc"
+#          ; "-O2"
+#          ; "-fno-strict-aliasing"
+#          ; "-fwrapv"
+#          ; "-pthread"
+#          ; "-fPIC"
+#          ; "-D_FILE_OFFSET_BITS=64"
+#          ]
+#      ; bytecomp_c_libraries = [ "-lm"; "-ldl"; "-lpthread" ]
+#      ; native_c_compiler =
+#          [ "gcc"
+#          ; "-O2"
+#          ; "-fno-strict-aliasing"
+#          ; "-fwrapv"
+#          ; "-pthread"
+#          ; "-fPIC"
+#          ; "-D_FILE_OFFSET_BITS=64"
+#          ]
+#      ; native_c_libraries = [ "-lm"; "-ldl"; "-lpthread" ]
+#      ; native_pack_linker = [ "ld"; "-r"; "-o" ]
+#      ; cc_profile = []
+#      ; architecture = "amd64"
+#      ; model = "default"
+#      ; int_size = 63
+#      ; word_size = 64
+#      ; system = "linux"
+#      ; asm = [ "as" ]
+#      ; asm_cfi_supported = true
+#      ; with_frame_pointers = false
+#      ; ext_exe = ""
+#      ; ext_obj = ".o"
+#      ; ext_asm = ".s"
+#      ; ext_lib = ".a"
+#      ; ext_dll = ".so"
+#      ; os_type = "Unix"
+#      ; default_executable_name = "a.out"
+#      ; systhread_supported = true
+#      ; host = "x86_64-pc-linux-gnu"
+#      ; target = "x86_64-pc-linux-gnu"
+#      ; profiling = false
+#      ; flambda = false
+#      ; spacetime = false
+#      ; safe_string = true
+#      ; exec_magic_number = "Caml1999X032"
+#      ; cmi_magic_number = "Caml1999I032"
+#      ; cmo_magic_number = "Caml1999O032"
+#      ; cma_magic_number = "Caml1999A032"
+#      ; cmx_magic_number = "Caml1999Y032"
+#      ; cmxa_magic_number = "Caml1999Z032"
+#      ; ast_impl_magic_number = "Caml1999M032"
+#      ; ast_intf_magic_number = "Caml1999N032"
+#      ; cmxs_magic_number = "Caml1999D032"
+#      ; cmt_magic_number = "Caml1999T032"
+#      ; natdynlink_supported = true
+#      ; supports_shared_libraries = true
+#      ; windows_unicode = false
+#      }
+#  }
+$ (cd _build/.sandbox/6b601f00d88455d0360fe13d8f352bbd/default && .ppx/0bb5094b13567c3c4e1ee33245b80e63/ppx.exe --cookie 'library-name="abstract"' -o lib/abstract/ulist.pp.ml --impl lib/abstract/ulist.ml -corrected-suffix .ppx-corrected -diff-cmd - -dump-ast)
+$ (cd _build/default && /home/pyro/.opam/default/bin/ocamldep.opt -modules -impl lib/abstract/ulist.pp.ml) > _build/default/lib/abstract/.abstract.objs/ulist.pp.ml.d
+$ (cd _build/default && /home/pyro/.opam/default/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -bin-annot -I lib/abstract/.abstract.objs/byte -I /home/pyro/.opam/default/lib/batteries -I /home/pyro/.opam/default/lib/camlp-streams -I /home/pyro/.opam/default/lib/num -I /home/pyro/.opam/default/lib/ocaml/str -I /home/pyro/.opam/default/lib/ocaml/threads -I /home/pyro/.opam/default/lib/ocaml/unix -I /home/pyro/.opam/default/lib/ppx_deriving/runtime -I /home/pyro/.opam/default/lib/result -intf-suffix .ml -no-alias-deps -opaque -open Abstract -o lib/abstract/.abstract.objs/byte/abstract__Ulist.cmo -c -impl lib/abstract/ulist.pp.ml)
+$ (cd _build/default && /home/pyro/.opam/default/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -a -o lib/abstract/abstract.cma lib/abstract/.abstract.objs/byte/abstract.cmo lib/abstract/.abstract.objs/byte/abstract__Ulist.cmo lib/abstract/.abstract.objs/byte/abstract__Span.cmo lib/abstract/.abstract.objs/byte/abstract__Syntax.cmo lib/abstract/.abstract.objs/byte/abstract__Semantics.cmo)
+$ (cd _build/default && /home/pyro/.opam/default/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -I lib/abstract/.abstract.objs/byte -I lib/abstract/.abstract.objs/native -I /home/pyro/.opam/default/lib/batteries -I /home/pyro/.opam/default/lib/camlp-streams -I /home/pyro/.opam/default/lib/num -I /home/pyro/.opam/default/lib/ocaml/str -I /home/pyro/.opam/default/lib/ocaml/threads -I /home/pyro/.opam/default/lib/ocaml/unix -I /home/pyro/.opam/default/lib/ppx_deriving/runtime -I /home/pyro/.opam/default/lib/result -intf-suffix .ml -no-alias-deps -opaque -open Abstract -o lib/abstract/.abstract.objs/native/abstract__Ulist.cmx -c -impl lib/abstract/ulist.pp.ml)
+$ (cd _build/default && /home/pyro/.opam/default/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -a -o lib/abstract/abstract.cmxa lib/abstract/.abstract.objs/native/abstract.cmx lib/abstract/.abstract.objs/native/abstract__Ulist.cmx lib/abstract/.abstract.objs/native/abstract__Span.cmx lib/abstract/.abstract.objs/native/abstract__Syntax.cmx lib/abstract/.abstract.objs/native/abstract__Semantics.cmx)
+$ (cd _build/default && /home/pyro/.opam/default/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -shared -linkall -I lib/abstract -o lib/abstract/abstract.cmxs lib/abstract/abstract.cmxa)
+$ (cd _build/default && /home/pyro/.opam/default/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -o bin/main.exe /home/pyro/.opam/default/lib/ocaml/nums.cmxa -I /home/pyro/.opam/default/lib/ocaml /home/pyro/.opam/default/lib/camlp-streams/camlp_streams.cmxa /home/pyro/.opam/default/lib/ocaml/str/str.cmxa /home/pyro/.opam/default/lib/ocaml/unix/unix.cmxa /home/pyro/.opam/default/lib/batteries/batteries.cmxa /home/pyro/.opam/default/lib/ocaml/threads/threads.cmxa /home/pyro/.opam/default/lib/batteries/batteriesThread.cmxa /home/pyro/.opam/default/lib/result/result.cmxa /home/pyro/.opam/default/lib/ppx_deriving/runtime/ppx_deriving_runtime.cmxa lib/abstract/abstract.cmxa lib/prowl.cmxa bin/.main.eobjs/native/dune__exe__Main.cmx)

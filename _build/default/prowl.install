@@ -1,0 +1,8 @@
+lib: [
+  "_build/install/default/lib/prowl/META"
+  "_build/install/default/lib/prowl/dune-package"
+  "_build/install/default/lib/prowl/opam"
+]
+bin: [
+  "_build/install/default/bin/prowl"
+]
