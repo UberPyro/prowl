@@ -19,8 +19,9 @@ type var = _var uref
 and _var = 
   | Nom of int
   | Var of int
-  | Quo of var seq seq twin
+  | Quo of costack twin
   [@@deriving show]
+and costack = var seq seq
 
 let rec unify r = 
   r |> unite ~sel:begin curry @@ function
