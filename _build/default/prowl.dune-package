@@ -1,4 +1,0 @@
-(lang dune 3.6)
-(name prowl)
-(sections (lib .) (bin ../../bin))
-(files (lib (META dune-package opam)) (bin (prowl)))
