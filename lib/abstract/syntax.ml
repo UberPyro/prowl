@@ -1,4 +1,5 @@
 open! Batteries
+open Semantics
 
 type value_type = _value_type * Span.t
 and _value_type = 
@@ -6,8 +7,6 @@ and _value_type =
   | TVar of string
   | TQuote of relation
   | TList of relation
-
-and 'a twin = 'a * 'a
 
 and stack_head = value_type list
 and costack_head = (int * stack_head) list
