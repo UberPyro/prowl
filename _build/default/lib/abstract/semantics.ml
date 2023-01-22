@@ -7,10 +7,10 @@ module HT = Hashtbl.Make(struct
   include Int
 end)
 
-let find_memo rf ht k = 
+(* let find_memo rf ht k = 
   match HT.find_option ht k with
   | Some v -> v
-  | None -> rf ()
+  | None -> rf () *)
 
 type 'a twin = 'a * 'a [@@deriving show]
 
@@ -44,13 +44,15 @@ let fresh_var () = Var (fresh ())
 let fresh_seq () = make (fresh ()) []
 
 let unew f = uref % f % uget
-let refresh_seq ht f = remap f (find_memo fresh ht)
-let rec refresh_var ht = 
-  unew @@ function
-    | Var i -> Var (find_memo fresh ht i)
-    | Quo (i, o) -> Quo (refresh_costack ht i, refresh_costack ht o)
+let refresh ht = 
+  let find_memo rf = HT.find_option ht %> Option.default_delayed rf in
+  let seq f = remap f (find_memo fresh) in object (self)
+  method var = unew @@ function
+    | Var i -> Var (find_memo fresh i)
+    | Quo (i, o) -> Quo (self#costack i, self#costack o)
     | x -> x
-and refresh_costack ht = refresh_seq ht (refresh_seq ht (refresh_var ht))
+  method costack = seq (seq self#var)
+end
 
 let lit l = 
   let c = fresh_seq () in

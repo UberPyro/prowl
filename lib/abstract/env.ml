@@ -14,8 +14,8 @@ let get k e =
   match Dict.find_opt k e with
   | Some (Special, c1, c2) -> c1, c2
   | Some (General, c1, c2) -> 
-    let refresh = refresh_costack @@ HT.create 8 in
-    refresh c1, refresh c2
+    let r = refresh @@ HT.create 8 in
+    r#costack c1, r#costack c2
   | None -> raise @@ Unbound_variable k
 
 let set k (c1, c2) = Dict.add k (Special, c1, c2)
