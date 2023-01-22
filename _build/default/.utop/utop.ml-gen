@@ -17,6 +17,7 @@ Clflags.include_dirs :=
   ; "/home/pyro/.opam/default/lib/ocaml/unix"
   ; "/home/pyro/.opam/default/lib/ocplib-endian"
   ; "/home/pyro/.opam/default/lib/ocplib-endian/bigstring"
+  ; "/home/pyro/.opam/default/lib/ppx_deriving/runtime"
   ; "/home/pyro/.opam/default/lib/react"
   ; "/home/pyro/.opam/default/lib/result"
   ; "/home/pyro/.opam/default/lib/trie"
@@ -27,5 +28,7 @@ Clflags.include_dirs :=
   ; "/home/pyro/.opam/default/lib/uutf"
   ; "/home/pyro/.opam/default/lib/zed"
   ; "/home/pyro/prowl/_build/default/lib/.prowl.objs/byte"
+  ; "/home/pyro/prowl/_build/default/lib/abstract/.abstract.objs/byte"
+  ; "/home/pyro/prowl/_build/default/lib/concrete/.concrete.objs/byte"
   ];
 UTop_main.main ();

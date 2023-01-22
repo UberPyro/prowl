@@ -13,7 +13,6 @@
   LBRACE RBRACE
 
   COMMA SEMICOLON
-  DEF SPEC
   EQ ARR BI
   KIND
 
@@ -26,6 +25,7 @@
   SLOW1 SLOW2
   MID1 MID2
   FAST
+  DEF SPEC
 
 %token<int>
   STACK_VAR COSTACK_VAR /* type lang */
@@ -52,5 +52,26 @@ relation: _relation {$1, make $loc}
   | twin(stack_head) {ImplStack $1}
   | twin(costack_head) {ImplCostack $1}
   | twin(pair(COSTACK_VAR, costack_head)) {Expl $1}
+
+// note to self: port from old code
+sect: 
+  | 
+
+expr: _expr {$1, make $loc}
+%inline _expr: 
+  | 
+
+term: 
+  | ID {Id $1}
+  | VAR {Var $1}
+  | LBRACK expr RBRACK {Quote $2}
+  | LBRACE expr RBRACE {Quote $2}
+
+  | INT {Int $1}
+  | FLOAT {Float $1}
+  | CHAR {Char $1}
+  | STRING {String $1}
+  
+  | TAG {Tag $1}
 
 

@@ -1,9 +1,9 @@
-# dune build
+# dune utop
 # OCAMLPARAM: unset
 # Shared cache: disabled
 # Workspace root: /home/pyro/prowl
 # Auto-detected concurrency: 16
-$ /home/pyro/.opam/default/bin/ocamlc.opt -config > /tmp/dune_d43569_output
+$ /home/pyro/.opam/default/bin/ocamlc.opt -config > /tmp/dune_9ae4f9_output
 # Dune context:
 #  { name = "default"
 #  ; kind = "default"
