@@ -7,11 +7,6 @@ module HT = Hashtbl.Make(struct
   include Int
 end)
 
-(* let find_memo rf ht k = 
-  match HT.find_option ht k with
-  | Some v -> v
-  | None -> rf () *)
-
 type 'a twin = 'a * 'a [@@deriving show]
 
 type 'a seq = ('a, int) Ulist.t [@@deriving show]
