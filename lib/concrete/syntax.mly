@@ -6,13 +6,32 @@
 %}
 
 %token
+  REL PIPE /* type lang */
+
   LPAREN RPAREN
   LBRACK RBRACK
   LBRACE RBRACE
-  REL EQ PIPE
 
-%token<string> ID VAR
-%token<int> STACK_VAR COSTACK_VAR
+  COMMA SEMICOLON
+  DEF SPEC
+  EQ ARR BI
+  KIND
+
+  ASSIGN
+  TYPE TAG
+
+%token<string> 
+  ID VAR
+  STRING TAG /* expr lang */
+  SLOW1 SLOW2
+  MID1 MID2
+  FAST
+
+%token<int>
+  STACK_VAR COSTACK_VAR /* type lang */
+  INT /* expr lang */
+%token<float> FLOAT
+%token<char> CHAR
 
 %%
 
@@ -33,3 +52,5 @@ relation: _relation {$1, make $loc}
   | twin(stack_head) {ImplStack $1}
   | twin(costack_head) {ImplCostack $1}
   | twin(pair(COSTACK_VAR, costack_head)) {Expl $1}
+
+
