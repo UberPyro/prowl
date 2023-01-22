@@ -1,0 +1,31 @@
+_opam
+_build
+/_boot
+_perf
+*.install
+.merlin
+*.corrected
+
+tree-sitter-prowl/bindings
+tree-sitter-prowl/node_modules
+tree-sitter-prowl/src
+tree-sitter-prowl/binding.gyp
+tree-sitter-prowl/Cargo.toml
+
+tmp
+ocaml-tree-sitter-core
+
+# vim swap files
+*.swp
+*.swo
+
+# emacs lock files
+.#*
+
+.duneboot.*
+/boot/*.cm*
+dune.exe
+Makefile.dev
+src/dune/setup.ml
+
+.DS_Store
