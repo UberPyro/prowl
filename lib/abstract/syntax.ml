@@ -39,8 +39,7 @@ and _expr =
   | Sect of string
 
   | Let of (string * expr) list * expr
-  | Equal of expr * expr
-  | Arrow of expr * expr
+  | Arrow of expr * [`eq | `arr | `bi] * expr
   | Varkind of string * int list * int list
   | Varspec of string * relation
 
