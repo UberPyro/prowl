@@ -44,7 +44,8 @@ let fresh_var () = Var (fresh ())
 let fresh_seq () = make (fresh ()) []
 
 let unew f = uref % f % uget
-let refresh ht = 
+let refresh () = 
+  let ht = HT.create 8 in
   let find_memo rf = HT.find_option ht %> Option.default_delayed rf in
   let seq f = remap f (find_memo fresh) in object (self)
   method var = unew @@ function
