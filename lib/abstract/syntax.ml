@@ -17,7 +17,7 @@ and _relation =
   | ImplCostack of costack_head twin
   | Expl of (int * costack_head) twin
 
-type expr = _expr * Span.t
+type expr = _expr * Span.t * (costack * costack)
 and _expr = 
   | Id of string
   | Var of string
@@ -53,3 +53,4 @@ and _component =
   | Spec of string * relation
   | Alias of string * parameter list * value_type list list
   | Tagspec of string * parameter list * value_type list list * string
+(* Something will be needed to manage the contexts here *)

@@ -57,11 +57,10 @@ relation: _relation {$1, make $loc}
 sect: 
   | 
 
-// note to self: factor this out to make room for unification variables
-expr: _expr {$1, make $loc}
-%inline _expr: 
+expr: 
   | 
 
+(* add span, types *)
 term: 
   | ID {Id $1}
   | VAR {Var $1}
