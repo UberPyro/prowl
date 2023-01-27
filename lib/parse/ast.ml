@@ -1,5 +1,5 @@
 open! Batteries
-open Semantics
+open Type
 
 type value_type = _value_type * Span.t
 and _value_type = 
