@@ -12,21 +12,28 @@ type 'a twin = 'a * 'a [@@deriving show]
 type 'a seq = ('a, int) Ulist.t [@@deriving show]
 type var = _var uref
 and _var = 
-  | Nom of int
+  | Nom of costack twin list * int
   | Var of int
-  | Quo of costack twin
   [@@deriving show]
 and costack = var seq seq
 
 let rec unify r = 
   r |> unite ~sel:begin curry @@ function
-    | Quo (i0, o0) as q, Quo (i1, o1) -> 
-      unify_costack i0 o0;
-      unify_costack i1 o1;
-      q
-    | u, v when u = v -> u
-    | u, v -> failwith @@ Printf.sprintf
-      "Cannot unify types [%s] and [%s]" (show__var u) (show__var v)
+    | Nom (f0, n0) as n, Nom (f1, n1) 
+      when n0 = n1 && List.(length f0 = length f1) -> 
+      List.iter2 begin fun (i0, o0) (i1, o1) -> 
+        unify_costack i0 o0;
+        unify_costack i1 o1
+      end f0 f1; 
+      n
+    | Var _ as v, _ | _, (Var _ as v) -> v
+
+    | Nom (f0, n0), Nom (f1, n1) when List.(length f0 <> length f1) -> 
+      failwith @@ Printf.sprintf
+        "Cannot unify differently kinded types [%d] and [%d]" n0 n1
+    | Nom (_, n0), Nom (_, n1) when n0 <> n1 -> failwith @@ Printf.sprintf
+      "Cannot unify [%d] with [%d]" n0 n1  (* TODO: need to provide type names somehow *)
+    | Nom _, Nom _ -> failwith "unreachable"
   end
 
 and unify_costack r = 
@@ -45,8 +52,8 @@ let refresh () =
   let seq f = remap f (find_memo fresh) in object (self)
   method var = unew @@ function
     | Var i -> Var (find_memo fresh i)
-    | Quo (i, o) -> Quo (self#costack i, self#costack o)
-    | x -> x
+    | Nom (lst, n) -> 
+      Nom (List.map (fun (i, o) -> self#costack i, self#costack o) lst, n)
   method costack = seq (seq self#var)
 end
 
