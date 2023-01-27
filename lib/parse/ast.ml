@@ -21,6 +21,8 @@ type expr = _expr * Span.t * (costack * costack)
 and _expr = 
   | Id of string
   | Var of string
+  | Seq of int
+  | Coseq of int
   | Quote of expr
   | List of expr list
 
@@ -39,9 +41,7 @@ and _expr =
   | Sect of string
 
   | Let of (string * expr) list * expr
-  | Arrow of expr * [`eq | `arr | `bi] * expr
-  | Varkind of string * int list * int list
-  | Varspec of string * relation
+  | Arrow of expr * [`init | `noninit] * expr
 
 type parameter = 
   | PVar of string
@@ -53,4 +53,3 @@ and _component =
   | Spec of string * relation
   | Alias of string * parameter list * value_type list list
   | Tagspec of string * parameter list * value_type list list * string
-(* Something will be needed to manage the contexts here *)
