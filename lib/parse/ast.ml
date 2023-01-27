@@ -9,13 +9,16 @@ and _value_type =
   | TList of relation
 
 and stack_head = value_type list
-and costack_head = (int * stack_head) list
+and costack_head = (seq_tail * stack_head) list
+and seq_tail = 
+  | Has of int
+  | Bottom
 
 and relation = _relation * Span.t
 and _relation = 
   | ImplStack of stack_head twin
   | ImplCostack of costack_head twin
-  | Expl of (int * costack_head) twin
+  | Expl of (seq_tail * costack_head) twin
 
 type expr = _expr * Span.t * (costack * costack)
 and _expr = 
