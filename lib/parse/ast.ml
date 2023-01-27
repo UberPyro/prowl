@@ -41,7 +41,7 @@ and _expr =
   | Sect of string
 
   | Let of (string * expr) list * expr
-  | Arrow of expr * [`init | `noninit] * expr
+  | Arrow of expr * expr
 
 type parameter = 
   | PVar of string
