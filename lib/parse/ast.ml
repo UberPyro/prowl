@@ -44,7 +44,18 @@ and _expr =
   | Sect of string
 
   | Let of (string * expr) list * expr
+  | Lam of pat * expr
   | Arrow of expr * expr
+
+and pat = 
+  | PId of string
+  | PInt of int
+  | PFloat of float
+  | PChar of char
+  | PString of string
+  | PQuote of string
+  | PList of string list
+  | PCat of pat list
 
 type parameter = 
   | PVar of string
