@@ -53,12 +53,12 @@ type parameter =
 type component = _component * Span.t
 and _component = 
   | Def of string * expr
-  | Spec of string * relation
+  (* | Spec of string * relation *)
   | Alias of string * parameter list * value_type list list
   | Tagspec of string * parameter list * value_type list list * string
 
 type ('a, 'b, 'c) w = 'a -> (Span.t * costack * costack) -> 'b -> 'c
-type ('a, 'b) base_expr = {
+type ('a, 'b) go_expr = {
   id : ('a, string, 'b) w;
   var : ('a, string, 'b) w;
   seq : ('a, int, 'b) w;
