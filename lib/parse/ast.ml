@@ -36,7 +36,7 @@ and _expr =
 
   | Tag of string
 
-  | Cat of expr
+  | Cat of expr list
   | Binop of expr * string * expr
   | Unop of string * expr
   | LeftSect of string * expr
@@ -73,7 +73,7 @@ type ('a, 'b) go_expr = {
 
   tag : ('a, string, 'b) w;
 
-  cat : ('a, 'a -> 'b, 'b) w;
+  cat : ('a, ('a -> 'b) list, 'b) w;
   binop : ('a, ('a -> 'b) * string * ('a -> 'b), 'b) w;
   unop : ('a, string * ('a -> 'b), 'b) w;
   left_sect : ('a, string * ('a -> 'b), 'b) w;
@@ -99,7 +99,7 @@ let rec fold_expr a b (e_, sp, (i0, o0)) =
   | String s -> b.string a p s
   
   | Tag t -> b.tag a p t
-  | Cat e -> b.cat a p (fun a -> fold_expr a b e)
+  | Cat es -> b.cat a p (List.map (fun e a -> fold_expr a b e) es)
   | Binop (e1, s, e2) -> 
     b.binop a p ((fun a -> fold_expr a b e1), s, (fun a -> fold_expr a b e2))
   | Unop (s, e) -> b.unop a p (s, fun a -> fold_expr a b e)
