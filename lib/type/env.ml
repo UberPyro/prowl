@@ -106,11 +106,25 @@ end = struct
 
 end
 
-open Tuple4
+module TypeEnv : sig
+  type t
 
-type t = E.t * UEnv.t * StackEnv.t * CostackEnv.t
+  val empty : t
+  val get : string -> t -> var list list
+  val set : string -> var list list -> t -> t
+end = struct
+  type t = var list list Dict.t
 
-let empty = E.empty, UEnv.empty, StackEnv.empty, CostackEnv.empty
+  let empty = Dict.empty
+  let get = Dict.find
+  let set = Dict.add
+end
+
+open Tuple5
+
+type t = E.t * UEnv.t * StackEnv.t * CostackEnv.t * TypeEnv.t
+
+let empty = E.empty, UEnv.empty, StackEnv.empty, CostackEnv.empty, TypeEnv.empty
 
 let get s = first %> E.get s
 let set k v = map1 (E.set k v)
@@ -127,3 +141,6 @@ let ret_stack s = third %> StackEnv.ret s
 let init_costack s = map4 (CostackEnv.init s)
 let unite_costack s v = fourth %> CostackEnv.unite s v
 let ret_costack s = fourth %> CostackEnv.ret s
+
+let get_type s = fifth %> TypeEnv.get s
+let set_type k v = map5 (TypeEnv.set k v)

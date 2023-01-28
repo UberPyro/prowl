@@ -18,3 +18,6 @@ val ret_stack : string -> t -> var seq
 val init_costack : string -> t -> t
 val unite_costack : string -> var seq seq -> t -> unit
 val ret_costack : string -> t -> var seq seq
+
+val get_type : string -> t -> var list list
+val set_type : string -> var list list -> t -> t
