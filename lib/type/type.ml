@@ -42,7 +42,7 @@ and unify_costack r =
 let c = ref (-1)
 let fresh () = incr c; !c
 
-let fresh_var () = Var (fresh ())
+let fresh_var () = uref @@ Var (fresh ())
 let fresh_seq () = make (fresh ()) []
 
 let unew f = uref % f % uget
