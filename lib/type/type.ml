@@ -72,3 +72,7 @@ let endo e =
   let c = fresh_seq () in
   let s = fresh_seq () in
   push c (push s e) |> fun x -> x, x
+
+let connect (_, o1) (i2, _) = unify_costack o1 i2
+let connect_in (i1, _) (i2, _) = unify_costack i1 i2
+let connect_out (_, o1) (_, o2) = unify_costack o1 o2

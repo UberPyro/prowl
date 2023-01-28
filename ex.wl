@@ -12,4 +12,4 @@ end
 
 data A list = (eps | A list A) @pro
 
-map := pro F => F map ** F cat pro
+map := @pro F => F map ** F cat @pro
