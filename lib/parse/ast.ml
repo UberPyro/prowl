@@ -48,7 +48,8 @@ and _expr =
   | Pick of expr list
   | Ponder of expr list
 
-and pat = 
+and pat = _pat * Span.t
+and _pat = 
   | PId of string
   | PInt of int
   | PFloat of float
