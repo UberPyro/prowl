@@ -42,6 +42,9 @@ and _expr =
   | LeftSect of string * expr
   | RightSect of expr * string
   | Sect of string
+  | Meet of expr list
+  | Join of expr list
+  | Conj of string * expr
 
   | Let of (string * expr) list * expr
   | Lam of pat * expr
@@ -56,8 +59,13 @@ and _pat =
   | PChar of char
   | PString of string
   | PQuote of string
-  | PList of string list
+  (* | PList of string list *)
   | PCat of pat list
+  | PMeet of pat list
+  (* | PJoin of pat list *)
+  | PConj of pat * pat
+  (* | PDisj of pat * pat
+  | PSnoc of pat * pat *)
 
 type parameter = 
   | PVar of string
