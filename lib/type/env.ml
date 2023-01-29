@@ -34,77 +34,43 @@ end = struct
 
 end
 
-module UEnv : sig
+module type VARIABLE = sig
+  type t
+  val unite : t -> t -> unit
+end
+
+module Envelop(V : VARIABLE) : sig
   type t
 
   val empty : t
-  val init : string -> t -> t
-  val unite : string -> var -> t -> unit
-  val ret : string -> t -> var
+  val unite : string -> V.t -> t -> t
+  val ret : string -> t -> V.t
 end = struct
-
-  type t = var Dict.t
+  type t = V.t Dict.t
 
   let empty = Dict.empty
-
-  (* idempotent *)
-  let init k e = 
-    if Dict.mem k e then e
-    else Dict.add k (fresh_var ()) e
-
-  let unite k v e = unify (Dict.find k e) v
-
-  let ret k e = Dict.find k e
-
+  let unite k v e = 
+    match Dict.find_opt k e with
+    | None -> Dict.add k v e
+    | Some v' -> V.unite v v'; e
+  
+  let ret = Dict.find
 end
 
-module StackEnv : sig
-  type t
+module UEnv = Envelop(struct
+  type t = var
+  let unite = unify
+end)
 
-  val empty : t
-  val init : string -> t -> t
-  val unite : string -> var seq -> t -> unit
-  val ret : string -> t -> var seq
-end = struct
+module StackEnv = Envelop(struct
+  type t = var seq
+  let unite = Ulist.unite_seq ~sel:unify
+end)
 
-  type t = var seq Dict.t
-
-  let empty = Dict.empty
-
-  (* idempotent *)
-  let init k e = 
-    if Dict.mem k e then e
-    else Dict.add k (fresh_seq ()) e
-
-  let unite k v e = Ulist.unite_seq ~sel:unify (Dict.find k e) v
-
-  let ret k e = Dict.find k e
-
-end
-
-module CostackEnv : sig
-  type t
-
-  val empty : t
-  val init : string -> t -> t
-  val unite : string -> var seq seq -> t -> unit
-  val ret : string -> t -> var seq seq
-end = struct
-
-  type t = var seq seq Dict.t
-
-  let empty = Dict.empty
-
-  (* idempotent *)
-  let init k e = 
-    if Dict.mem k e then e
-    else Dict.add k (fresh_seq ()) e
-
-  let unite k v e = unify_costack (Dict.find k e) v
-
-  let ret k e = Dict.find k e
-
-end
+module CostackEnv = Envelop(struct
+  type t = var seq seq
+  let unite = unify_costack
+end)
 
 module TypeEnv : sig
   type t
@@ -130,16 +96,13 @@ let get s = first %> E.get s
 let set k v = map1 (E.set k v)
 let promote k = map1 (E.promote k)
 
-let init s = map2 (UEnv.init s)
-let unite s v = second %> UEnv.unite s v
+let unite s v = map2 (UEnv.unite s v)
 let ret s = second %> UEnv.ret s
 
-let init_stack s = map3 (StackEnv.init s)
-let unite_stack s v = third %> StackEnv.unite s v
+let unite_stack s v = map3 (StackEnv.unite s v)
 let ret_stack s = third %> StackEnv.ret s
 
-let init_costack s = map4 (CostackEnv.init s)
-let unite_costack s v = fourth %> CostackEnv.unite s v
+let unite_costack s v = map4 (CostackEnv.unite s v)
 let ret_costack s = fourth %> CostackEnv.ret s
 
 let get_type s = fifth %> TypeEnv.get s
