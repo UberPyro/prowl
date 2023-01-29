@@ -37,6 +37,7 @@ end
 module type VARIABLE = sig
   type t
   val unite : t -> t -> unit
+  val freshen : t -> t
 end
 
 module Envelop(V : VARIABLE) : sig
@@ -45,6 +46,7 @@ module Envelop(V : VARIABLE) : sig
   val empty : t
   val unite : string -> V.t -> t -> t
   val ret : string -> t -> V.t
+  val dup : t -> t
 end = struct
   type t = V.t Dict.t
 
@@ -55,21 +57,25 @@ end = struct
     | Some v' -> V.unite v v'; e
   
   let ret = Dict.find
+  let dup = Dict.map V.freshen
 end
 
 module UEnv = Envelop(struct
   type t = var
   let unite = unify
+  let freshen = (refresh ())#var
 end)
 
 module StackEnv = Envelop(struct
   type t = var seq
   let unite = Ulist.unite_seq ~sel:unify
+  let freshen = (refresh ())#stack
 end)
 
 module CostackEnv = Envelop(struct
   type t = var seq seq
   let unite = unify_costack
+  let freshen = (refresh ())#costack
 end)
 
 module TypeEnv : sig
@@ -91,6 +97,10 @@ open Tuple5
 type t = E.t * UEnv.t * StackEnv.t * CostackEnv.t * TypeEnv.t
 
 let empty = E.empty, UEnv.empty, StackEnv.empty, CostackEnv.empty, TypeEnv.empty
+let dup = 
+  map2 UEnv.dup
+  %> map3 StackEnv.dup
+  %> map4 CostackEnv.dup
 
 let get s = first %> E.get s
 let set k v = map1 (E.set k v)

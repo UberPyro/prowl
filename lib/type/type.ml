@@ -54,7 +54,8 @@ let refresh () =
     | Var i -> Var (find_memo fresh i)
     | Nom (lst, n) -> 
       Nom (List.map (fun (i, o) -> self#costack i, self#costack o) lst, n)
-  method costack = seq (seq self#var)
+  method stack = seq self#var
+  method costack = seq self#stack
 end
 
 let lit l = 
