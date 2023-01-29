@@ -50,9 +50,10 @@ and pat env_ (p_, _) =
     
     | PCat ps -> List.fold_right (fun (p, _) (io', env') -> 
       f (env', (p, io'))) ps (io, env)
-    (* | PConj ((p1, _), (p2, _)) -> 
+      
+    | PConj ((p1, _), (p2, _)) -> 
       let io1, env1 = f (env, (p1, io)) in
-      let io2, env2 = f (env, (p2, io)) in *)
-
-    | PConj _ -> failwith "todo"
+      let io2, env2 = f (env1, (p2, io)) in
+      connect_parallel io1 io2;
+      io1, env2
   end
