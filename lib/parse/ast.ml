@@ -61,7 +61,7 @@ and _pat =
   | PQuote of string
   (* | PList of string list *)
   | PCat of pat list
-  | PMeet of pat list
+  (* | PMeet of pat list *)
   (* | PJoin of pat list *)
   | PConj of pat * pat
   (* | PDisj of pat * pat

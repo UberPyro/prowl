@@ -77,3 +77,33 @@ let connect (_, o1) (i2, _) = unify_costack o1 i2
 let connect_in (i1, _) (i2, _) = unify_costack i1 i2
 let connect_out (_, o1) (_, o2) = unify_costack o1 o2
 let connect_self (i, o) = unify_costack i o
+let connect_parallel (i1, o1) (i2, o2) = 
+    unify_costack i1 o1; 
+    unify_costack i2 o2
+
+let unconnected () = 
+  let f () = push (fresh_seq ()) (push (fresh_seq ()) (fresh_var ())) in
+  f (), f ()
+
+let push_map c v = 
+  map_top (fun s -> push s v) Fun.id c
+
+let push_left (i, o) v = push_map i v, o
+
+(* uids for primitives *)
+let uid_int = fresh ()
+let uid_float = fresh ()
+let uid_char = fresh ()
+let uid_string = fresh ()
+let uid_quote = fresh ()
+let uid_list = fresh ()
+
+let nom_mono uid = uref @@ Nom ([], uid)
+let nom_poly1 uid v = uref @@ Nom ([v], uid)
+
+let nom_int = nom_mono uid_int
+let nom_float = nom_mono uid_float
+let nom_char = nom_mono uid_char
+let nom_string = nom_mono uid_string
+let nom_quote = nom_poly1 uid_quote
+let nom_list = nom_poly1 uid_list

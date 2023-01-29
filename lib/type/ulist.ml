@@ -47,3 +47,8 @@ let rec remap f g ulst = uref @@ match uget ulst with
   | Push (us, u) -> Push (remap f g us, f u)
   | Next x -> Next (g x)
   | Bot -> Bot
+
+let map_top f g ulst = uref @@ match uget ulst with
+  | Push (us, u) -> Push (us, f u)
+  | Next x -> Next (g x)
+  | Bot -> Bot

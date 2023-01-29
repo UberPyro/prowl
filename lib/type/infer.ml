@@ -18,4 +18,41 @@ let rec expr env (e_, _, io0) = match e_ with
       | [] -> failwith "Unreachable"
     end
 
+  | Lam (p, e) -> 
+    expr env e;
+    let io_pat = fst @@ pat env p in
+    let io_term = Tuple3.third e in
+    connect io_pat io_term;
+    connect_in io0 io_pat;
+    connect_out io0 io_term
+
   | _ -> failwith "todo"
+
+and pat env_ (p_, _) = 
+  (env_, (p_, unconnected ())) |> fix begin fun f (env, (p, io)) -> 
+    let push_mono nom = push_left io nom, env in
+    (* let push_poly1 nom p = 
+      let io', env' = pat env p in
+      push_left io (nom io'), env' in *)
+    
+    match p with
+    | PId s -> 
+      let v = fresh_var () in
+      push_left io v, Env.set s (lit v) env
+    
+    | PInt _ -> push_mono nom_int
+    | PFloat _ -> push_mono nom_float
+    | PChar _ -> push_mono nom_char
+    | PString _ -> push_mono nom_string
+    | PQuote s -> 
+      let io' = unconnected () in
+      push_left io (nom_quote io'), Env.set s (io') env
+    
+    | PCat ps -> List.fold_right (fun (p, _) (io', env') -> 
+      f (env', (p, io'))) ps (io, env)
+    (* | PConj ((p1, _), (p2, _)) -> 
+      let io1, env1 = f (env, (p1, io)) in
+      let io2, env2 = f (env, (p2, io)) in *)
+
+    | PConj _ -> failwith "todo"
+  end
