@@ -46,18 +46,24 @@ module Envelop(V : VARIABLE) : sig
   val empty : t
   val unite : string -> V.t -> t -> t
   val ret : string -> t -> V.t
-  val dup : t -> t
 end = struct
-  type t = V.t Dict.t
+  type t = V.t Dict.t twin
 
-  let empty = Dict.empty
-  let unite k v e = 
-    match Dict.find_opt k e with
-    | None -> Dict.add k v e
-    | Some v' -> V.unite v v'; e
-  
-  let ret = Dict.find
-  let dup = Dict.map V.freshen
+  let empty = Dict.(empty, empty)
+
+  let rec unite k v (escapees, locals as env) = 
+    match Dict.find_opt k locals with
+      | Some v' -> V.unite v v'; env
+      | None -> match Dict.find_opt k escapees with
+        | Some v' -> unite k v (escapees, Dict.add k (V.freshen v') locals)
+        | None -> escapees, Dict.add k v locals
+
+  let ret k (escapees, locals) = match Dict.find_opt k locals with
+    | Some v -> v
+    | None -> match Dict.find_opt k escapees with
+      | Some v -> v
+      | None -> failwith "Unbound unification variable"
+
 end
 
 module UEnv = Envelop(struct
@@ -97,10 +103,6 @@ open Tuple5
 type t = E.t * UEnv.t * StackEnv.t * CostackEnv.t * TypeEnv.t
 
 let empty = E.empty, UEnv.empty, StackEnv.empty, CostackEnv.empty, TypeEnv.empty
-let dup = 
-  map2 UEnv.dup
-  %> map3 StackEnv.dup
-  %> map4 CostackEnv.dup
 
 let get s = first %> E.get s
 let set k v = map1 (E.set k v)
