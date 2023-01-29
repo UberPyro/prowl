@@ -3,6 +3,7 @@ open Type
 type t
 
 val empty : t
+val narrow : t -> t
 
 val get : string -> t -> costack * costack
 val set : string -> costack * costack -> t -> t

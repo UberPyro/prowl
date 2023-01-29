@@ -3,6 +3,7 @@ open Type
 
 exception Unbound_variable of string
 module Dict = Map.Make(String)
+let choose v = Dict.union (fun _ x _ -> Some x) v
 
 module E : sig
   type t
@@ -46,6 +47,7 @@ module Envelop(V : VARIABLE) : sig
   val empty : t
   val unite : string -> V.t -> t -> t
   val ret : string -> t -> V.t
+  val narrow : t -> t
 end = struct
   type t = V.t Dict.t twin
 
@@ -63,6 +65,8 @@ end = struct
     | None -> match Dict.find_opt k escapees with
       | Some v -> v
       | None -> failwith "Unbound unification variable"
+  
+  let narrow (escapees, locals) = choose escapees locals, Dict.empty
 
 end
 
@@ -103,6 +107,10 @@ open Tuple5
 type t = E.t * UEnv.t * StackEnv.t * CostackEnv.t * TypeEnv.t
 
 let empty = E.empty, UEnv.empty, StackEnv.empty, CostackEnv.empty, TypeEnv.empty
+let narrow = 
+  map2 UEnv.narrow
+  %> map3 StackEnv.narrow
+  %> map4 CostackEnv.narrow
 
 let get s = first %> E.get s
 let set k v = map1 (E.set k v)
