@@ -45,7 +45,8 @@ and _expr =
 
   | Let of (string * expr) list * expr
   | Lam of pat * expr
-  | Arrow of expr * expr
+  | Pick of expr list
+  | Ponder of expr list
 
 and pat = 
   | PId of string
