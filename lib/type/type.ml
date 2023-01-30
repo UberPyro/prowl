@@ -63,11 +63,12 @@ let lit l =
   let s = fresh_seq () in
   push c s, push c (push s l)
 
-let bop m = 
+let bop m n o = 
   let c = fresh_seq () in
   let s = fresh_seq () in
-  let s1 = push s m in
-  push c (push s1 m), push c s1
+  push c (push (push s m) n), push c (push s o)
+
+let bop_endo m = bop m m m
 
 let endo e = 
   let c = fresh_seq () in

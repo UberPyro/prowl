@@ -39,7 +39,9 @@ let rec expr env (e_, _, io0) = match e_ with
   
   | Id _ | Int _ | Float _ | Char _ | String _ | Tag _ | Sect _ -> ()
 
-  
+  (* | Binop (e1, s, e2) -> 
+    expr env e1;
+    expr env e2; *)
 
   | _ -> failwith "todo"
 
