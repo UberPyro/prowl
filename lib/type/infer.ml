@@ -39,6 +39,8 @@ let rec expr env (e_, _, io0) = match e_ with
   | Coseq i -> Env.unite_costack i (snd io0) env
   
   | Id _ | Int _ | Float _ | Char _ | String _ | Tag _ | Sect _ -> ()
+  | Quote e -> expr env e
+  | List es -> List.iter (expr env) es
 
   (* Assume binops are generated w/ quotes already concrete *)
   | Binop (e1, eo, e2) -> 
