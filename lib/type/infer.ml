@@ -58,6 +58,19 @@ let rec expr env (e_, _, io0) = match e_ with
     let io1, io2 = dequote_unary @@ third eo in
     connect_parallel io1 @@ third e;
     connect_parallel io2 io0
+  
+  (* | LeftSect (eo, e) ->  *)
+
+  | Meet es | Join es -> 
+    List.iter (expr env) es;
+    fix begin fun f -> function
+      | e1 :: e2 :: t -> 
+        connect_parallel (third e1) (third e2);
+        f t
+      | [_] | [] -> ()
+    end es
+  
+  | Conj (e1, e2) -> connect_parallel (third e1) (third e2)
 
 
   | _ -> failwith "todo"

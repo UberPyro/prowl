@@ -39,12 +39,12 @@ and _expr =
   | Cat of expr list
   | Binop of expr * expr * expr
   | Unop of expr * expr
-  | LeftSect of string * expr
-  | RightSect of expr * string
+  | LeftSect of expr * expr
+  | RightSect of expr * expr
   | Sect of string
   | Meet of expr list
   | Join of expr list
-  | Conj of string * expr
+  | Conj of expr * expr
 
   | Let of (string * expr) list * expr
   | Lam of pat * expr
