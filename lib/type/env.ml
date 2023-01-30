@@ -129,7 +129,7 @@ let narrow =
 
 let get s = first %> E.get s
 let set k v = map1 @@ E.set k v
-let promote k = map1 (E.promote k)
+let promote k = map1 @@ E.promote k
 
 let unite s v = second %> UEnv.unite s v
 let ret s = second %> UEnv.ret s
