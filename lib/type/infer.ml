@@ -37,7 +37,9 @@ let rec expr env (e_, _, io0) = match e_ with
   | Seq i -> Env.unite_stack i (get_right_stack io0) env
   | Coseq i -> Env.unite_costack i (snd io0) env
   
-  | Id _ | Int _ | Float _ | Char _ | String _ -> ()
+  | Id _ | Int _ | Float _ | Char _ | String _ | Tag _ | Sect _ -> ()
+
+  
 
   | _ -> failwith "todo"
 
