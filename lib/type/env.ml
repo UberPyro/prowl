@@ -3,7 +3,7 @@ open Type
 
 exception Unbound_variable of string
 module Dict = Map.Make(String)
-let choose v = Dict.union (fun _ x _ -> Some x) v
+module HashDict = Hashtbl.Make(String)
 
 module E : sig
   type t
@@ -44,29 +44,32 @@ end
 module Envelop(V : VARIABLE) : sig
   type t
 
-  val empty : t
-  val unite : string -> V.t -> t -> t
+  val create : unit -> t
+  val unite : string -> V.t -> t -> unit
   val ret : string -> t -> V.t
   val narrow : t -> t
 end = struct
-  type t = V.t Dict.t twin
+  type t = V.t Dict.t * V.t HashDict.t
 
-  let empty = Dict.(empty, empty)
+  let create () = Dict.empty, HashDict.create 4
 
   let rec unite k v (escapees, locals as env) = 
-    match Dict.find_opt k locals with
-      | Some v' -> V.unite v v'; env
+    match HashDict.find_option locals k with
+      | Some v' -> V.unite v v'
       | None -> match Dict.find_opt k escapees with
-        | Some v' -> unite k v (escapees, Dict.add k (V.freshen v') locals)
-        | None -> escapees, Dict.add k v locals
+        | Some v' -> 
+          HashDict.add locals k @@ V.freshen v';
+          unite k v env
+        | None -> HashDict.add locals k v
 
-  let ret k (escapees, locals) = match Dict.find_opt k locals with
+  let ret k (escapees, locals) = match HashDict.find_option locals k with
     | Some v -> v
     | None -> match Dict.find_opt k escapees with
       | Some v -> v
       | None -> failwith "Unbound unification variable"
   
-  let narrow (escapees, locals) = choose escapees locals, Dict.empty
+  let narrow (escapees, locals) = 
+    HashDict.fold Dict.add locals escapees, snd @@ create ()
 
 end
 
@@ -106,24 +109,26 @@ open Tuple5
 
 type t = E.t * UEnv.t * StackEnv.t * CostackEnv.t * TypeEnv.t
 
-let empty = E.empty, UEnv.empty, StackEnv.empty, CostackEnv.empty, TypeEnv.empty
+let create () = 
+  E.empty, UEnv.create (), StackEnv.create (), CostackEnv.create (), TypeEnv.empty
+
 let narrow = 
   map2 UEnv.narrow
   %> map3 StackEnv.narrow
   %> map4 CostackEnv.narrow
 
 let get s = first %> E.get s
-let set k v = map1 (E.set k v)
+let set k v = map1 @@ E.set k v
 let promote k = map1 (E.promote k)
 
-let unite s v = map2 (UEnv.unite s v)
+let unite s v = second %> UEnv.unite s v
 let ret s = second %> UEnv.ret s
 
-let unite_stack s v = map3 (StackEnv.unite s v)
+let unite_stack s v = third %> StackEnv.unite s v
 let ret_stack s = third %> StackEnv.ret s
 
-let unite_costack s v = map4 (CostackEnv.unite s v)
+let unite_costack s v = fourth %> CostackEnv.unite s v
 let ret_costack s = fourth %> CostackEnv.ret s
 
 let get_type s = fifth %> TypeEnv.get s
-let set_type k v = map5 (TypeEnv.set k v)
+let set_type k v = map5 @@ TypeEnv.set k v
