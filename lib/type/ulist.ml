@@ -56,3 +56,7 @@ let map_top f g ulst = uref @@ match uget ulst with
 let get_top ulst = match uget ulst with
   | Push (_, u) -> u
   | Next _ | Bot -> raise @@ Invalid_argument "get_top"
+
+let get_top2 ulst = match uget ulst with
+  | Push (us, u) -> u, get_top us
+  | Next _ | Bot -> raise @@ Invalid_argument "get_top2"

@@ -37,8 +37,8 @@ and _expr =
   | Tag of string
 
   | Cat of expr list
-  | Binop of expr * string * expr
-  | Unop of string * expr
+  | Binop of expr * expr * expr
+  | Unop of expr * expr
   | LeftSect of string * expr
   | RightSect of expr * string
   | Sect of string

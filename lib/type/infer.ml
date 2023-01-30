@@ -1,4 +1,5 @@
 open! Batteries
+open Tuple3
 
 open Type
 open Ast
@@ -21,14 +22,14 @@ let rec expr env (e_, _, io0) = match e_ with
   | Lam (p, e) -> 
     expr env e;
     let io_pat = fst @@ pat env p in
-    let io_term = Tuple3.third e in
+    let io_term = third e in
     connect io_pat io_term;
     connect_in io0 io_pat;
     connect_out io0 io_term
   
   | Let (bindings, e) -> 
     let env' = List.fold_left (fun env' (b, e) -> 
-      Env.set b (Tuple3.third e) env') env bindings in
+      Env.set b (third e) env') env bindings in
     List.iter (snd %> expr env) bindings;
     expr (List.fold_left (fun env_ (b, _) -> 
       Env.promote b env_) env' bindings) e
@@ -39,9 +40,23 @@ let rec expr env (e_, _, io0) = match e_ with
   
   | Id _ | Int _ | Float _ | Char _ | String _ | Tag _ | Sect _ -> ()
 
-  (* | Binop (e1, s, e2) -> 
+  (* Assume binops are generated w/ quotes already concrete *)
+  | Binop (e1, eo, e2) -> 
     expr env e1;
-    expr env e2; *)
+    expr env e2;
+    expr env eo;
+    let io1, io2, io3 = dequote @@ third eo in
+    connect_parallel io1 @@ third e1;
+    connect_parallel io2 @@ third e2;
+    connect_parallel io3 io0
+  
+  | Unop (e, eo) -> 
+    expr env e;
+    expr env eo;
+    let io1, io2 = dequote_unary @@ third eo in
+    connect_parallel io1 @@ third e;
+    connect_parallel io2 io0
+
 
   | _ -> failwith "todo"
 

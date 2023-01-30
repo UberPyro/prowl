@@ -11,6 +11,7 @@ val iter : ('a -> unit) -> ('b -> unit) -> ('a, 'b) t -> unit
 val remap : ('a -> 'b) -> ('c -> 'd) -> ('a, 'c) t -> ('b, 'd) t
 val map_top : ('a -> 'a) -> ('b -> 'b) -> ('a, 'b) t -> ('a, 'b) t
 val get_top : ('a, 'b) t -> 'a
+val get_top2 : ('a, 'b) t -> 'a * 'a
 
 val show : (Format.formatter -> 'a -> unit) -> (Format.formatter -> 'b -> unit) -> ('a, 'b) t -> string
 val pp : (Format.formatter -> 'a -> unit) -> (Format.formatter -> 'b -> unit) -> Format.formatter -> ('a, 'b) t -> unit

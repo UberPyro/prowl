@@ -92,7 +92,9 @@ let push_map c v =
 
 let push_left (i, o) v = push_map i v, o
 let push_right (i, o) v = i, push_map o v
+let get_left_stack (i, _) = get_top i
 let get_right_stack (_, o) = get_top o
+let get_left io = io |> get_left_stack |> get_top
 let get_right io = io |> get_right_stack |> get_top
 
 (* uids for primitives *)
@@ -112,3 +114,16 @@ let nom_char = nom_mono uid_char
 let nom_string = nom_mono uid_string
 let nom_quote = nom_poly1 uid_quote
 let nom_list = nom_poly1 uid_list
+
+let dequote io = match 
+  Tuple2.mapn uget @@ get_top2 @@ get_left_stack io, 
+  uget @@ get_right io with
+  | (Nom ([io1], i1), Nom ([io2], i2)), Nom ([io3], i3) 
+  when i1 = uid_quote && i2 = uid_quote && i3 = uid_quote -> io1, io2, io3
+  | _ -> failwith "Internal malformed binary expression"
+
+let dequote_unary io = match
+  Tuple2.mapn uget @@ (get_left io, get_right io) with
+  | Nom ([io1], i1), Nom ([io2], i2)
+  when i1 = uid_quote && i2 = uid_quote -> io1, io2
+  | _ -> failwith "Internal malformed unary expression"
