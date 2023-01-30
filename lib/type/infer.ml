@@ -70,7 +70,10 @@ let rec expr env (e_, _, io0) = match e_ with
       | [_] | [] -> ()
     end es
   
-  | Conj (e1, e2) -> connect_parallel (third e1) (third e2)
+  | Conj (e1, e2) -> 
+    expr env e1;
+    expr env e2;
+    connect_parallel (third e1) (third e2)
 
 
   | _ -> failwith "todo"
