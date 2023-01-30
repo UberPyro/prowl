@@ -90,6 +90,9 @@ let push_map c v =
   map_top (fun s -> push s v) Fun.id c
 
 let push_left (i, o) v = push_map i v, o
+let push_right (i, o) v = i, push_map o v
+let get_right_stack (_, o) = get_top o
+let get_right io = io |> get_right_stack |> get_top
 
 (* uids for primitives *)
 let uid_int = fresh ()

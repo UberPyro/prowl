@@ -33,6 +33,11 @@ let rec expr env (e_, _, io0) = match e_ with
     expr (List.fold_left (fun env_ (b, _) -> 
       Env.promote b env_) env' bindings) e
 
+  (* Relies on unification variables being preloaded *)
+  | Var s -> Env.unite s (get_right io0) env |> ignore
+  
+  | Id _ | Int _ | Float _ | Char _ | String _ -> ()
+
   | _ -> failwith "todo"
 
 and pat env_ (p_, _) = 
