@@ -25,6 +25,12 @@ let rec expr env (e_, _, io0) = match e_ with
     connect io_pat io_term;
     connect_in io0 io_pat;
     connect_out io0 io_term
+  
+  | Let (bindings, e) -> 
+    let env' = List.fold_left (fun env' (b, e) -> 
+      Env.set b (Tuple3.third e) env') env bindings in
+    List.iter (snd %> expr env) bindings;
+    expr env' e
 
   | _ -> failwith "todo"
 
@@ -50,7 +56,7 @@ and pat env_ (p_, _) =
     
     | PCat ps -> List.fold_right (fun (p, _) (io', env') -> 
       f (env', (p, io'))) ps (io, env)
-      
+
     | PConj ((p1, _), (p2, _)) -> 
       let io1, env1 = f (env, (p1, io)) in
       let io2, env2 = f (env1, (p2, io)) in
