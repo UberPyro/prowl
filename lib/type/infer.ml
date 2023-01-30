@@ -30,7 +30,8 @@ let rec expr env (e_, _, io0) = match e_ with
     let env' = List.fold_left (fun env' (b, e) -> 
       Env.set b (Tuple3.third e) env') env bindings in
     List.iter (snd %> expr env) bindings;
-    expr env' e
+    expr (List.fold_left (fun env_ (b, _) -> 
+      Env.promote b env_) env' bindings) e
 
   | _ -> failwith "todo"
 
