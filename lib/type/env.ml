@@ -41,35 +41,40 @@ module type VARIABLE = sig
   val freshen : t -> t
 end
 
-module Envelop(V : VARIABLE) : sig
+module Envelop(V : VARIABLE)(I : sig
+  include Interfaces.OrderedType
+  include Hashtbl.HashedType with type t := t
+end) : sig
   type t
 
   val create : unit -> t
-  val unite : string -> V.t -> t -> unit
-  val ret : string -> t -> V.t
+  val unite : I.t -> V.t -> t -> unit
+  val ret : I.t -> t -> V.t
   val narrow : t -> t
 end = struct
-  type t = V.t Dict.t * V.t HashDict.t
+  module D = Map.Make(I)
+  module H = Hashtbl.Make(I)
+  type t = V.t D.t * V.t H.t
 
-  let create () = Dict.empty, HashDict.create 4
+  let create () = D.empty, H.create 4
 
   let rec unite k v (escapees, locals as env) = 
-    match HashDict.find_option locals k with
+    match H.find_option locals k with
       | Some v' -> V.unite v v'
-      | None -> match Dict.find_opt k escapees with
+      | None -> match D.find_opt k escapees with
         | Some v' -> 
-          HashDict.add locals k @@ V.freshen v';
+          H.add locals k @@ V.freshen v';
           unite k v env
-        | None -> HashDict.add locals k v
+        | None -> H.add locals k v
 
-  let ret k (escapees, locals) = match HashDict.find_option locals k with
+  let ret k (escapees, locals) = match H.find_option locals k with
     | Some v -> v
-    | None -> match Dict.find_opt k escapees with
+    | None -> match D.find_opt k escapees with
       | Some v -> v
       | None -> failwith "Unbound unification variable"
   
   let narrow (escapees, locals) = 
-    HashDict.fold Dict.add locals escapees, snd @@ create ()
+    H.fold D.add locals escapees, snd @@ create ()
 
 end
 
@@ -77,19 +82,24 @@ module UEnv = Envelop(struct
   type t = var
   let unite = unify
   let freshen = (refresh ())#var
-end)
+end)(String)
+
+module HashedInt = struct
+  include Hashtbl
+  include Int
+end
 
 module StackEnv = Envelop(struct
   type t = var seq
   let unite = Ulist.unite_seq ~sel:unify
   let freshen = (refresh ())#stack
-end)
+end)(HashedInt)
 
 module CostackEnv = Envelop(struct
   type t = var seq seq
   let unite = unify_costack
   let freshen = (refresh ())#costack
-end)
+end)(HashedInt)
 
 module TypeEnv : sig
   type t

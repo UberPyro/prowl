@@ -34,6 +34,8 @@ let rec expr env (e_, _, io0) = match e_ with
       Env.promote b env_) env' bindings) e
 
   | Var s -> Env.unite s (get_right io0) env
+  | Seq i -> Env.unite_stack i (get_right_stack io0) env
+  | Coseq i -> Env.unite_costack i (snd io0) env
   
   | Id _ | Int _ | Float _ | Char _ | String _ -> ()
 
