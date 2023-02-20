@@ -1,4 +1,5 @@
 (include_subdirs unqualified)
 (library
  (name prowl)
- (libraries batteries))
+ (libraries batteries)
+ (preprocess (pps ppx_deriving.show)))
