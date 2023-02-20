@@ -1,8 +1,5 @@
 open! Batteries
 
-type det = {total:bool; bare:bool}
-type mode = det * det
-
 type kind = 
   | KVar of Var.t
   | KSeq of Var.t
@@ -19,7 +16,7 @@ type ty =
   | TQuote of rel
   | TList of rel
 
-and rel = ty * mode
+and rel = ty * Mode.t
 
 and data = Tag of ty * string
 
@@ -37,7 +34,7 @@ type expr =
   | String of string
   | Quote of expr
   | List of expr list
-  | Block of expr * mode
+  | Block of expr * Mode.t
   | Tag of string
 
   | Let of (string * ty option * expr) list * expr
