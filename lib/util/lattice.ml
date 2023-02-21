@@ -31,7 +31,7 @@ end
 
 module Pro(X : S)(Y : S) = Bi(Opposite(X))(Y)
 
-module Lexical(X : S)(Y : S) = struct
+module Lexical(X : S)(Y : S) = struct  (* As in lexical sort *)
   include Bi(X)(Y)
   let bi_lex f g u v = match u, v with
     | (x1, y1), (x2, y2) when x1 = x2 -> x1, g y1 y2
@@ -50,8 +50,8 @@ end
 
 module Finite = Poly(Showable.Finite)
 
-module Interval = Lexical(Finite)(Finite)
-module Span = Pro(Interval)(Interval)
+module Location = Lexical(Finite)(Finite)
+module Span = Pro(Location)(Location)
 
 module Det = Bi(Logical)(Logical)
 module Mode = Bi(Det)(Det)
