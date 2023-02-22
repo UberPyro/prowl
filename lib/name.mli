@@ -1,6 +1,5 @@
 open! Batteries
 
-type t
+type t [@@deriving show]
 
 val note : string -> t
-val view : t -> string

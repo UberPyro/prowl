@@ -1,5 +1,9 @@
 open! Batteries
 
+module M = struct
+  type t = string [@@deriving show]
+end
+
 type t = int
 
 let store : string DynArray.t = DynArray.create ()
@@ -9,4 +13,5 @@ let note s =
   DynArray.add store s;
   x
 
-let view x = DynArray.get store x
+let show = DynArray.get store
+let pp fmt = show %> M.pp fmt
