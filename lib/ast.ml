@@ -6,17 +6,17 @@ type kind =
   | KCat of kind list
   | KDag of kind
 
-type ty = 
+type ty = ty_expr * Mode.t
+
+and ty_expr = 
   | TId of Name.t
   | TVar of Var.t
   | TStack of Var.t
   | TCostack of Var.t
   | TCat of ty list
   | TDag of ty
-  | TQuote of rel
-  | TList of rel
-
-and rel = ty * Mode.t
+  | TQuote of ty
+  | TList of ty
 
 and data = Tag of ty * Name.t
 
