@@ -7,7 +7,7 @@ type kind =
   | KDag of kind
 
 type ty = 
-  | TId of string
+  | TId of Name.t
   | TVar of Var.t
   | TStack of Var.t
   | TCostack of Var.t
@@ -18,10 +18,10 @@ type ty =
 
 and rel = ty * Mode.t
 
-and data = Tag of ty * string
+and data = Tag of ty * Name.t
 
 type expr = 
-  | Id of string
+  | Id of Name.t
   | Var of Var.t
   | Stack of Var.t
   | Costack of Var.t
@@ -35,16 +35,16 @@ type expr =
   | Quote of expr
   | List of expr list
   | Block of expr * Mode.t
-  | Tag of string
+  | Tag of Name.t
 
-  | Let of (string * ty option * expr) list * expr
-  | Unop of expr * string
-  | Binop of expr * string * expr
-  | SectLeft of string * expr
-  | SectRight of expr * string
-  | Sect of string
+  | Let of (Name.t * ty option * expr) list * expr
+  | Unop of expr * Name.t
+  | Binop of expr * Name.t * expr
+  | SectLeft of Name.t * expr
+  | SectRight of expr * Name.t
+  | Sect of Name.t
 
 type def = 
-  | Val of string * ty option * expr
+  | Val of Name.t * ty option * expr
   | Type of ty
   | Data of data
