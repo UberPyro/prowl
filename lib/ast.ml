@@ -33,7 +33,7 @@ and _expr =
   | Stack of Var.t
   | Costack of Var.t
   | Cat of expr list
-  | Dag of ty
+  | Dag of expr
 
   | Int of int
   | Float of float
