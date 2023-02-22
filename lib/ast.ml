@@ -1,8 +1,8 @@
 open! Batteries
 
 type kind = 
-  | KVar of Var.t
-  | KSeq of Var.t
+  | KVar
+  | KSeq
   | KCat of kind list
   | KDag of kind
 
