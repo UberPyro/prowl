@@ -34,6 +34,7 @@ and _expr =
   | Costack of Var.t
   | Cat of expr list
   | Dag of expr
+  | New of string
 
   | Int of int
   | Float of float
@@ -45,11 +46,13 @@ and _expr =
   | Tag of string
 
   | Let of (string * ty option * expr) list * expr
+  
   | Unop of expr * string
   | Binop of expr * string * expr
   | SectLeft of string * expr
   | SectRight of expr * string
   | Sect of string
+  | Arrow of string * string
   [@@deriving show]
 
 type def = _def * Span.t [@@deriving show]
