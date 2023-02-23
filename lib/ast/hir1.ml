@@ -53,7 +53,7 @@ let rec expr ((_e, sp, t) : Ast.expr) : expr = begin match _e with
     wraps2 [`quote (expr e1); `quote (expr e2); `id s; `i] e1 e2
   | `sectLeft (s, e) -> wraps [`unit; `quote (expr e); `id s; `i] e
   | `sectRight (e, s) -> wraps [`unit; `quote (expr e); `swap; `id s; `i] e
-  | `sect s -> `id s
+  | `sect s -> wraps [`swap; `unit; `swap; `unit; `id s; `i] (_e, sp, t)
   | `arrow (e1, e2) -> `jux [wrap_expr (`dag (expr e1)) e1; expr e2]
 
   | `jux es -> `jux (List.map expr es)
