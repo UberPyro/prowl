@@ -26,24 +26,33 @@ and _ty_expr = [
 and data = _data * Span.t [@@deriving show]
 and _data = Tag of ty * string [@@deriving show]
 
-type expr = _expr * Span.t * unit [@@deriving show]
-and _expr = [
+type variable = [
   | `id of string
   | `var of Var.t
   | `stack of Var.t
   | `costack of Var.t
-  | `jux of expr list
-  | `dag of expr
-  | `prime of expr
+  | `tag of string
+] [@@deriving show]
 
+type literal = [
   | `int of int
   | `float of float
   | `char of char
   | `string of string
+] [@@deriving show]
+
+type expr = _expr * Span.t * unit [@@deriving show]
+and _expr = [
+  | variable
+  | literal
+
+  | `jux of expr list
+  | `dag of expr
+  | `prime of expr
+
   | `quote of expr
   | `list of expr list
   | `block of expr * Mode.t
-  | `tag of string
 
   | `binding of (string * ty option * expr) list * expr
 

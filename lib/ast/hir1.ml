@@ -13,22 +13,16 @@ type base_comb = [
 
 type expr = _expr * Span.t * unit [@@deriving show]
 and _expr = [
-  | `id of string
-  | `var of Var.t
-  | `stack of Var.t
-  | `costack of Var.t
+  | Ast.variable
+  | Ast.literal
+
   | `jux of expr list
   | `dag of expr
   | `prime of expr
 
-  | `int of int
-  | `float of float
-  | `char of char
-  | `string of string
   | `quote of expr
   | `list of expr list
   | `block of expr * Mode.t
-  | `tag of string
 
   | `binding of (string * Ast.ty option * expr) list * expr
 
