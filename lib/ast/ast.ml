@@ -4,7 +4,7 @@ type kind = _kind * Span.t [@@deriving show]
 and _kind = [
   | `var
   | `seq
-  | `cat of kind list
+  | `jux of kind list
   | `dag of kind
 ] [@@deriving show]
 
@@ -17,7 +17,7 @@ and _ty_expr = [
   | `var of Var.t
   | `stack of Var.t
   | `costack of Var.t
-  | `cat of ty list
+  | `jux of ty list
   | `dag of ty
   | `quote of ty
   | `list of ty
@@ -26,13 +26,13 @@ and _ty_expr = [
 and data = _data * Span.t [@@deriving show]
 and _data = Tag of ty * string [@@deriving show]
 
-type expr = _expr * Span.t [@@deriving show]
+type expr = _expr * Span.t * unit [@@deriving show]
 and _expr = [
   | `id of string
   | `var of Var.t
   | `stack of Var.t
   | `costack of Var.t
-  | `cat of expr list
+  | `jux of expr list
   | `dag of expr
   | `prime of expr
 
@@ -52,7 +52,7 @@ and _expr = [
   | `sectLeft of string * expr
   | `sectRight of expr * string
   | `sect of string
-  | `arrow of string * string
+  | `arrow of expr * expr
 ] [@@deriving show]
 
 type def = _def * Span.t [@@deriving show]
