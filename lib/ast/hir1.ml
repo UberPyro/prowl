@@ -64,8 +64,7 @@ let rec expr ((_e, sp, t) : Ast.expr) : expr = begin match _e with
   | `block em -> `block (Tuple2.map1 expr em)
   | `binding (b, e) -> `binding (List.map (Tuple3.map3 expr) b, expr e)
 
-  | `id _ | `float _| `stack _| `string _| `int _
-  | `var _| `tag _| `char _| `costack _ as _e -> _e
+  | #Ast.variable | #Ast.literal as _e -> _e
 end, sp, t
 
 let def (_d, sp) = begin match _d with
