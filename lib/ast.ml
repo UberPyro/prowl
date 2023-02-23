@@ -13,7 +13,7 @@ and _ty = ty_expr * Mode.t [@@deriving show]
 
 and ty_expr = _ty_expr * Span.t [@@deriving show]
 and _ty_expr = 
-  | TId of Name.t
+  | TId of string
   | TVar of Var.t
   | TStack of Var.t
   | TCostack of Var.t
@@ -24,11 +24,11 @@ and _ty_expr =
   [@@deriving show]
 
 and data = _data * Span.t [@@deriving show]
-and _data = Tag of ty * Name.t [@@deriving show]
+and _data = Tag of ty * string [@@deriving show]
 
 type expr = _expr * Span.t [@@deriving show]
 and _expr = 
-  | Id of Name.t
+  | Id of string
   | Var of Var.t
   | Stack of Var.t
   | Costack of Var.t
@@ -42,19 +42,19 @@ and _expr =
   | Quote of expr
   | List of expr list
   | Block of expr * Mode.t
-  | Tag of Name.t
+  | Tag of string
 
-  | Let of (Name.t * ty option * expr) list * expr
-  | Unop of expr * Name.t
-  | Binop of expr * Name.t * expr
-  | SectLeft of Name.t * expr
-  | SectRight of expr * Name.t
-  | Sect of Name.t
+  | Let of (string * ty option * expr) list * expr
+  | Unop of expr * string
+  | Binop of expr * string * expr
+  | SectLeft of string * expr
+  | SectRight of expr * string
+  | Sect of string
   [@@deriving show]
 
 type def = _def * Span.t [@@deriving show]
 and _def = 
-  | Val of Name.t * ty option * expr
+  | Val of string * ty option * expr
   | Type of ty
   | Data of data
   [@@deriving show]
