@@ -14,9 +14,9 @@ and _ty = ty_expr * Mode.t [@@deriving show]
 and ty_expr = _ty_expr * Span.t [@@deriving show]
 and _ty_expr = [
   | `id of string
-  | `var of Var.t
-  | `stack of Var.t
-  | `costack of Var.t
+  | `var of Meta.t
+  | `stack of Meta.t
+  | `costack of Meta.t
   | `jux of ty list
   | `dag of ty
   | `quote of ty
@@ -28,9 +28,9 @@ and _data = Tag of ty * string [@@deriving show]
 
 type variable = [
   | `id of string
-  | `var of Var.t
-  | `stack of Var.t
-  | `costack of Var.t
+  | `var of Meta.t
+  | `stack of Meta.t
+  | `costack of Meta.t
   | `tag of string
 ] [@@deriving show]
 
