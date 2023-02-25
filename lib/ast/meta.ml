@@ -1,4 +1,7 @@
-type t
+type t = 
+  | Name of string
+  | Id of int
+  [@@deriving show, eq]
 
-let show _ = failwith "Var.show not implemented"
-let pp _ = failwith "Var.pp not implemented"
+let name s = Name s
+let num i = Id i

@@ -2,4 +2,4 @@
 (library
  (name prowl)
  (libraries batteries)
- (preprocess (pps ppx_deriving.show)))
+ (preprocess (pps ppx_deriving.show ppx_deriving.eq)))
