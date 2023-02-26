@@ -55,3 +55,31 @@ module Span = Pro(Location)(Location)
 
 module Det = Bi(Logical)(Logical)
 module Mode = Bi(Det)(Det)
+
+module Segmented = struct
+  type t = ISet.t
+
+  let join = ISet.union
+  let meet = ISet.inter
+
+  module I = struct
+    type t = (int * int) list [@@deriving show]
+  end
+  let pp fmt = ISet.ranges %> I.pp fmt
+  let show = ISet.ranges %> I.show
+end
+
+module Tagged(X : S) = struct
+  type t = (string, X.t) Map.t
+
+  let meet : t -> t -> t = Map.intersect X.meet
+  let join : t -> t -> t = Map.union_stdlib (fun _ x y -> Some (X.join x y))
+
+  module P = struct
+    type t = (string * X.t) list [@@deriving show]
+  end
+  let pp fmt = Map.bindings %> P.pp fmt
+  let show = Map.bindings %> P.show
+end
+
+module TSeg = Tagged(Segmented)
