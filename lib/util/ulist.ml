@@ -26,8 +26,6 @@ let rec umap ?(g=Fun.id) f us = uref @@ match uget us with
   | USeq u -> USeq (g u)
   | UNil -> UNil
 
-let copy us = umap Fun.id us
-
 let rec uiter ?(g=ignore) f us = match uget us with
   | UCons (u, us) -> f u; uiter ~g f us
   | USeq u -> g u
