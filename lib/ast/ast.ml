@@ -8,7 +8,7 @@ and _kind = [
   | `dag of kind
 ] [@@deriving show]
 
-and ty = _ty * Mode.t * Span.t * unit [@@deriving show]
+and ty = _ty * Mode.t * Span.t * Kind.arrow [@@deriving show]
 and _ty = [
   | `id of string
   | `var of Meta.t
