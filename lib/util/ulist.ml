@@ -12,6 +12,8 @@ and 'a _t =
   | UNil
   | USeq of 'a [@@deriving show]
 
+type 'a ulist = 'a t [@@deriving show]
+
 let unil () = uref UNil
 let ucons u us = uref @@ UCons (u, us)
 let useq u = uref @@ USeq u

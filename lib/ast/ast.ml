@@ -8,11 +8,8 @@ and _kind = [
   | `dag of kind
 ] [@@deriving show]
 
-type ty = _ty * Span.t [@@deriving show]
-and _ty = ty_expr * Mode.t [@@deriving show]
-
-and ty_expr = _ty_expr * Span.t [@@deriving show]
-and _ty_expr = [
+and ty = _ty * Mode.t * Span.t * unit [@@deriving show]
+and _ty = [
   | `id of string
   | `var of Meta.t
   | `stack of Meta.t

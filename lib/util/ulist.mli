@@ -1,6 +1,7 @@
 open! Batteries
 
 type 'a t [@@deriving show]
+type 'a ulist = 'a t [@@deriving show]
 
 val unil : unit -> 'a t
 val ucons : 'a -> 'a t -> 'a t
