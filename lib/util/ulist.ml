@@ -6,13 +6,13 @@ module Uref = struct
   let pp fmt x y = fmt x (uget y)
 end
 
-type 'a t = 'a _t Uref.t
-and 'a _t = 
-  | UCons of 'a * 'a t
+type ('a, 'b) t = ('a, 'b) _t Uref.t
+and ('a, 'b) _t = 
+  | UCons of 'a * ('a, 'b) t
   | UNil
-  | USeq of 'a [@@deriving show]
+  | USeq of 'b [@@deriving show]
 
-type 'a ulist = 'a t [@@deriving show]
+type ('a, 'b) ulist = ('a, 'b) t [@@deriving show]
 
 let unil () = uref UNil
 let ucons u us = uref @@ UCons (u, us)
