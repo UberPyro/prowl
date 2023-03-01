@@ -1,12 +1,9 @@
 open! Batteries
 open Uref
 
-module Uref = struct
-  include Uref
-  let pp fmt x y = fmt x (uget y)
-end
+let pp_uref fmt x y = fmt x (uget y)
 
-type ('a, 'b) t = ('a, 'b) _t Uref.t
+type ('a, 'b) t = ('a, 'b) _t uref
 and ('a, 'b) _t = 
   | UCons of 'a * ('a, 'b) t
   | UNil
