@@ -26,22 +26,22 @@ let ufresh () = useq (Var.fresh ())
 let rec umap ?(g=Fun.id) f us = uref @@ match uget us with
   | UCons (u, us) -> UCons (f u, umap ~g f us)
   | USeq u -> USeq (g u)
-  | UNil -> UNil
+  | UNil -> UNil *)
 
 let rec uiter ?(g=ignore) f us = match uget us with
   | UCons (u, us) -> f u; uiter ~g f us
   | USeq u -> g u
-  | UNil -> () *)
+  | UNil -> ()
 
-let rec unite ?(fvars=Var.checker ()) unite_val = 
-  Uref.unite ~sel:begin fun s t -> match s, t with
+(* occurance has to be recursive w/ unification... *)
+
+let rec unite unite_val r = 
+  r |> Uref.unite ~sel:begin fun s t -> match s, t with
     | USeq _, USeq _ -> s
-    | (UCons _ as x), USeq v | USeq v, (UCons _ as x) -> 
-      fvars#occurs v;
-      x
+    | (UCons _ as x), USeq _ | USeq _, (UCons _ as x) -> x
     | UCons (u, us), UCons (v, vs) -> 
       unite_val u v;
-      unite ~fvars unite_val us vs;
+      unite unite_val us vs;
       s
     | UCons _, UNil | UNil, UCons _ -> raise @@ Invalid_argument "unite"
     | USeq _, UNil | UNil, USeq _ | UNil, UNil -> UNil
