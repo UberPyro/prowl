@@ -17,6 +17,10 @@ let rec derive ((k_, _) : Ast.kind) : Kind.t = match k_ with
             Span.join sp_h sp_i, 
             Printf.sprintf "Cannot unify kinds [%s] and [%s]" s1 s2
           )
+        | Var.OccursError s -> raise @@ Error.TypeError (
+            Span.join sp_h sp_i, 
+            Printf.sprintf "[%s] is unified with something that contains it" s
+          )
         end;
         connect_pairs i t
       | [] -> h in
