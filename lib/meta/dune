@@ -1,0 +1,4 @@
+(library
+ (name meta)
+ (libraries batteries util)
+ (preprocess (pps ppx_deriving.show ppx_deriving.eq)))

@@ -1,0 +1,4 @@
+(library
+ (name infer)
+ (libraries batteries util meta type syntax)
+ (preprocess (pps ppx_deriving.show)))
