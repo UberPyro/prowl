@@ -1,6 +1,5 @@
 open! Batteries
 
-open Util
 open Meta
 
 open Ulist
@@ -8,7 +7,7 @@ open Uref
 
 exception DifferentlyKinded of string * string
 
-type 'a seq = ('a, Var.t) ulist [@@deriving show]
+type 'a seq = 'a ulist [@@deriving show]
 type var = _var uref
 and _var = 
   | KStar
