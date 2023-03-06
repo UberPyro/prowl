@@ -28,10 +28,10 @@ let rec umap ?(g=Fun.id) f us = uref @@ match uget us with
   | USeq u -> USeq (g u)
   | UNil -> UNil *)
 
-let rec uiter ?(g=ignore) f us = match uget us with
+(* let rec uiter ?(g=ignore) f us = match uget us with
   | UCons (u, us) -> f u; uiter ~g f us
   | USeq u -> g u
-  | UNil -> ()
+  | UNil -> () *)
 
 (* occurance has to be recursive w/ unification... *)
 
