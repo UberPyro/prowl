@@ -15,6 +15,7 @@ and _kind = [
   | `var
   | `seq
   | `jux of kind list
+  | `dag
 ] [@@deriving show]
 
 and ty = _ty * mode * Span.t * Kind.t [@@deriving show]

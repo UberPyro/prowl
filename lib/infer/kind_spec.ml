@@ -1,9 +1,17 @@
 open! Batteries
 
-(* translate kind ast into kinds *)
+open Util.Ulist
+open Syntax
+open Meta
+open Type
+open Iter
 
-(* open Syntax
-open Type *)
+open Uref
 
-(* let derive ((k_, sp) : Ast.kind) : Kind.t = match k_ with
-  |  *)
+let rec derive ((k_, sp) : Ast.kind) : Kind.t = match k_ with
+  | `var -> Kind.lit Kind.KStar
+  | `seq -> Kind.start ()
+  | `jux [] -> Kind.connected ()
+  (* | `jux (h :: t) -> iter_pairs begin fun (a, _) (b, _) -> 
+    Kind.connect a b
+  end (fun (x, _) (y, _) -> fst x, snd y) h t *)
