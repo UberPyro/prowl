@@ -23,10 +23,3 @@ let refresher () = object
       Hashtbl.add tbl m n;
       n
 end
-
-let checker () = object
-  val tbl = Hashtbl.create 8
-  method occurs (m : t) = 
-    if Hashtbl.mem tbl m then Hashtbl.add tbl m ()
-    else raise @@ OccursError (show m)
-end
