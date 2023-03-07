@@ -27,7 +27,7 @@ let rec unify r =
       raise @@ DifferentlyKinded (show__var n, show__var m)
 end
 
-and unify_stack s = Ulist.unite unify s
+and unify_stack s = Ulist.unite unify (Fun.const ignore) s
 
 let create () = useq (Var.fresh ())
 let free () = create (), create ()

@@ -28,20 +28,21 @@ let rec umap ?(g=Fun.id) f us = uref @@ match uget us with
   | USeq u -> USeq (g u)
   | UNil -> UNil *)
 
-(* let rec uiter ?(g=ignore) f us = match uget us with
+let rec uiter ?(g=ignore) f us = match uget us with
   | UCons (u, us) -> f u; uiter ~g f us
   | USeq u -> g u
-  | UNil -> () *)
+  | UNil -> ()
 
-(* occurance has to be recursive w/ unification... *)
-
-let rec unite unite_val r = 
-  r |> Uref.unite ~sel:begin fun s t -> match s, t with
+let rec unite unite_val occurs_val = 
+  Uref.unite ~sel:begin fun s t -> match s, t with
     | USeq _, USeq _ -> s
-    | (UCons _ as x), USeq _ | USeq _, (UCons _ as x) -> x
+    | (UCons _ as x), USeq v | USeq v, (UCons _ as x) -> 
+      uiter ~g:(fun w -> if v = w then raise @@ Var.OccursError (Var.show v))
+        (occurs_val v) (uref x);
+      x
     | UCons (u, us), UCons (v, vs) -> 
       unite_val u v;
-      unite unite_val us vs;
+      unite unite_val occurs_val us vs;
       s
     | UCons _, UNil | UNil, UCons _ -> raise @@ Invalid_argument "unite"
     | USeq _, UNil | UNil, USeq _ | UNil, UNil -> UNil
