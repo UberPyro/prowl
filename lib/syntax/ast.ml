@@ -2,12 +2,7 @@ open! Batteries
 
 open Meta
 
-type det = 
-  | Monodet of {total : bool ; bare : bool}
-  | Polydet of Var.t
-  [@@deriving show]
-
-type mode = {codet : det ; det : det} [@@deriving show]
+type monodet = {total : bool ; bare : bool}
 
 type unification_variable = [
   | `var of Var.t
@@ -43,7 +38,7 @@ and _expr = [
 
   | `quote of expr
   | `list of expr list
-  | `block of expr * mode
+  | `block of expr * monodet * monodet
 
   | `bind_var of (string * expr) list * expr
   | `bind_uvar of Var.t list * expr
