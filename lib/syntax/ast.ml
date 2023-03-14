@@ -27,7 +27,7 @@ type literal = [
   | `string of string
 ] [@@deriving show]
 
-type expr = _expr * Span.t * unit [@@deriving show]
+type expr = _expr * Span.t * Type.rel [@@deriving show]
 and _expr = [
   | variable
   | literal
