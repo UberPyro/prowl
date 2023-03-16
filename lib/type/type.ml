@@ -65,3 +65,29 @@ and occurs (v : Var.t) : var -> unit = uget %> function
   | Nom (f, _) -> List.iter (iter12 (occurs_costack v)) f
 
 and occurs_costack v = Ulist.occurs (Ulist.occurs occurs) v
+
+
+
+(* connectives *)
+let connect (_, o1, m1) (i2, _, m2) = 
+  unify_costack o1 i2;
+  unify_mode m1 m2
+
+let connect_left (i1, _, m1) (i2, _, m2) = 
+  unify_costack i1 i2;
+  unify_det m1.codet m2.codet
+
+let connect_right (_, o1, m1) (_, o2, m2) = 
+  unify_costack o1 o2;
+  unify_det m1.det m2.det
+
+let connect_self (i, o, m) = 
+  unify_costack i o;
+  let inv = flip uset @@ Monodet {total=true; bare=true} in
+  inv m.codet;
+  inv m.det
+
+let connect_both (i1, o1, m1) (i2, o2, m2) = 
+  unify_costack i1 o1;
+  unify_costack i2 o2;
+  unify_mode m1 m2
