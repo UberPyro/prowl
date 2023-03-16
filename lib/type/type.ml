@@ -116,6 +116,8 @@ let polypoly () = {
   det = poly ();
 }
 
+let fresh () = uref @@ Var (Var.fresh ())
+
 let lit (l : var) = 
   let c = ufresh () in
   let s = ufresh () in
@@ -153,5 +155,5 @@ let connect_both (i1, o1, m1) (i2, o2, m2) =
   unify_mode m1 m2
 
 let disconnected () = 
-  let f () = ucons (ucons (ufresh ()) (ufresh ())) (ufresh ()) in
+  let f () = ucons (ucons (fresh ()) (ufresh ())) (ufresh ()) in
   f (), f (), polypoly ()
