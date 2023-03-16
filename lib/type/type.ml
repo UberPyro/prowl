@@ -72,14 +72,19 @@ let unew f = uref % f % uget
 let rec refresh_var rf = unew @@ function
   | Var v -> Var (rf#freshen v)
   | Nom (r, n) -> Nom (refresh rf r, n)
-and refresh_costack rf = remap (remap (refresh_var rf) rf#refresh) rf#refresh
+
+and refresh_costack rf = 
+  remap (remap (refresh_var rf) rf#refresh) rf#refresh
+
 and refresh_det rf = unew @@ function
   | Polydet v -> Polydet (rf#refresh v)
   | Monodet m -> Monodet m
+
 and refresh_mode rf m = {
   codet = refresh_det rf m.codet;
   det = refresh_det rf m.det;
 }
+
 and refresh rf = List.map @@ fun (i, o, m) -> 
   refresh_costack rf i, 
   refresh_costack rf o, 
