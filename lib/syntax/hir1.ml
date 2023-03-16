@@ -41,6 +41,8 @@ and _expr = [
   | `arrow of expr * expr
 ] [@@deriving show]
 
+let juxtapose e_s sp : _expr = `jux (List.map (fun e_ -> e_, sp) e_s)
+
 let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
   | #Ast.variable | #Ast.literal as e_ -> e_
 
@@ -49,10 +51,9 @@ let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
   | `prime e -> `prime (expr e)
 
   | `quote e -> `quote (expr e)
-  (* some types need to be fresh, some need to be hardcoded (e.g. combinators) *)
-  (* | `list es -> List.fold_left begin fun acc ((e_', sp', r') as e') -> 
-      `jux [`gen, sp', r'; acc, sp', r'; `quote (expr e'), sp', r']
-    end `fab es *)
+  | `list es -> List.fold_left begin fun acc ((_, sp') as e') -> 
+    juxtapose [`gen; acc; `quote (expr e'); `id "mk"] sp'
+  end (juxtapose [`fab; `id "mk"] sp) es
 
   | _ -> failwith "Todo: rest !!"
   end, sp

@@ -12,7 +12,6 @@ type unification_variable = [
 
 type lexical_variable = [
   | `id of string
-  | `tag of string
 ] [@@deriving show]
 
 type variable = [
