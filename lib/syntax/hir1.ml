@@ -43,7 +43,8 @@ let rec distribute ((e_, sp) : expr) : expr = begin match e_ with
   | `dag (`jux es, sp') -> `jux (List.rev_map (fun e -> distribute (`dag e, sp')) es)
   | `dag (`prime e, sp') -> `prime (distribute (`dag e, sp'))
   | `dag (`block (e, d1, d2), sp') -> `block (distribute (`dag e, sp'), d2, d1)
-  | `dag (`bind_var (bs, e), sp') -> `bind_var (bs, distribute (`dag e, sp'))
+  | `dag (`bind_var (bs, e), sp') -> 
+    `bind_var (List.map (Tuple2.map2 distribute) bs, distribute (`dag e, sp'))
   | `dag (`bind_uvar (vs, e), sp') -> `bind_uvar (vs, distribute (`dag e, sp'))
   | `dag ((#Ast.variable | #Ast.literal | #comb | `quote _), sp') -> `dag (e_, sp')
   | `dag (`dag e, _) -> fst (distribute e)
