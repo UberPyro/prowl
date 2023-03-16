@@ -22,6 +22,7 @@ and _var =
 and costack = var Ulist.t Ulist.t
 and rel = costack * costack * mode [@@deriving show]
 
+(* unification *)
 let unify_det r = 
   r |> unite ~sel:begin fun d1 d2 -> match d1, d2 with
     | Polydet _, Polydet _ -> d1
@@ -65,6 +66,24 @@ and occurs (v : Var.t) : var -> unit = uget %> function
   | Nom (f, _) -> List.iter (iter12 (occurs_costack v)) f
 
 and occurs_costack v = Ulist.occurs (Ulist.occurs occurs) v
+
+(* generalization *)
+let unew f = uref % f % uget
+let rec refresh_var rf = unew @@ function
+  | Var v -> Var (rf#freshen v)
+  | Nom (r, n) -> Nom (refresh rf r, n)
+and refresh_costack rf = remap (remap (refresh_var rf) rf#refresh) rf#refresh
+and refresh_det rf = unew @@ function
+  | Polydet v -> Polydet (rf#refresh v)
+  | Monodet m -> Monodet m
+and refresh_mode rf m = {
+  codet = refresh_det rf m.codet;
+  det = refresh_det rf m.det;
+}
+and refresh rf = List.map @@ fun (i, o, m) -> 
+  refresh_costack rf i, 
+  refresh_costack rf o, 
+  refresh_mode rf m
 
 let det x y = uref @@ Monodet {total=x; bare=y}
 let fn () = det true true

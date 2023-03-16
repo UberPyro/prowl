@@ -18,6 +18,11 @@ let ucons u us = uref @@ UCons (u, us)
 let useq u = uref @@ USeq u
 let ufresh () = useq (Var.fresh ())
 
+let rec remap f g ulst = uref @@ match uget ulst with
+  | UCons (u, us) -> UCons (f u, remap f g us)
+  | USeq x -> USeq (g x)
+  | UNil -> UNil
+
 let rec uiter ?(g=ignore) f us = match uget us with
   | UCons (u, us) -> f u; uiter ~g f us
   | USeq u -> g u
