@@ -36,6 +36,8 @@ let unify_mode m0 m1 =
   unify_det m0.codet m1.codet;
   unify_det m0.det m1.det
 
+let iter12 f (x, y, _) = ignore (f x, f y)
+
 let rec unify r = 
   r |> unite ~sel:begin fun u1 u2 -> match u1, u2 with
     | Nom (f0, n0), Nom (f1, n1) -> 
@@ -49,8 +51,17 @@ let rec unify r =
         unify_mode m0 m1
       end f0 f1;
       u1
-    | (Var _ as v), _ | _, (Var _ as v) -> v
+    | (Var v as u), (Nom _ as n) | (Nom _ as n), (Var v as u) -> 
+      occurs v (uref n);
+      u
+    | Var _, Var _ -> u1
   end
 
 and unify_costack r = 
-  Ulist.unite (Ulist.unite unify) r
+  Ulist.unite (Ulist.unite unify occurs) (Ulist.occurs occurs) r
+
+and occurs (v : Var.t) : var -> unit = uget %> function
+  | Var w -> assert_exn (Var.OccursError (Var.show v)) v w
+  | Nom (f, _) -> List.iter (iter12 (occurs_costack v)) f
+
+and occurs_costack v = Ulist.occurs (Ulist.occurs occurs) v
