@@ -71,13 +71,13 @@ and occurs_costack v = Ulist.occurs (Ulist.occurs occurs) v
 let unew f = uref % f % uget
 let rec refresh_var rf = unew @@ function
   | Var v -> Var (rf#freshen v)
-  | Nom (r, n) -> Nom (refresh rf r, n)
+  | Nom (r, n) -> Nom (refresh ~rf r, n)
 
 and refresh_costack rf = 
-  remap (remap (refresh_var rf) rf#refresh) rf#refresh
+  remap (remap (refresh_var rf) rf#freshen) rf#freshen
 
 and refresh_det rf = unew @@ function
-  | Polydet v -> Polydet (rf#refresh v)
+  | Polydet v -> Polydet (rf#freshen v)
   | Monodet m -> Monodet m
 
 and refresh_mode rf m = {
@@ -85,7 +85,7 @@ and refresh_mode rf m = {
   det = refresh_det rf m.det;
 }
 
-and refresh rf = List.map @@ fun (i, o, m) -> 
+and refresh ?(rf=Var.refresher ()) = List.map @@ fun (i, o, m) -> 
   refresh_costack rf i, 
   refresh_costack rf o, 
   refresh_mode rf m
