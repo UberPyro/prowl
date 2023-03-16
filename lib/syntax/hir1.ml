@@ -40,7 +40,7 @@ and _expr = [
 ] [@@deriving show]
 
 let rec distribute ((e_, sp) : expr) : expr = begin match e_ with
-  | `dag (`jux es, sp') -> `jux (List.map (fun e -> distribute (`dag e, sp')) es)
+  | `dag (`jux es, sp') -> `jux (List.rev_map (fun e -> distribute (`dag e, sp')) es)
   | `dag (`prime e, sp') -> `prime (distribute (`dag e, sp'))
   | `dag (`block (e, d1, d2), sp') -> `block (distribute (`dag e, sp'), d2, d1)
   | `dag (`bind_var (bs, e), sp') -> `bind_var (bs, distribute (`dag e, sp'))
