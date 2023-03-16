@@ -29,7 +29,7 @@ and _expr = [
   | comb
 
   | `jux of expr list
-  | `dag of expr
+  | `dag of expr  (* distribute? *)
   | `prime of expr
 
   | `quote of expr
@@ -37,9 +37,25 @@ and _expr = [
 
   | `bind_var of (string * expr) list * expr  (* binder relevance *)
   | `bind_uvar of Var.t list * expr
-
-  | `arrow of expr * expr  (* binder relevance *)
 ] [@@deriving show]
+
+let rec distribute ((e_, sp) : expr) : expr = begin match e_ with
+  | `dag (`jux es, sp') -> `jux (List.map (fun e -> distribute (`dag e, sp')) es)
+  | `dag (`prime e, sp') -> `prime (distribute (`dag e, sp'))
+  | `dag (`block (e, d1, d2), sp') -> `block (distribute (`dag e, sp'), d2, d1)
+  | `dag (`bind_var (bs, e), sp') -> `bind_var (bs, distribute (`dag e, sp'))
+  | `dag (`bind_uvar (vs, e), sp') -> `bind_uvar (vs, distribute (`dag e, sp'))
+  | `dag ((#Ast.variable | #Ast.literal | #comb | `quote _), sp') -> `dag (e_, sp')
+  | `dag (`dag e, _) -> fst (distribute e)
+
+  | #Ast.variable | #Ast.literal | #comb -> e_
+  | `jux es -> `jux (List.map distribute es)
+  | `prime e -> `prime (distribute e)
+  | `quote e -> `quote (distribute e)
+  | `block (e, d1, d2) -> `block (distribute e, d1, d2)
+  | `bind_var (bs, e) -> `bind_var (List.map (Tuple2.map2 distribute) bs, distribute e)
+  | `bind_uvar (vs, e) -> `bind_uvar (vs, distribute e)
+end, sp
 
 let juxtapose e_s sp : _expr = `jux (List.map (fun e_ -> e_, sp) e_s)
 
@@ -59,7 +75,7 @@ let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
   | `bind_var (bs, e) -> `bind_var (List.map (Tuple2.map2 expr) bs, expr e)
   | `bind_uvar (vs, e) -> `bind_uvar (vs, expr e)
 
-  | `arrow (e1, e2) -> `arrow (expr e1, expr e2)
+  | `arrow (e1, e2) -> `jux [`dag (expr e1), snd e1;  expr e2]
 
   | `sect s -> juxtapose [`swap; `unit; `swap; `unit; `id s; `call] sp
   | `binop (e1, s, e2) -> 
@@ -69,3 +85,5 @@ let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
     juxtapose [`unit; `quote (expr e); `swap; `id s; `call] sp
   | `unop (e, s) -> juxtapose [`quote (expr e); `id s; `call] sp
 end, sp
+
+let transform = distribute % expr
