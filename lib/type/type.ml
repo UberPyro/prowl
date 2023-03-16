@@ -66,7 +66,43 @@ and occurs (v : Var.t) : var -> unit = uget %> function
 
 and occurs_costack v = Ulist.occurs (Ulist.occurs occurs) v
 
+let det x y = uref @@ Monodet {total=x; bare=y}
+let fn () = det true true
+let pt () = det false true
+let rl () = det false false
+let poly () = uref @@ Polydet (Var.fresh ())
 
+let fnfn () = {
+  codet = fn ();
+  det = fn ();
+}
+
+let ptfn () = {
+  codet = pt ();
+  det = fn ();
+}
+
+let rlfn () = {
+  codet = rl ();
+  det = fn ();
+}
+
+let polypoly () = {
+  codet = poly ();
+  det = poly ();
+}
+
+let lit (l : var) = 
+  let c = ufresh () in
+  let s = ufresh () in
+  ucons s c, ucons (ucons l s) c, ptfn ()
+
+let bop m n o = 
+  let c = ufresh () in
+  let s = ufresh () in
+  ucons (ucons n (ucons m s)) c, ucons (ucons o s) c, rlfn ()
+
+let bop_endo m = bop m m m
 
 (* connectives *)
 let connect (_, o1, m1) (i2, _, m2) = 
@@ -91,3 +127,7 @@ let connect_both (i1, o1, m1) (i2, o2, m2) =
   unify_costack i1 o1;
   unify_costack i2 o2;
   unify_mode m1 m2
+
+let disconnected () = 
+  let f () = ucons (ucons (ufresh ()) (ufresh ())) (ufresh ()) in
+  f (), f (), polypoly ()
