@@ -22,7 +22,7 @@ type costack_comb = [
 
 type comb = [stack_comb | costack_comb] [@@deriving show]
 
-type expr = _expr * Span.t * Type.rel [@@deriving show]
+type expr = _expr * Span.t [@@deriving show]
 and _expr = [
   | Ast.variable
   | Ast.literal
@@ -37,9 +37,11 @@ and _expr = [
 
   | `bind_var of (string * expr) list * expr
   | `bind_uvar of Var.t list * expr
+
+  | `arrow of expr * expr
 ] [@@deriving show]
 
-let rec expr ((e_, sp, r) : Ast.expr) : expr = begin match e_ with
+let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
   | #Ast.variable | #Ast.literal as e_ -> e_
 
   | `jux es -> `jux (List.map expr es)
@@ -53,4 +55,4 @@ let rec expr ((e_, sp, r) : Ast.expr) : expr = begin match e_ with
     end `fab es *)
 
   | _ -> failwith "Todo: rest !!"
-  end, sp, r
+  end, sp
