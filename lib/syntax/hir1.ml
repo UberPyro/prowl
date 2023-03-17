@@ -1,4 +1,4 @@
-(* Desugaring *)
+(* Desugaring and distribution *)
 open! Batteries
 
 open Meta
@@ -29,13 +29,13 @@ and _expr = [
   | comb
 
   | `jux of expr list
-  | `dag of expr  (* distribute? *)
+  | `dag of expr
   | `prime of expr
 
   | `quote of expr
   | `block of expr * Ast.monodet * Ast.monodet
 
-  | `bind_var of (string * expr) list * expr  (* binder relevance *)
+  | `bind_var of (string * expr) list * expr
   | `bind_uvar of Var.t list * expr
 ] [@@deriving show]
 
