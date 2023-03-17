@@ -69,11 +69,12 @@ module Esc = struct
     | `var v | `stack v | `costack v -> r |> Tuple3.map1 begin
       if Vocab.mem v bound then Fun.id else Vocab.add v sp
     end |> expr
-    | `jux (e :: es) -> 
-      let xs = match expr @@ let+ _ = r in `jux es, sp with
-        | _, _, (`jux es', _) -> es'
-        | _ -> failwith "incomplete case" in
-      let+ x = expr (unbound, bound, e) in `jux (x :: xs ), sp
+    | `jux es -> 
+      let+ x = List.fold_left begin fun (u, b, es') e' -> 
+        let+ x = expr (u, b, e') in x :: es'
+      end (unbound, bound, []) es in `jux (List.rev x), sp
+    | `dag e' -> let+ x = expr (unbound, bound, e') in `dag x, sp
+    | `prime e' -> let+ x = expr (unbound, bound, e') in `prime x, sp
 
 
     | _ -> failwith "Todo"
