@@ -38,7 +38,7 @@ module Ins = struct
     | `jux es -> List.fold_left begin fun (u, b, es') e' -> 
       expr_inner (u, b, e') |> Tuple3.map3 @@ fun x -> x :: es'
     end (unbound, bound, []) es
-    |> fun (u, b, es') -> u, b, (`jux (List.rev es'), sp)
+    |> Tuple3.map3 @@ fun x -> (`jux (List.rev x), sp)
     | `dag e' -> 
       expr_inner (unbound, bound, e') |> Tuple3.map3 @@ fun x -> `dag x, sp
     | `prime e' -> 
@@ -46,20 +46,20 @@ module Ins = struct
       |> Tuple3.map3 @@ fun x -> `prime x, sp
     | `quote e' -> 
       expr_outer (unbound, bound, e')
-      |> Tuple3.map3 @@ fun x -> (`quote x, sp)
+      |> Tuple3.map3 @@ fun x -> `quote x, sp
     | `block (e', d1, d2) -> 
       expr_outer (unbound, bound, e')
-      |> Tuple3.map3 @@ fun x -> (`block (x, d1, d2), sp)
+      |> Tuple3.map3 @@ fun x -> `block (x, d1, d2), sp
     | `bind_var (bs, e_) -> 
-      let u', b', e'' = expr_inner (unbound, bound, e_) in
       let bs' = List.fold_left begin fun (u, b, bs') (s, e') -> 
         expr_outer (u, b, e') |> Tuple3.map3 @@ fun x ->  (s, x) :: bs'
       end (unbound, bound, []) bs |> Tuple3.third |> List.rev in
-      u', b', (`bind_var (bs', e''), sp)
+      expr_inner (unbound, bound, e_)
+      |> Tuple3.map3 @@ fun x -> (`bind_var (bs', x), sp)
     | `bind_uvar (vs, e') -> 
       let b = List.fold_left (fun vc v -> Vocab.add v sp vc) bound vs in
       expr_inner (unbound, b, e')
-      |> Tuple3.map3 @@ fun x -> (`bind_uvar (vs, x), sp)
+      |> Tuple3.map3 @@ fun x -> `bind_uvar (vs, x), sp
   
   let expr e = expr_outer Vocab.(empty, empty, e)
   
