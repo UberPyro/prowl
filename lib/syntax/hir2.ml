@@ -31,12 +31,11 @@ module Ins = struct
     let unbound, _, ((_, sp) as e) = expr_inner r in
     let+ _ = r in (`bind_uvar (List.of_enum (Vocab.keys unbound), e), sp)
   
-  and expr_inner (unbound, bound, (((e_, sp) : Hir1.expr) as e) as r) : t = 
+  and expr_inner (unbound, bound, ((e_, sp) : Hir1.expr) as r) : t = 
     match e_ with
     | #Ast.literal | #Hir1.comb | #Ast.lexical_variable -> r
-    | `var v | `stack v | `costack v -> 
-      begin unbound |> if Vocab.mem v bound then Fun.id
-      else Vocab.add v sp end, bound, e
+    | `var v | `stack v | `costack v -> r |> Tuple3.map1 @@
+      if Vocab.mem v bound then Fun.id else Vocab.add v sp
     | `jux es -> 
     let+ x = List.fold_left begin fun (u, b, es') e' -> 
       let+ x = expr_inner (u, b, e') in x :: es'
@@ -59,14 +58,20 @@ module Ins = struct
   
 end
 
-(* Consider binder insertion first *)
 module Esc = struct
 
-  (* let rec expr v ((e_, sp) : Hir1.expr) : expr = begin match e_ with
-    | #Ast.literal | #Hir1.comb | #Ast.lexical_variable as e_ -> e_
+  type t = Ins.t
 
-
+  (* consider reusing same pattern as before *)
+  (* let rec expr bound ((_e_, sp as e) : Hir1.expr) : t = 
+    begin match _e_ with
+    | #Ast.literal | #Hir1.comb | #Ast.lexical_variable as e_ ->
+      Vocab.empty, bound, (e_, sp)
+    | `var v | `stack v | `costack v as e_ -> 
+      begin if Vocab.mem v bound then Vocab.empty
+      else Vocab.singleton v sp end, bound, (e_, sp)
+    
     | _ -> failwith "Todo"
-  end, sp *)
+  end *)
 
 end
