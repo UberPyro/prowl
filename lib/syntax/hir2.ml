@@ -25,11 +25,9 @@ module Ins = struct
 
   type t = Span.t Vocab.t * Span.t Vocab.t * Hir1.expr
 
-  let ins v e : Hir1.expr = `bind_uvar ([v], e), snd e
-
   let rec expr_outer (r : t) : t = 
-    let unbound, bound, e = expr_inner r in
-    unbound, bound, Vocab.fold (fun k _ a -> ins k a) unbound e
+    let unbound, bound, ((_, sp) as e) = expr_inner r in
+    unbound, bound, (`bind_uvar (List.of_enum (Vocab.keys unbound), e), sp)
   
   and expr_inner (unbound, bound, (((e_, sp) : Hir1.expr) as e) as r) : t = 
     match e_ with
