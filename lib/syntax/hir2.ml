@@ -21,6 +21,19 @@ and _expr = [
 
 module Vocab = Map.Make(Var)
 
+module Ins = struct
+
+  let ins v e : Hir1.expr = `bind_uvar ([v], e), snd e
+
+  (* let scan *)
+
+  (* let rec expr vc ((e_, sp) : Hir1.expr) : Hir1.expr = begin match e_ with
+    | 
+  end *)
+
+end
+
+(* Consider binder insertion first *)
 module Esc = struct
 
   (* let rec expr v ((e_, sp) : Hir1.expr) : expr = begin match e_ with
