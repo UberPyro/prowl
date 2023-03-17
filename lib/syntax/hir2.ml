@@ -60,9 +60,24 @@ end
 
 module Esc = struct
 
-  type t = Ins.t
+  type t = Span.t Vocab.t * Span.t Vocab.t * expr
+  let (let+) = Ins.(let+)
 
-  (* consider reusing same pattern as before *)
+  let rec expr (unbound, bound, ((e_, sp) : Hir1.expr) as r) : t = match e_ with
+    | #Ast.literal | #Hir1.comb | #Ast.lexical_variable as e_' -> 
+      let+ _ = r in e_', sp
+    | `var v | `stack v | `costack v -> r |> Tuple3.map1 begin
+      if Vocab.mem v bound then Fun.id else Vocab.add v sp
+    end |> expr
+    | `jux (e :: es) -> 
+      let xs = match expr @@ let+ _ = r in `jux es, sp with
+        | _, _, (`jux es', _) -> es'
+        | _ -> failwith "incomplete case" in
+      let+ x = expr (unbound, bound, e) in `jux (x :: xs ), sp
+
+
+    | _ -> failwith "Todo"
+
   (* let rec expr bound ((_e_, sp as e) : Hir1.expr) : t = 
     begin match _e_ with
     | #Ast.literal | #Hir1.comb | #Ast.lexical_variable as e_ ->
