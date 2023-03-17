@@ -36,36 +36,30 @@ module Ins = struct
       begin unbound |> if Vocab.mem v bound then Fun.id
       else Vocab.add v sp end, bound, e
     | `jux es -> List.fold_left begin fun (u, b, es') e' -> 
-      let u', b', e'' = expr_inner (u, b, e') in
-      u', b', e'' :: es'
+      expr_inner (u, b, e') |> Tuple3.map3 @@ fun x -> x :: es'
     end (unbound, bound, []) es
     |> fun (u, b, es') -> u, b, (`jux (List.rev es'), sp)
     | `dag e' -> 
-      let u', b', e'' = expr_inner (unbound, bound, e') in
-      u', b', (`dag e'', sp)
+      expr_inner (unbound, bound, e') |> Tuple3.map3 @@ fun x -> `dag x, sp
     | `prime e' -> 
-      let u', b', e'' = expr_inner (unbound, bound, e') in
-      u', b', (`prime e'', sp)
+      expr_inner (unbound, bound, e')
+      |> Tuple3.map3 @@ fun x -> `prime x, sp
     | `quote e' -> 
-      let u', b', e'' = expr_outer (unbound, bound, e') in
-      u', b', (`quote e'', sp)
+      expr_outer (unbound, bound, e')
+      |> Tuple3.map3 @@ fun x -> (`quote x, sp)
     | `block (e', d1, d2) -> 
-      let u', b', e'' = expr_outer (unbound, bound, e') in
-      u', b', (`block (e'', d1, d2), sp)
+      expr_outer (unbound, bound, e')
+      |> Tuple3.map3 @@ fun x -> (`block (x, d1, d2), sp)
     | `bind_var (bs, e_) -> 
       let u', b', e'' = expr_inner (unbound, bound, e_) in
       let bs' = List.fold_left begin fun (u, b, bs') (s, e') -> 
-        let u', b', e'' = expr_outer (u, b, e') in
-        u', b', (s, e'') :: bs'
+        expr_outer (u, b, e') |> Tuple3.map3 @@ fun x ->  (s, x) :: bs'
       end (unbound, bound, []) bs |> Tuple3.third |> List.rev in
       u', b', (`bind_var (bs', e''), sp)
     | `bind_uvar (vs, e') -> 
-      let u', b', e'' = expr_inner begin 
-        unbound,
-        List.fold_left (fun vc v -> Vocab.add v sp vc) bound vs,
-        e'
-      end in
-      u', b', (`bind_uvar (vs, e''), sp)
+      let b = List.fold_left (fun vc v -> Vocab.add v sp vc) bound vs in
+      expr_inner (unbound, b, e')
+      |> Tuple3.map3 @@ fun x -> (`bind_uvar (vs, x), sp)
   
   let expr e = expr_outer Vocab.(empty, empty, e)
   
