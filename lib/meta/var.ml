@@ -3,7 +3,7 @@ open! Batteries
 type t = 
   | Name of string
   | Id of int
-  [@@deriving show, eq]
+  [@@deriving show, eq, ord]
 
 exception OccursError of string
 
