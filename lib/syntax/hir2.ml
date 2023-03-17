@@ -27,24 +27,6 @@ module Ins = struct
 
   let ins v e : Hir1.expr = `bind_uvar ([v], e), snd e
 
-  (* Can't be used as-is -- has to be woven into `expr`. *)
-  let scan = 
-    let rec go vc_unbound vc_bound ((e_, sp) : Hir1.expr) = match e_ with
-      | #Ast.literal | #Hir1.comb | #Ast.lexical_variable -> vc_unbound, vc_bound
-      | `var v | `stack v | `costack v -> 
-        begin vc_unbound |> if Vocab.mem v vc_bound then Fun.id
-        else Vocab.add v sp end, vc_bound
-      | `jux es -> List.fold_left (fun (u, b) -> go u b) (vc_unbound, vc_bound) es
-      | `dag e -> go vc_unbound vc_bound e
-      | `prime e -> go vc_unbound vc_bound e
-      
-      | `quote _ | `block _ -> vc_unbound, vc_bound
-
-      | `bind_var (_, e) -> go vc_unbound vc_bound e
-      | `bind_uvar (vs, e) -> 
-        go vc_unbound (List.fold_left (fun vc v -> Vocab.add v sp vc) vc_bound vs) e
-    in go Vocab.empty Vocab.empty %> fst
-
   let rec expr_outer (r : t) : t = 
     let unbound, bound, e = expr_inner r in
     unbound, bound, Vocab.fold (fun k _ a -> ins k a) unbound e
@@ -74,13 +56,11 @@ module Ins = struct
       u', b', (`block (e'', d1, d2), sp)
     | `bind_var (bs, e_) -> 
       let u', b', e'' = expr_inner (unbound, bound, e_) in
-      u', b', (`bind_var begin
-      List.fold_left begin fun (u, b, bs') (s, e') -> 
+      let bs' = List.fold_left begin fun (u, b, bs') (s, e') -> 
         let u', b', e'' = expr_outer (u, b, e') in
         u', b', (s, e'') :: bs'
-      end (unbound, bound, []) bs |> Tuple3.third |> List.rev,
-      e''
-    end, sp)
+      end (unbound, bound, []) bs |> Tuple3.third |> List.rev in
+      u', b', (`bind_var (bs', e''), sp)
     | `bind_uvar (vs, e') -> 
       let u', b', e'' = expr_inner begin 
         unbound,
