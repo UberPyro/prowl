@@ -23,6 +23,8 @@ module Vocab = Map.Make(Var)
 
 module Ins = struct
 
+  open Tuple3
+
   type t = Span.t Vocab.t * Span.t Vocab.t * Hir1.expr
 
   let rec expr_outer (r : t) : t = 
@@ -36,30 +38,27 @@ module Ins = struct
       begin unbound |> if Vocab.mem v bound then Fun.id
       else Vocab.add v sp end, bound, e
     | `jux es -> List.fold_left begin fun (u, b, es') e' -> 
-      expr_inner (u, b, e') |> Tuple3.map3 @@ fun x -> x :: es'
+      expr_inner (u, b, e') |> map3 @@ fun x -> x :: es'
     end (unbound, bound, []) es
-    |> Tuple3.map3 @@ fun x -> (`jux (List.rev x), sp)
+    |> map3 @@ fun x -> (`jux (List.rev x), sp)
     | `dag e' -> 
-      expr_inner (unbound, bound, e') |> Tuple3.map3 @@ fun x -> `dag x, sp
+      expr_inner (unbound, bound, e') |> map3 @@ fun x -> `dag x, sp
     | `prime e' -> 
-      expr_inner (unbound, bound, e')
-      |> Tuple3.map3 @@ fun x -> `prime x, sp
+      expr_inner (unbound, bound, e') |> map3 @@ fun x -> `prime x, sp
     | `quote e' -> 
-      expr_outer (unbound, bound, e')
-      |> Tuple3.map3 @@ fun x -> `quote x, sp
+      expr_outer (unbound, bound, e') |> map3 @@ fun x -> `quote x, sp
     | `block (e', d1, d2) -> 
       expr_outer (unbound, bound, e')
-      |> Tuple3.map3 @@ fun x -> `block (x, d1, d2), sp
+      |> map3 @@ fun x -> `block (x, d1, d2), sp
     | `bind_var (bs, e_) -> 
       let bs' = List.fold_left begin fun (u, b, bs') (s, e') -> 
-        expr_outer (u, b, e') |> Tuple3.map3 @@ fun x ->  (s, x) :: bs'
-      end (unbound, bound, []) bs |> Tuple3.third |> List.rev in
+        expr_outer (u, b, e') |> map3 @@ fun x ->  (s, x) :: bs'
+      end (unbound, bound, []) bs |> third |> List.rev in
       expr_inner (unbound, bound, e_)
-      |> Tuple3.map3 @@ fun x -> (`bind_var (bs', x), sp)
+      |> map3 @@ fun x -> (`bind_var (bs', x), sp)
     | `bind_uvar (vs, e') -> 
       let b = List.fold_left (fun vc v -> Vocab.add v sp vc) bound vs in
-      expr_inner (unbound, b, e')
-      |> Tuple3.map3 @@ fun x -> `bind_uvar (vs, x), sp
+      expr_inner (unbound, b, e') |> map3 @@ fun x -> `bind_uvar (vs, x), sp
   
   let expr e = expr_outer Vocab.(empty, empty, e)
   
