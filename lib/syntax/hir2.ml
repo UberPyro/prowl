@@ -29,10 +29,10 @@ module Ins = struct
 
   let rec expr_outer (r : t) : t = 
     let unbound, _, ((_, sp) as e) = expr_inner r in
-    let+ _ = r in (`bind_uvar (List.of_enum (Vocab.keys unbound), e), sp)
+    let+ _ = r in `bind_uvar (List.of_enum (Vocab.keys unbound), e), sp
   
-  and expr_inner (unbound, bound, ((e_, sp) : Hir1.expr) as r) : t = 
-    match e_ with
+  and expr_inner (r : t) : t = 
+    let unbound, bound, (e_, sp) = r in match e_ with
     | #Ast.literal | #Hir1.comb | #Ast.lexical_variable -> r
     | `var v | `stack v | `costack v -> r |> Tuple3.map1 @@
       if Vocab.mem v bound then Fun.id else Vocab.add v sp
