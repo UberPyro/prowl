@@ -1,3 +1,3 @@
 (library
  (name syntax)
- (libraries meta type util))
+ (libraries meta util))
