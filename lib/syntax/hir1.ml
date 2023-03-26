@@ -2,30 +2,13 @@ open! Batteries
 
 open Meta
 
-type stack_comb = [
-  | `cat
-  | `call
-  | `dup
-  | `swap
-  | `cons
-  | `dip
-  | `unit
-] [@@deriving show]
-
-type costack_comb = [
-  | `gen
-  | `fab
-  | `elim
-  | `flip
-] [@@deriving show]
-
-type comb = [stack_comb | costack_comb] [@@deriving show]
-
 type expr = _expr * Span.t [@@deriving show]
 and _expr = [
-  | Ast.literal
-  | comb
-  | `var of string
+  | `swap | `unit | `call
+  | `gen | `fab
+
+  | `int
+  | `string
   | `id of string
 
   | `jux of expr list
@@ -41,7 +24,7 @@ and _expr = [
 let juxtapose e_s sp : _expr = `jux (List.map (fun e_ -> e_, sp) e_s)
 
 let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
-  | `id _ | `var _ | #Ast.literal as e_ -> e_
+  | `id _ | `int | `string as e_ -> e_
 
   | `jux es -> `jux (List.map expr es)
   | `dag e -> `dag (expr e)
@@ -62,5 +45,4 @@ let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
   | `sectLeft (s, e) -> juxtapose [`unit; `quote (expr e); `id s; `call] sp
   | `sectRight (e, s) -> 
     juxtapose [`unit; `quote (expr e); `swap; `id s; `call] sp
-  | `unop (e, s) -> juxtapose [`quote (expr e); `id s; `call] sp
 end, sp
