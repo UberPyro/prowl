@@ -18,7 +18,6 @@ and _expr = [
   | `list of expr list
 
   | `bind_var of (string * expr) list * expr
-  | `bind_uvar of string list * expr
 ]
 
 let juxtapose e_s sp : _expr = `jux (List.map (fun e_ -> e_, sp) e_s)
@@ -35,7 +34,6 @@ let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
   end (juxtapose [`fab; `id "mk"] sp) es
 
   | `bind_var (bs, e) -> `bind_var (List.map (Tuple2.map2 expr) bs, expr e)
-  | `bind_uvar (vs, e) -> `bind_uvar (vs, expr e)
 
   | `arrow (e1, e2) -> `jux [`dag (expr e1), snd e1;  expr e2]
 

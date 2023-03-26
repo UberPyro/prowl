@@ -15,7 +15,6 @@ and _expr = [
   | `list of expr list
 
   | `bind_var of (string * expr) list * expr
-  | `bind_uvar of string list * expr
 
   | `binop of expr * string * expr
   | `sectLeft of string * expr
