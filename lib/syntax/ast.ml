@@ -4,8 +4,8 @@ open Meta
 
 type expr = _expr * Span.t [@@deriving show]
 and _expr = [
-  | `int
-  | `string
+  | `int of int
+  | `string of string
   | `id of string
 
   | `jux of expr list

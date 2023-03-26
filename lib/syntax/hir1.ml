@@ -4,11 +4,11 @@ open Meta
 
 type expr = _expr * Span.t [@@deriving show]
 and _expr = [
-  | `swap | `unit | `call
+  | `swap | `unit | `call | `zap
   | `gen | `fab
 
-  | `int
-  | `string
+  | `int of int
+  | `string of string
   | `id of string
 
   | `jux of expr list
@@ -18,12 +18,12 @@ and _expr = [
   | `list of expr list
 
   | `bind_var of (string * expr) list * expr
-]
+] [@@deriving show]
 
 let juxtapose e_s sp : _expr = `jux (List.map (fun e_ -> e_, sp) e_s)
 
 let rec expr ((e_, sp) : Ast.expr) : expr = begin match e_ with
-  | `id _ | `int | `string as e_ -> e_
+  | `id _ | `int _ | `string _ as e_ -> e_
 
   | `jux es -> `jux (List.map expr es)
   | `dag e -> `dag (expr e)
