@@ -64,12 +64,15 @@ and _ucostack =
 exception Kablooey of string
 exception DifferentlyHeighted
 exception DifferentlyExtant
-exception StuntedCostack
 exception EmptyStack
 exception DifferentlyTyped of _value * _value
 exception Noncallable of _value
 exception Polycall
 exception UnboundVariable of string
+
+let fresh_val () = uref @@ Free (fresh ())
+let fresh_stack () = uref @@ Next (fresh ())
+let fresh_costack () = uref @@ Over (fresh ())
 
 let mk_val s = uref @@ Bound (Set.singleton s)
 
@@ -119,9 +122,12 @@ let rec unify_costack r = unite ~sel:begin fun x y -> match x, y with
   | Void, Void -> Void
 end r
 
-let iter_costack f = uget %> function
+let iter_costack f c = match uget c with
   | Real u -> f u
-  | Over _ -> raise StuntedCostack
+  | Over _ -> 
+    let s = fresh_stack () in
+    f s;
+    unify_costack c @@ uref @@ Real s
   | _ -> ()
 
 let (let$) (x, y) f = 
@@ -129,7 +135,7 @@ let (let$) (x, y) f =
 
 let pop = uget %> function
   | Push (u, v) -> u, v
-  | Next i -> uref @@ Next i, uref @@ Free (fresh ())
+  | Next i -> uref @@ Next i, fresh_val ()
   | Unit -> raise EmptyStack
 
 let pop2 u0 = 
@@ -144,7 +150,7 @@ let iter_val f_bound f_free v = match uget v with
   | Bound s -> Set.iter f_bound s
   | Free i -> f_free i
 
-let rec expr ctx ((e_, sp) : Hir1.expr) i o = match e_ with
+let rec expr ctx ((e_, _) : Hir1.expr) i o = match e_ with
   | `gen -> unify_costack i o
   | `fab -> unify_costack (uref @@ Fake i) o
   | `swap -> 
