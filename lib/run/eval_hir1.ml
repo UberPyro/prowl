@@ -7,6 +7,11 @@ open Syntax
 
 let pp_uref fmt x y = fmt x (uget y)
 
+let c = ref (-1)
+let fresh () = 
+  incr c;
+  !c
+
 module Set = struct
   include Set
   module PP = struct
@@ -37,7 +42,7 @@ type _value = [
 
 and _value_poly = 
   | Bound of _value Set.t
-  | Free
+  | Free of int
 
 and value = _value_poly uref [@@deriving show]
 
@@ -46,14 +51,14 @@ and context = Hir1.expr Dict.t
 type ustack = _ustack uref
 and _ustack = 
   | Push of ustack * value
-  | Next of ustack
+  | Next of int
   | Unit
 
 type ucostack = _ucostack uref
 and _ucostack = 
   | Real of ustack
   | Fake of ucostack
-  | Over of ucostack
+  | Over of int
   | Void
 
 exception Kablooey of string
@@ -80,7 +85,7 @@ let select_val v1 v2 = match v1, v2 with
   | _v1, _v2 -> raise @@ DifferentlyTyped (_v1, _v2)
 
 let unify_val = unite ~sel:begin fun x0 y0 -> match x0, y0 with
-  | Bound _ as b, Free | Free, b -> b
+  | Bound _ as b, Free _ | Free _, b -> b
   | Bound x, Bound y -> Bound begin
     List.cartesian_product (Set.to_list x) (Set.to_list y)
     |> List.fold (fun a (e1, e2) -> select_val e1 e2 |> Set.union a) Set.empty
@@ -93,9 +98,7 @@ let rec unify_stack r = unite ~sel:begin fun x y -> match x, y with
     unify_val v1 v2;
     unify_stack u1 u2;
     x
-  | Next u1, Next u2 -> 
-    unify_stack u1 u2; 
-    x
+  | Next _, Next _ -> x
   | (Push _ | Unit as y), Next _ | Next _, (Push _ | Unit as y) -> y
   | Unit, Unit -> Unit
   | Push _, Unit | Unit, Push _ -> raise DifferentlyHeighted
@@ -108,9 +111,7 @@ let rec unify_costack r = unite ~sel:begin fun x y -> match x, y with
   | Fake u1, Fake u2 -> 
     unify_costack u1 u2;
     x
-  | Over u1, Over u2 -> 
-    unify_costack u1 u2;
-    x
+  | Over _, Over _ -> x
   | (Real _ | Fake _ | Void as y), Over _ 
   | Over _, (Real _ | Fake _ | Void as y) -> y
   | (Real _ | Fake _), Void | Void, (Real _ | Fake _)
@@ -128,7 +129,7 @@ let (let$) (x, y) f =
 
 let pop = uget %> function
   | Push (u, v) -> u, v
-  | Next u -> u, uref Free
+  | Next i -> uref @@ Next i, uref @@ Free (fresh ())
   | Unit -> raise EmptyStack
 
 let pop2 u0 = 
@@ -141,7 +142,7 @@ let push2 u v2 v1 = push (push u v2) v1
 
 let iter_val f_bound f_free v = match uget v with
   | Bound s -> Set.iter f_bound s
-  | Free -> f_free ()
+  | Free i -> f_free i
 
 let rec expr ctx ((e_, sp) : Hir1.expr) i o = match e_ with
   | `gen -> unify_costack i o
@@ -161,7 +162,7 @@ let rec expr ctx ((e_, sp) : Hir1.expr) i o = match e_ with
       | `closure (e, ctx') -> expr ctx' e (uref @@ Real u) o
       | `closedValue v -> unify_stack (push i' v) o'
       | _v -> raise @@ Noncallable _v
-    end (fun () -> raise Polycall)
+    end (fun _ -> raise Polycall)
   | `zap -> 
     let$ (i, o) = i, o in
     let u, _ = pop i in
@@ -172,7 +173,7 @@ let rec expr ctx ((e_, sp) : Hir1.expr) i o = match e_ with
     unify_stack (push i @@ mk_val c) o
   | `id s -> call ctx s i o
   (* | `jux es -> 
-    let rec go ctx' i' o' = begin function
+    let rec go i' o' = begin function
       | e1 :: e2 :: es -> 
 
     end *)
