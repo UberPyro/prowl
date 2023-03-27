@@ -178,11 +178,15 @@ let rec expr ctx ((e_, _) : Hir1.expr) i o = match e_ with
     let$ (i, o) = i, o in
     unify_stack (push i @@ mk_val c) o
   | `id s -> call ctx s i o
-  (* | `jux es -> 
-    let rec go i' o' = begin function
-      | e1 :: e2 :: es -> 
-
-    end *)
+  | `jux es -> 
+    let rec go i' o' = function
+      | e1 :: (_ :: _ as es) -> 
+        let c = fresh_costack () in
+        expr ctx e1 i' c;
+        go c o' es
+      | [e] -> expr ctx e i' o'
+      | [] -> unify_costack i' o' in
+    go i o es
   
   | _ -> failwith "todo"
 
