@@ -5,21 +5,43 @@ open Uref
 open Syntax
 (* open Meta *)
 
+let pp_uref fmt x y = fmt x (uget y)
+
+module Set = struct
+  include Set
+  module PP = struct
+    type 'a t = 'a list [@@deriving show]
+  end
+  let pp f fmt = elements %> PP.pp f fmt
+end
+
+module Dict = struct
+  include Map.Make(String)
+  module D = struct
+    type 'a t = (string * 'a) list [@@deriving show]
+  end
+  let pp h fmt = bindings %> D.pp h fmt
+end
+
 type common = [
   | `int of int
   | `string of string
-  | `quote of Hir1.expr
-  | `list of Hir1.expr list
 ] [@@deriving show]
 
-type _value = [ common | `poly ] [@@deriving show]
+type _value = [
+  common
+  | `closure of Hir1.expr * context
+  | `closedList of (Hir1.expr * context) list
+  | `closedValue of value
+] [@@deriving show]
 
-module Sol = Set.Make(struct
-  type t = _value
-  include Stdlib
-end)
+and _value_poly = 
+  | Bound of _value Set.t
+  | Free
 
-type value = Sol.t uref
+and value = _value_poly uref [@@deriving show]
+
+and context = Hir1.expr Dict.t
 
 type ustack = _ustack uref
 and _ustack = 
@@ -41,23 +63,28 @@ exception StuntedCostack
 exception EmptyStack
 exception DifferentlyTyped of _value * _value
 exception Noncallable of _value
+exception Polycall
 
-let mk_val s = uref @@ Sol.singleton s
+let mk_val s = uref @@ Bound (Set.singleton s)
 
 let select_val v1 v2 = match v1, v2 with
   | `int i1, `int i2 -> 
-    if i1 = i2 then Sol.singleton v1
-    else Sol.empty
+    if i1 = i2 then Set.singleton v1
+    else Set.empty
   | `string s1, `string s2 -> 
-    if s1 = s2 then Sol.singleton v1
-    else Sol.empty
-  | `quote _, `quote _ -> raise @@ Kablooey "quote"
-  | `list _, `list _ -> raise @@ Kablooey "list"
+    if s1 = s2 then Set.singleton v1
+    else Set.empty
+  | `closure _, `closure _ -> raise @@ Kablooey "quote"
+  | `closedList _, `closedList _ -> raise @@ Kablooey "list"
   | _v1, _v2 -> raise @@ DifferentlyTyped (_v1, _v2)
 
-let unify_val = unite ~sel:begin fun x y -> 
-  List.cartesian_product (Sol.to_list x) (Sol.to_list y)
-  |> List.fold (fun a (e1, e2) -> select_val e1 e2 |> Sol.union a) Sol.empty
+let unify_val = unite ~sel:begin fun x0 y0 -> match x0, y0 with
+  | Bound _ as b, Free | Free, b -> b
+  | Bound x, Bound y -> Bound begin
+    List.cartesian_product (Set.to_list x) (Set.to_list y)
+    |> List.fold (fun a (e1, e2) -> select_val e1 e2 |> Set.union a) Set.empty
+  end
+  
 end
 
 let rec unify_stack r = unite ~sel:begin fun x y -> match x, y with
@@ -100,7 +127,7 @@ let (let$) (x, y) f =
 
 let pop = uget %> function
   | Push (u, v) -> u, v
-  | Next u -> u, mk_val `poly
+  | Next u -> u, uref Free
   | Unit -> raise EmptyStack
 
 let pop2 u0 = 
@@ -111,11 +138,11 @@ let pop2 u0 =
 let push u v = uref @@ Push (u, v)
 let push2 u v2 v1 = push (push u v2) v1
 
-let map_val f v = uref @@ Sol.map f (uget v)
-(* let fold_val f acc v = Sol.fold f acc (uget v) *)
-let iter_val f v = Sol.iter f (uget v)
+let iter_val f_bound f_free v = match uget v with
+  | Bound s -> Set.iter f_bound s
+  | Free -> f_free ()
 
-let rec expr ((e_, sp) : Hir1.expr) i o = match e_ with
+let rec expr ctx ((e_, sp) : Hir1.expr) i o = match e_ with
   | `gen -> unify_costack i o
   | `fab -> unify_costack (uref @@ Fake i) o
   | `swap -> 
@@ -125,19 +152,15 @@ let rec expr ((e_, sp) : Hir1.expr) i o = match e_ with
   | `unit -> 
     let$ (i, o) = i, o in
     let u, v = pop i in
-    let v' = v |> map_val @@ fun x -> 
-      `quote begin match x with
-        | #common as c -> c, sp
-        | `poly -> `dag (`zap, sp), sp
-      end in
-    unify_stack (push u v') o
+    unify_stack (push u @@ mk_val @@ `closedValue v) o
   | `call -> 
-    let$ (i', _) = i, o in
+    let$ (i', o') = i, o in
     let u, v = pop i' in
     v |> iter_val begin function
-      | `quote e -> expr e (uref @@ Real u) o
+      | `closure (e, ctx') -> expr ctx' e (uref @@ Real u) o
+      | `closedValue v -> unify_stack (push i' v) o'
       | _v -> raise @@ Noncallable _v
-    end
+    end (fun () -> raise Polycall)
   | `zap -> 
     let$ (i, o) = i, o in
     let u, _ = pop i in
