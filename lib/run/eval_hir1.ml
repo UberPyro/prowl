@@ -59,7 +59,6 @@ and _ucostack =
   | Real of ustack
   | Fake of ucostack
   | Over of int
-  | Void
 
 exception Kablooey of string
 exception DifferentlyHeighted
@@ -115,11 +114,9 @@ let rec unify_costack r = unite ~sel:begin fun x y -> match x, y with
     unify_costack u1 u2;
     x
   | Over _, Over _ -> x
-  | (Real _ | Fake _ | Void as y), Over _ 
-  | Over _, (Real _ | Fake _ | Void as y) -> y
-  | (Real _ | Fake _), Void | Void, (Real _ | Fake _)
+  | (Real _ | Fake _ as y), Over _ 
+  | Over _, (Real _ | Fake _ as y) -> y
   | Real _, Fake _ | Fake _, Real _ -> raise DifferentlyExtant
-  | Void, Void -> Void
 end r
 
 let iter_costack f c = match uget c with
