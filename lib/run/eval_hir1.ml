@@ -64,6 +64,7 @@ exception EmptyStack
 exception DifferentlyTyped of _value * _value
 exception Noncallable of _value
 exception Polycall
+exception UnboundVariable of string
 
 let mk_val s = uref @@ Bound (Set.singleton s)
 
@@ -169,7 +170,15 @@ let rec expr ctx ((e_, sp) : Hir1.expr) i o = match e_ with
   | #common as c -> 
     let$ (i, o) = i, o in
     unify_stack (push i @@ mk_val c) o
+  | `id s -> call ctx s i o
+  (* | `jux es -> 
+    let rec go ctx' i' o' = begin function
+      | e1 :: e2 :: es -> 
 
-  
+    end *)
   
   | _ -> failwith "todo"
+
+and call ctx s i o = match Dict.find_opt s ctx with
+  | Some e -> expr ctx e i o
+  | None -> raise @@ UnboundVariable s
