@@ -7,6 +7,11 @@ and _expr = [
   | `swap | `unit | `call | `zap
   | `gen | `fab | `elim
 
+  | `eq | `neq | `lt | `le | `gt | `ge | `not
+  | `add | `sub | `mul | `div | `neg
+  | `concat
+  | `mk
+
   | `int of int
   | `string of string
   | `id of string
