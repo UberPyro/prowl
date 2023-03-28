@@ -5,7 +5,7 @@ open Meta
 type expr = _expr * Span.t [@@deriving show]
 and _expr = [
   | `swap | `unit | `call | `zap
-  | `gen | `fab
+  | `gen | `fab | `elim
 
   | `int of int
   | `string of string

@@ -58,6 +58,7 @@ type ucostack = _ucostack uref
 and _ucostack = 
   | Real of ustack
   | Fake of ucostack
+  | Quasi of ucostack * ustack
   | Over of int
 
 exception Kablooey of string
@@ -67,6 +68,7 @@ exception EmptyStack
 exception DifferentlyTyped of _value * _value
 exception Noncallable of _value
 exception Polycall
+exception Polyelimination
 exception UnboundVariable of string
 
 let fresh_val () = uref @@ Free (fresh ())
@@ -75,25 +77,28 @@ let fresh_costack () = uref @@ Over (fresh ())
 
 let mk_val s = uref @@ Bound (Set.singleton s)
 
-let select_val v1 v2 = match v1, v2 with
+let fold_val f x0 y0 = match x0, y0 with
+  | Bound _ as b, Free _ | Free _, b -> b
+  | Bound x, Bound y -> Bound begin
+    List.cartesian_product (Set.to_list x) (Set.to_list y)
+    |> List.fold (fun a (e1, e2) -> f e1 e2 |> Set.union a) Set.empty
+  end
+
+let rec select_val v1 v2 = match v1, v2 with
   | `int i1, `int i2 -> 
     if i1 = i2 then Set.singleton v1
     else Set.empty
   | `string s1, `string s2 -> 
     if s1 = s2 then Set.singleton v1
     else Set.empty
-  | `closure _, `closure _ -> raise @@ Kablooey "quote"
-  | `closedList _, `closedList _ -> raise @@ Kablooey "list"
+  | `closedValue v1', `closedValue v2' -> 
+    let v' = uref @@ fold_val select_val (uget v1') (uget v2') in
+    Set.singleton @@ `closedValue v'
+  | `closure _, `closure _
+  | `closedList _, `closedList _ -> Set.of_list [v1; v2]
   | _v1, _v2 -> raise @@ DifferentlyTyped (_v1, _v2)
 
-let unify_val = unite ~sel:begin fun x0 y0 -> match x0, y0 with
-  | Bound _ as b, Free _ | Free _, b -> b
-  | Bound x, Bound y -> Bound begin
-    List.cartesian_product (Set.to_list x) (Set.to_list y)
-    |> List.fold (fun a (e1, e2) -> select_val e1 e2 |> Set.union a) Set.empty
-  end
-  
-end
+let unify_val = unite ~sel:(fold_val select_val)
 
 let rec unify_stack r = unite ~sel:begin fun x y -> match x, y with
   | Push (u1, v1), Push (u2, v2) -> 
@@ -110,29 +115,48 @@ let rec unify_costack r = unite ~sel:begin fun x y -> match x, y with
   | Real u1, Real u2 -> 
     unify_stack u1 u2;
     x
+  | Quasi (_, u1), (Real u2 as r) | (Real u1 as r), Quasi (_, u2) -> 
+    unify_stack u1 u2;
+    r
   | Fake u1, Fake u2 -> 
     unify_costack u1 u2;
     x
+  | Quasi (u1, _), (Fake u2 as f) | (Fake u1 as f), Quasi (u2, _) -> 
+    unify_costack u1 u2;
+    f
+  | Quasi (c1, s1), Quasi (c2, s2) -> 
+    unify_costack c1 c2;
+    unify_stack s1 s2;
+    x
   | Over _, Over _ -> x
-  | (Real _ | Fake _ as y), Over _ 
-  | Over _, (Real _ | Fake _ as y) -> y
+  | (Real _ | Fake _ | Quasi _ as y), Over _ 
+  | Over _, (Real _ | Fake _ | Quasi _ as y) -> y
   | Real _, Fake _ | Fake _, Real _ -> raise DifferentlyExtant
 end r
 
-let iter_costack f c = match uget c with
-  | Real u -> f u
-  | Over _ -> 
-    let s = fresh_stack () in
-    f s;
-    unify_costack c @@ uref @@ Real s
-  | _ -> ()
+type ('a, 'b) ior = L of 'a | R of 'b | B of 'a * 'b
+
+let copop u0 = match uget u0 with
+  | Real u -> R u
+  | Fake u -> L u
+  | Quasi (c, r) -> B (c, r)
+  | Over _ -> B (u0, fresh_stack ())
+
+let real u = uref @@ Real u
+let fake u = uref @@ Fake u
+let quasi c s = uref @@ Quasi (c, s)
+
+let iter_costack f c = match copop c with
+  | R u -> f u
+  | B (_, u) -> f u
+  | L _ -> ()
 
 let (let$) (x, y) f = 
   iter_costack (fun u -> iter_costack (fun v -> f (u, v)) y) x
 
-let pop = uget %> function
+let pop u0 = match uget u0 with
   | Push (u, v) -> u, v
-  | Next i -> uref @@ Next i, fresh_val ()
+  | Next _ -> u0, fresh_val ()
   | Unit -> raise EmptyStack
 
 let pop2 u0 = 
@@ -148,8 +172,17 @@ let iter_val f_bound f_free v = match uget v with
   | Free i -> f_free i
 
 let rec expr ctx ((e_, _) : Hir1.expr) i o = match e_ with
-  | `gen -> unify_costack i o
+  | `gen -> begin match copop i with
+    | R _ -> unify_costack i o
+    | L _ -> unify_costack (fake i) o
+    | B (c, s) -> unify_costack (quasi (fake c) s) o
+  end
   | `fab -> unify_costack (uref @@ Fake i) o
+  | `elim -> begin match copop i with
+    | R _ -> unify_costack i o
+    | L c -> unify_costack c o
+    | B _ -> raise Polyelimination
+  end
   | `swap -> 
     let$ (i, o) = i, o in
     let u, v2, v1 = pop2 i in
