@@ -84,17 +84,45 @@ let comap f = function
   | Real s -> Real (f s)
   | c -> c
 
+let (let+) x f = comap f x
+
 let cobind f = function
   | Real s -> f s
   | c -> c
+
+let (let*) x f = cobind f x
 
 let pop = function
   | h :: t -> t, h
   | [] -> raise @@ EmptyStack
 
 let pop2 = function
-  | h1 :: h2 :: t -> h1, h2, t
+  | h1 :: h2 :: t -> t, h2, h1
   | _ -> raise @@ EmptyStack
 
 let push t h = h :: t
 let push2 t h2 h1 = h1 :: h2 :: t
+
+let lit x = uref @@ Bound (pure x)
+
+let (* rec *) expr (* ctx *) ((e_, _) : Mir.expr) i = match e_ with
+  | `gen -> begin match i with
+    | Real _ -> i
+    | Fake _ -> Fake i
+  end
+  | `fab -> Fake i
+  | `elim -> begin match i with
+    | Real _ -> i
+    | Fake j -> j
+  end
+  | `exch -> begin match i with
+    | Real _ -> Fake i
+    | Fake j -> j
+  end
+  | `swap -> comap (pop2 %> fun (s, v2, v1) -> push2 s v1 v2) i
+  | `unit -> comap (pop %> fun (s, v) -> push s (lit @@ `quotedValue v)) i
+  (* | `call -> comap (pop %> function ) *)
+
+
+
+  | _ -> failwith "todo"
