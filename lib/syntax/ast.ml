@@ -19,15 +19,15 @@ type 'a sugar = [
 
 type expr = _expr * Span.t [@@deriving show]
 and _expr = [
-  | Prim.lit
+  | Prim.word
   | expr core
   | expr sugar
 ] [@@deriving show]
 
-type desug = [Prim.lit | Prim.op | desug Prim.dag | desug core] * Span.t
+type desug = [Prim.word | Prim.op | desug Prim.dag | desug core] * Span.t
 
 let rec desugar ((_, sp as x) : expr) : desug = x |> Tuple2.map1 @@ function
-  | #Prim.lit as lit -> lit
+  | #Prim.word as word -> word
 
   | `bind_var (ls, e) -> 
     `bind_var (List.map (Tuple2.map2 desugar) ls, desugar e)

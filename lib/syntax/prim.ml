@@ -1,7 +1,11 @@
 type lit = [
-  | `id of string
   | `int of int
   | `string of string
+] [@@deriving show]
+
+type word = [
+  | lit
+  | `id of string
 ] [@@deriving show]
 
 type op = [
@@ -13,6 +17,6 @@ type op = [
   | `add | `sub | `mul | `div | `rem | `neg
   | `concat | `mk
   | `parse | `show
-]
+] [@@deriving show]
 
-type 'a dag = [ `dag of 'a ]
+type 'a dag = [ `dag of 'a ] [@@deriving show]
