@@ -52,7 +52,7 @@ module LazyList = struct
   
   let sort_uniq l = combine_uniq @@ build l
 
-  let inter l1 l2 = merge_uniq l1 (sort_uniq l2)
+  let inter l1 l2 = merge_uniq (sort_uniq l1) (sort_uniq l2)
   let ( *> ) = inter
   let pure x = cons x nil
 
@@ -91,4 +91,7 @@ type costack =
   | Real of stack
   | Fake of costack
 
-
+let unify = unite ~sel:begin fun x0 y0 -> match x0, y0 with
+  | Bound _ as b, Free _ | Free _, b -> b
+  | Bound x, Bound y -> Bound (x *> y)
+end
