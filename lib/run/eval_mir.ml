@@ -3,6 +3,8 @@ open Uref
 
 open Syntax
 
+exception EmptyStack
+
 let pp_uref fmt x y = fmt x (uget y)
 
 let c = ref (-1)
@@ -17,48 +19,30 @@ module LazyList = struct
   end
   let pp f fmt = to_list %> PP.pp f fmt
 
-  let rec merge_uniq l1 l2 = match get l1, get l2 with
+  let[@tail_cons_mod] rec merge_inter l1 l2 = 
+    match get l1, get l2 with
+    | Some (h1, t1), Some (h2, t2) -> 
+      if h1 = h2 then lazy (Cons (h1, merge_inter t1 t2))
+      else if h1 < h2 then merge_inter t1 l2
+      else merge_inter l1 t2
+    | _ -> nil
+  
+  let[@tail_cons_mod] rec merge_uniq l1 l2 = 
+    match LazyList.(get l1, get l2) with
     | Some (h1, t1), Some (h2, t2) -> lazy begin
-      if h1 = h2 then Cons (h1, merge_uniq t1 t2)
-      else if h1 < h2 then Cons (h1, merge_uniq t1 l2)
-      else Cons (h2, merge_uniq l1 t2)
+      if h1 = h2 then LazyList.Cons (h1, merge_uniq t1 t2)
+      else if h1 < h2 then LazyList.Cons (h1, merge_uniq t1 l2)
+      else LazyList.Cons (h2, merge_uniq l1 t2)
     end
     | _, None -> l1
     | None, _ -> l2
-  
-  let[@tail_cons_mod] rec map_pairs f l = match l with
-    | [] | [_] -> l
-    | h1 :: h2 :: t -> f h1 h2 :: map_pairs f t
-  
-  let rec combine_uniq l = match l with
-    | [] -> nil
-    | h :: t -> 
-      if List.is_empty t then h
-      else combine_uniq (map_pairs merge_uniq l)
-  
-  let rec rev_ap ?(onto=nil) = function
-    | h :: t -> rev_ap ~onto:(lazy (Cons (h, onto))) t
-    | [] -> onto
-      
-  let build x = 
-    let[@tail_cons_mod] rec go temp l = match get l with
-      | None -> [rev_ap temp]
-      | Some (hl, tl) -> match temp with
-        | [] -> go (hl :: temp) tl
-        | h_temp :: _ -> 
-          if h_temp < hl then go (hl :: temp) tl
-          else rev_ap temp :: go [] l in
-    go [] x
-  
-  let sort_uniq l = combine_uniq @@ build l
 
-  let inter l1 l2 = merge_uniq (sort_uniq l1) (sort_uniq l2)
-  let ( *> ) = inter
   let pure x = cons x nil
 
 end
 
-let ( *> ) = LazyList.( *> )
+let ( *> ) = LazyList.merge_inter
+let (<|>) = LazyList.merge_uniq
 let pure = LazyList.pure
 
 module Dict = struct
@@ -77,7 +61,7 @@ type _value = [
 ] [@@deriving show]
 
 and _value_poly = 
-  | Bound of _value LazyList.t
+  | Bound of _value LazyList.t  (* maintain order *)
   | Free of int
   [@@deriving show]
 
@@ -95,3 +79,22 @@ let unify = unite ~sel:begin fun x0 y0 -> match x0, y0 with
   | Bound _ as b, Free _ | Free _, b -> b
   | Bound x, Bound y -> Bound (x *> y)
 end
+
+let comap f = function
+  | Real s -> Real (f s)
+  | c -> c
+
+let cobind f = function
+  | Real s -> f s
+  | c -> c
+
+let pop = function
+  | h :: t -> t, h
+  | [] -> raise @@ EmptyStack
+
+let pop2 = function
+  | h1 :: h2 :: t -> h1, h2, t
+  | _ -> raise @@ EmptyStack
+
+let push t h = h :: t
+let push2 t h2 h1 = h1 :: h2 :: t
