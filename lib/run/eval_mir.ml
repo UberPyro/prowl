@@ -205,7 +205,9 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `jux es -> List.fold_left (fun a x -> a >>= expr ctx x) (pure i) es
   | `bind_var (bs, e) -> expr (Dict.add_seq (List.to_seq bs) ctx) e i
 
-  | _ -> failwith "todo"
+  | `id x -> expr ctx (Dict.find x ctx) i
+
+  | `dag _ -> failwith "todo"
 
 and value v = comap (fun s -> push s v)
 
