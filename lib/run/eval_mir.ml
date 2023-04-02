@@ -39,11 +39,12 @@ module LazyList = struct
 
   let pure x = cons x nil
 
-end
+  let flat_uniq x = 
+    LazyList.fold_left (fun acc e -> merge_uniq acc (sort e)) LazyList.nil x
+  
+  let bind_uniq f x = LazyList.map f x |> flat_uniq
 
-let ( *> ) = LazyList.merge_inter
-let (<|>) = LazyList.merge_uniq
-let pure = LazyList.pure
+end
 
 module Dict = struct
   include Map.Make(String)
@@ -75,10 +76,23 @@ type costack =
   | Real of stack
   | Fake of costack
 
-let unify = unite ~sel:begin fun x0 y0 -> match x0, y0 with
+let ( *> ) = curry @@ function
   | Bound _ as b, Free _ | Free _, b -> b
-  | Bound x, Bound y -> Bound (x *> y)
-end
+  | Bound b1, Bound b2 -> Bound (LazyList.merge_inter b1 b2)
+
+
+let (<|>) = curry @@ function
+  | Free _ as f, Bound _ | _, (Free _ as f) -> f
+  | Bound b1, Bound b2 -> Bound (LazyList.merge_uniq b1 b2)
+
+let pure v = Bound (LazyList.pure v)
+let (>>=) x f = match x with
+  | Bound b -> Bound (LazyList.bind_uniq f b)
+  | _ -> x  (* warning: this doesn't work in general *)
+
+let (>=>) f g x = x >>= f >>= g
+
+let unify = unite ~sel:( *> )
 
 let comap f = function
   | Real s -> Real (f s)
@@ -103,7 +117,7 @@ let pop2 = function
 let push t h = h :: t
 let push2 t h2 h1 = h1 :: h2 :: t
 
-let lit x = uref @@ Bound (pure x)
+let lit x = uref @@ pure x
 
 let (* rec *) expr (* ctx *) ((e_, _) : Mir.expr) i = match e_ with
   | `gen -> begin match i with
@@ -121,7 +135,9 @@ let (* rec *) expr (* ctx *) ((e_, _) : Mir.expr) i = match e_ with
   end
   | `swap -> comap (pop2 %> fun (s, v2, v1) -> push2 s v1 v2) i
   | `unit -> comap (pop %> fun (s, v) -> push s (lit @@ `quotedValue v)) i
-  (* | `call -> comap (pop %> function ) *)
+  (* | `call -> comap (pop %> fun (s, v) -> 
+    
+  ) *)
 
 
 
