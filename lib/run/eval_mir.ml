@@ -34,6 +34,35 @@ module LazyList = struct
   let (>=>) f g x = pure x >>= f >>= g
   let (<|>) l1 l2 = LazyList.unique (LazyList.append l1 l2)
 
+  (* intersection - test *)
+  let ( *> ) l1 l2 = 
+    let rec go1 s l1' l2' = match LazyList.get l2' with
+      | None -> LazyList.nil
+      | Some (h, t) -> 
+        if Set.mem h s then lazy (LazyList.Cons (h, go1 s l1' t))
+        else let rec go2 s' l3 = match LazyList.get l3 with
+          | Some (h', t') -> 
+            if h' = h then lazy (LazyList.Cons (h, go1 s' t' t))
+            else go2 (Set.add h' s') t'
+          | None -> LazyList.filter (fun e -> Set.mem e s') t in
+        go2 s l1' in
+    go1 Set.empty l1 l2
+
+  (* let star x f = 
+    let go y = 
+      let z = y >>= f in
+
+
+
+  ;; *)
+
+  (* let star x f = 
+    let go s y = 
+      y >>= f >>= fun z -> if Set.mem z s then 
+
+
+  ;; *)
+
 end
 
 let (>>=) = LazyList.(>>=)
