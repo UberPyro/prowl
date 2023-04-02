@@ -48,20 +48,34 @@ module LazyList = struct
         go2 s l1' in
     go1 Set.empty l1 l2
 
-  (* let star x f = 
-    let go y = 
-      let z = y >>= f in
+  (* efficient too difficult? *)
+  let interdiff l1 l2 = 
+    let rec go1 s l1' l2' = match LazyList.get l2' with
+      | None -> LazyList.nil
+      | Some (h, t) -> 
+        if Set.mem h s then lazy (LazyList.Cons (Either.Left h, go1 s l1' t))
+        else let rec go2 s' l3 = match LazyList.get l3 with
+          | Some (h', t') -> 
+            if h' = h then lazy (LazyList.Cons (Either.Left h, go1 s' t' t))
+            else go2 (Set.add h' s') t'
+          | None -> LazyList.map (fun e -> 
+            if Set.mem e s' then Either.Left e
+            else Either.Right e) t in
+        go2 s l1' in
+    go1 Set.empty l1 l2
+    |> LazyList.enum
+    |> Enum.switch Either.is_left
+    |> Tuple2.mapn (Enum.map (Either.fold ~left:Fun.id ~right:Fun.id)
+      %> LazyList.of_enum)
 
+  let star f x = 
+    let rec go s1 = 
+      let s2 = s1 >>= f in
+      let s3, s4 = interdiff s1 s2 in
+      append_delayed s3 go s4 in
+    go x
 
-
-  ;; *)
-
-  (* let star x f = 
-    let go s y = 
-      y >>= f >>= fun z -> if Set.mem z s then 
-
-
-  ;; *)
+  let ( ~* ) = star
 
 end
 
