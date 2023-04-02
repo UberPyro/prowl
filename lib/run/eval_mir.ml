@@ -138,7 +138,7 @@ let pop2 = function
 let push t h = h :: t
 let push2 t h2 h1 = h1 :: h2 :: t
 
-let rec expr _ctx ((e_, _) : Mir.expr) i = match e_ with
+let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `gen -> pure begin match i with
     | Real _ -> i
     | Fake _ -> Fake i
@@ -197,6 +197,14 @@ let rec expr _ctx ((e_, _) : Mir.expr) i = match e_ with
   | `parse -> parse i
   | `show -> show_int i
 
+  | `int _ | `str _ as x -> lit x i
+  | `quote e' -> lit (`closure (e', ctx)) i
+  | `list es -> 
+    lit (`closedList (List.map (fun e' -> `closure (e', ctx)) es)) i
+  
+  | `jux es -> List.fold_left (fun a x -> a >>= expr ctx x) (pure i) es
+  | `bind_var (bs, e) -> expr (Dict.add_seq (List.to_seq bs) ctx) e i
+
   | _ -> failwith "todo"
 
 and value v = comap (fun s -> push s v)
@@ -229,3 +237,5 @@ and parse = comap (pop %> function[@warning "-8"] (s, `str x) ->
 
 and show_int = comap (pop %> function[@warning "-8"] (s, `int i) -> 
   push s (`str (Int.to_string i)) | _ -> failwith "Can't show - not an int")
+
+and lit v = comap (fun s -> push s v)
