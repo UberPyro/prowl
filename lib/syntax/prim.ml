@@ -10,8 +10,8 @@ type word = [
 
 type op = [
   | `gen | `fab | `elim | `exch
-  | `swap | `unit | `call | `zap | `dup
-  | `cat | `dis | `star | `mark
+  | `swap | `unit | `call | `zap | `dup | `cat
+  | `dis | `star | `mark
 
   | `eq | `neq | `lt | `gt | `le | `ge | `not
   | `add | `sub | `mul | `div | `rem | `neg

@@ -29,11 +29,10 @@ module LazyList = struct
     | None -> x
     | Some (h, t) -> append_delayed (f h) (bind f) t
 
-  let (>>=) x f = bind f x
-  let (>=>) f g x = x >>= f >>= g
-  let (<|>) l1 l2 = LazyList.unique (LazyList.append l1 l2)
-
   let pure x = cons x nil
+  let (>>=) x f = bind f x
+  let (>=>) f g x = pure x >>= f >>= g
+  let (<|>) l1 l2 = LazyList.unique (LazyList.append l1 l2)
 
 end
 
@@ -55,15 +54,15 @@ type value = [
   | Prim.lit
   | `closure of Mir.expr * context
   | `closedList of (Mir.expr * context) list
-  | `quotedValue of value
+  | `thunk of costack -> costack LazyList.t
   | `free of int
 ] [@@deriving show]
 
 and context = Mir.expr Dict.t
 
-type stack = value list
+and stack = value list
 
-type costack = 
+and costack = 
   | Real of stack
   | Fake of costack
 
@@ -90,7 +89,7 @@ let pop2 = function
 let push t h = h :: t
 let push2 t h2 h1 = h1 :: h2 :: t
 
-let rec expr _ ((e_, _) : Mir.expr) i = match e_ with
+let rec expr _ctx ((e_, _) : Mir.expr) i = match e_ with
   | `gen -> pure begin match i with
     | Real _ -> i
     | Fake _ -> Fake i
@@ -105,12 +104,16 @@ let rec expr _ ((e_, _) : Mir.expr) i = match e_ with
     | Fake j -> j
   end
   | `swap -> comap (pop2 %> fun (s, v2, v1) -> push2 s v1 v2) i
-  | `call -> cobind (pop %> fun (s, v) -> match v with
-    | `closure (e', ctx') -> expr ctx' e' (Real s)
-    | `quotedValue v -> pure @@ Real (push s v)
-    | _ -> raise Noncallable
-  ) i
-
-
+  | `unit -> comap (pop %> fun (s, v) -> push s (`thunk (comap (fun s -> push s v)))) i
+  | `cat -> comap (pop2 %> fun (s, v2, v1) -> push s (`thunk (call v2 >=> call v1))) i
+  | `call -> cobind (pop %> fun (s, v) -> call v (Real s)) i
+  | `zap -> comap (pop %> fst) i
+  | `dup -> comap (pop %> fun (s, v) -> push2 s v v) i
 
   | _ -> failwith "todo"
+
+and value v = comap (fun s -> push s v)
+
+and call v c = match v with
+  | `closure (e', ctx') -> expr ctx' e' c
+  | _ -> raise Noncallable
