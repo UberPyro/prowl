@@ -73,7 +73,7 @@ module LazyList = struct
       let s2 = s1 >>= f in
       let s3, s4 = interdiff s1 s2 in
       append_delayed s3 go s4 in
-    go x |> LazyList.unique
+    go (pure x) |> LazyList.unique
 
   let ( ~* ) = star
 
@@ -84,6 +84,7 @@ let (>=>) = LazyList.(>=>)
 let (<|>) = LazyList.(<|>)
 let pure = LazyList.pure
 let empty = LazyList.nil
+let ( ~* ) = LazyList.( ~* )
 
 module Dict = struct
   include Map.Make(String)
@@ -158,6 +159,10 @@ let rec expr _ctx ((e_, _) : Mir.expr) i = match e_ with
 
   | `dis -> comap (pop2 %> fun (s, v2, v1) -> 
     push s (`thunk (fun c -> call v2 c <|> call v1 c))) i
+  | `star -> comap (pop %> fun (s, v) -> 
+    push s (`thunk ( ~*(call v) ))) i
+  | `mark -> comap (pop %> fun (s, v) -> 
+    push s (`thunk (fun x -> pure x <|> call v x))) i
 
   | _ -> failwith "todo"
 
