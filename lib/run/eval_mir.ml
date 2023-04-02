@@ -4,6 +4,7 @@ open Uref
 open Syntax
 
 exception EmptyStack
+exception Polycall
 
 let pp_uref fmt x y = fmt x (uget y)
 
@@ -85,12 +86,13 @@ let (<|>) = curry @@ function
   | Free _ as f, Bound _ | _, (Free _ as f) -> f
   | Bound b1, Bound b2 -> Bound (LazyList.merge_uniq b1 b2)
 
+let empty = Bound (LazyList.nil)
 let pure v = Bound (LazyList.pure v)
-let (>>=) x f = match x with
-  | Bound b -> Bound (LazyList.bind_uniq f b)
-  | _ -> x  (* warning: this doesn't work in general *)
 
-let (>=>) f g x = x >>= f >>= g
+let flat_val x = LazyList.fold_left (<|>) empty x
+
+(* note: it has to be the job of the callee to decide
+   what to do on the polymorphic case *)
 
 let unify = unite ~sel:( *> )
 
@@ -119,7 +121,7 @@ let push2 t h2 h1 = h1 :: h2 :: t
 
 let lit x = uref @@ pure x
 
-let (* rec *) expr (* ctx *) ((e_, _) : Mir.expr) i = match e_ with
+let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `gen -> begin match i with
     | Real _ -> i
     | Fake _ -> Fake i
@@ -135,9 +137,12 @@ let (* rec *) expr (* ctx *) ((e_, _) : Mir.expr) i = match e_ with
   end
   | `swap -> comap (pop2 %> fun (s, v2, v1) -> push2 s v1 v2) i
   | `unit -> comap (pop %> fun (s, v) -> push s (lit @@ `quotedValue v)) i
-  (* | `call -> comap (pop %> fun (s, v) -> 
-    
-  ) *)
+  (* | `call -> cobind (pop %> fun (s, v) -> match uget v with
+    | Free _ -> raise Polycall
+    | Bound b -> LazyList.map (function _v -> 
+      | `closure (e', ctx') -> expr ctx' e' (Real s)
+    ) b
+  ) i *)
 
 
 
