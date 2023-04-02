@@ -103,12 +103,18 @@ let rec expr _ctx ((e_, _) : Mir.expr) i = match e_ with
     | Real _ -> Fake i
     | Fake j -> j
   end
+
   | `swap -> comap (pop2 %> fun (s, v2, v1) -> push2 s v1 v2) i
-  | `unit -> comap (pop %> fun (s, v) -> push s (`thunk (comap (fun s -> push s v)))) i
-  | `cat -> comap (pop2 %> fun (s, v2, v1) -> push s (`thunk (call v2 >=> call v1))) i
+  | `unit -> comap (pop %> fun (s, v) -> 
+    push s (`thunk (comap (fun s -> push s v)))) i
+  | `cat -> comap (pop2 %> fun (s, v2, v1) -> 
+    push s (`thunk (call v2 >=> call v1))) i
   | `call -> cobind (pop %> fun (s, v) -> call v (Real s)) i
   | `zap -> comap (pop %> fst) i
   | `dup -> comap (pop %> fun (s, v) -> push2 s v v) i
+
+  | `dis -> comap (pop2 %> fun (s, v2, v1) -> 
+    push s (`thunk (fun c -> call v2 c <|> call v1 c))) i
 
   | _ -> failwith "todo"
 
@@ -116,4 +122,5 @@ and value v = comap (fun s -> push s v)
 
 and call v c = match v with
   | `closure (e', ctx') -> expr ctx' e' c
+  | `thunk f -> f c
   | _ -> raise Noncallable
