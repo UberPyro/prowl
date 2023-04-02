@@ -30,7 +30,7 @@ module LazyList = struct
     | Some (h, t) -> append_delayed (f h) (bind f) t
 
   let pure x = cons x nil
-  let (>>=) x f = bind f x
+  let (>>=) x f = LazyList.unique @@ bind f x
   let (>=>) f g x = pure x >>= f >>= g
   let (<|>) l1 l2 = LazyList.unique (LazyList.append l1 l2)
 
@@ -73,7 +73,7 @@ module LazyList = struct
       let s2 = s1 >>= f in
       let s3, s4 = interdiff s1 s2 in
       append_delayed s3 go s4 in
-    go x
+    go x |> LazyList.unique
 
   let ( ~* ) = star
 
