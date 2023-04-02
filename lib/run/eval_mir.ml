@@ -5,6 +5,7 @@ open Syntax
 
 exception EmptyStack
 exception Polycall
+exception Noncallable
 
 let pp_uref fmt x y = fmt x (uget y)
 
@@ -89,7 +90,7 @@ let pop2 = function
 let push t h = h :: t
 let push2 t h2 h1 = h1 :: h2 :: t
 
-let (* rec *) expr (* ctx *) ((e_, _) : Mir.expr) i = match e_ with
+let rec expr _ ((e_, _) : Mir.expr) i = match e_ with
   | `gen -> pure begin match i with
     | Real _ -> i
     | Fake _ -> Fake i
@@ -104,7 +105,11 @@ let (* rec *) expr (* ctx *) ((e_, _) : Mir.expr) i = match e_ with
     | Fake j -> j
   end
   | `swap -> comap (pop2 %> fun (s, v2, v1) -> push2 s v1 v2) i
-
+  | `call -> cobind (pop %> fun (s, v) -> match v with
+    | `closure (e', ctx') -> expr ctx' e' (Real s)
+    | `quotedValue v -> pure @@ Real (push s v)
+    | _ -> raise Noncallable
+  ) i
 
 
 
