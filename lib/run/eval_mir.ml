@@ -6,6 +6,7 @@ open Syntax
 exception EmptyStack
 exception Polycall
 exception Noncallable
+exception HigherOrderUnif
 
 let pp_uref fmt x y = fmt x (uget y)
 
@@ -104,7 +105,7 @@ and value = [
   | `closure of Mir.expr * context
   | `thunk of costack -> costack LazyList.t
   | `closedList of callable list
-  | `free of int
+  | `free
 ] [@@deriving show]
 
 and context = Mir.expr Dict.t
@@ -207,7 +208,7 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
 
   | `id x -> expr ctx (Dict.find x ctx) i
 
-  | `dag _ -> failwith "todo"
+  | `dag e -> expr_rev ctx e i
 
 and value v = comap (fun s -> push s v)
 
@@ -241,3 +242,28 @@ and show_int = comap (pop %> function[@warning "-8"] (s, `int i) ->
   push s (`str (Int.to_string i)) | _ -> failwith "Can't show - not an int")
 
 and lit v = comap (fun s -> push s v)
+
+and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
+  | `gen -> expr ctx (`elim, sp) i
+  | `fab -> begin match i with
+    | Real _ -> empty
+    | Fake c -> pure c
+  end
+  | `elim -> expr ctx (`gen, sp) i
+  | `exch -> expr ctx (`exch, sp) i
+
+  | `swap -> expr ctx (`swap, sp) i
+  | `unit -> cobind (pop %> fun (s, v) -> match v with
+    | `thunk f -> f (Real s)
+    | `closure _ -> empty
+    | _ -> raise Noncallable) i
+  | `cat | `call -> raise HigherOrderUnif
+  | `zap -> lit `free i
+  | `dup -> cobind (pop2 %> fun (s, v2, v1) -> match v2, v1 with
+    | `free, v | v, `free
+    | v, _ when v2 = v1 -> pure @@ Real (push s v)
+    | _ -> empty) i
+
+
+  
+  | _ -> failwith "todo"
