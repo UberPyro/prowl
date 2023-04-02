@@ -1,6 +1,6 @@
 type lit = [
   | `int of int
-  | `string of string
+  | `str of string
 ] [@@deriving show]
 
 type word = [
@@ -13,8 +13,8 @@ type op = [
   | `swap | `unit | `call | `zap | `dup | `cat
   | `dis | `star | `mark
 
-  | `eq | `neq | `lt | `gt | `le | `ge | `not
-  | `add | `sub | `mul | `div | `rem | `neg
+  | `eq | `cmp
+  | `add | `mul | `intdiv | `neg
   | `concat | `mk
   | `parse | `show
 ] [@@deriving show]

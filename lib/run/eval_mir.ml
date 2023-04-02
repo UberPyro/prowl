@@ -94,11 +94,16 @@ module Dict = struct
   let pp h fmt = bindings %> D.pp h fmt
 end
 
-type value = [
+type callable = [
+  | `closure of Mir.expr * context
+  | `thunk of costack -> costack LazyList.t
+] [@deriving show]
+
+and value = [
   | Prim.lit
   | `closure of Mir.expr * context
-  | `closedList of (Mir.expr * context) list
   | `thunk of costack -> costack LazyList.t
+  | `closedList of callable list
   | `free of int
 ] [@@deriving show]
 
@@ -163,6 +168,34 @@ let rec expr _ctx ((e_, _) : Mir.expr) i = match e_ with
     push s (`thunk ( ~*(call v) ))) i
   | `mark -> comap (pop %> fun (s, v) -> 
     push s (`thunk (fun x -> pure x <|> call v x))) i
+  
+  | `eq -> query (=) i
+  | `cmp -> cobind (pop2 %> fun (s, v2, v1) -> 
+    pure @@ match[@warning "-8"] compare v2 v1 with
+      | 1 -> Real s
+      | 0 -> Fake (Real s)
+      | -1 -> Fake (Fake (Real s))
+    ) i
+  
+  | `add -> ibop (+) i
+  | `mul -> ibop ( * ) i
+  | `intdiv -> ibop (/) i
+  | `neg -> iuop (fun x -> -x) i
+  | `concat -> sbop (^) i
+
+  | `mk -> begin match i with
+    | Real s -> s |> pop2 %> begin fun (s', v2, v1) -> match v2 with
+      | `closedList qs -> `closedList (begin match v1 with
+        | #callable as c -> c
+        | _ -> raise Noncallable
+      end :: qs) |> fun x -> Real (push s' x) |> pure
+      | _ -> failwith "Type error: not a list"
+    end
+    | Fake c -> comap (fun s -> push s (`closedList [])) c
+  end
+
+  | `parse -> parse i
+  | `show -> show_int i
 
   | _ -> failwith "todo"
 
@@ -172,3 +205,27 @@ and call v c = match v with
   | `closure (e', ctx') -> expr ctx' e' c
   | `thunk f -> f c
   | _ -> raise Noncallable
+
+and binop op = comap (pop2 %> fun (s, v2, v1) -> 
+  push s (`thunk (comap (fun s -> push s (op v1 v2)))))
+
+and query op = cobind (pop2 %> fun (s, v2, v1) -> 
+  pure @@ if op v2 v1 then Real s
+  else Fake (Real s))
+
+and ibop op = 
+  binop @@ fun[@warning "-8"] (`int i1) (`int i2) -> `int (op i1 i2)
+
+and unop op = comap (pop %> fun (s, v) -> 
+  push s (`thunk (comap (fun s -> push s (op v)))))
+
+and iuop op = unop @@ fun[@warning "-8"] (`int i) -> `int (op i)
+
+and sbop op = 
+  binop @@ fun[@warning "-8"] (`str s1) (`str s2) -> `str (op s1 s2)
+
+and parse = comap (pop %> function[@warning "-8"] (s, `str x) -> 
+  push s (`int (String.to_int x)) | _ -> failwith "Can't parse - not a string")
+
+and show_int = comap (pop %> function[@warning "-8"] (s, `int i) -> 
+  push s (`str (Int.to_string i)) | _ -> failwith "Can't show - not an int")
