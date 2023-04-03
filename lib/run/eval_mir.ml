@@ -97,13 +97,13 @@ end
 
 type callable = [
   | `closure of Mir.expr * context
-  | `thunk of costack -> costack LazyList.t
+  | `thunk of (costack -> costack LazyList.t) * (costack -> costack LazyList.t)
 ] [@deriving show]
 
 and value = [
   | Prim.lit
   | `closure of Mir.expr * context
-  | `thunk of costack -> costack LazyList.t
+  | `thunk of (costack -> costack LazyList.t) * (costack -> costack LazyList.t)
   | `closedList of callable list
   | `free
 ] [@@deriving show]
@@ -156,19 +156,23 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
 
   | `swap -> comap (pop2 %> fun (s, v2, v1) -> push2 s v1 v2) i
   | `unit -> comap (pop %> fun (s, v) -> 
-    push s (`thunk (comap (fun s -> push s v)))) i
+    push s (`thunk (lit v, colit v))) i
   | `cat -> comap (pop2 %> fun (s, v2, v1) -> 
-    push s (`thunk (call v2 >=> call v1))) i
+    push s (`thunk (call v2 >=> call v1, cocall v1 >=> cocall v2))) i
   | `call -> cobind (pop %> fun (s, v) -> call v (Real s)) i
   | `zap -> comap (pop %> fst) i
   | `dup -> comap (pop %> fun (s, v) -> push2 s v v) i
 
   | `dis -> comap (pop2 %> fun (s, v2, v1) -> 
-    push s (`thunk (fun c -> call v2 c <|> call v1 c))) i
+    push s (`thunk (
+      (fun c -> call v2 c <|> call v1 c), 
+      (fun c -> cocall v2 c <|> cocall v1 c)))) i
   | `star -> comap (pop %> fun (s, v) -> 
-    push s (`thunk ( ~*(call v) ))) i
+    push s (`thunk ( ~*(call v), ~*(cocall v) ))) i
   | `mark -> comap (pop %> fun (s, v) -> 
-    push s (`thunk (fun x -> pure x <|> call v x))) i
+    push s (`thunk (
+      (fun x -> pure x <|> call v x), 
+      (fun x -> pure x <|> cocall v x)))) i
   
   | `eq -> query (=) i
   | `cmp -> cobind (pop2 %> fun (s, v2, v1) -> 
@@ -214,11 +218,16 @@ and value v = comap (fun s -> push s v)
 
 and call v c = match v with
   | `closure (e', ctx') -> expr ctx' e' c
-  | `thunk f -> f c
+  | `thunk (f, _) -> f c
+  | _ -> raise Noncallable
+
+and cocall v c = match v with
+  | `closure (e', ctx') -> expr_rev ctx' e' c
+  | `thunk (_, f') -> f' c
   | _ -> raise Noncallable
 
 and binop op = comap (pop2 %> fun (s, v2, v1) -> 
-  push s (`thunk (comap (fun s -> push s (op v1 v2)))))
+  push s (`thunk (lit (op v1 v2), colit (op v1 v2))))
 
 and query op = cobind (pop2 %> fun (s, v2, v1) -> 
   pure @@ if op v2 v1 then Real s
@@ -228,7 +237,7 @@ and ibop op =
   binop @@ fun[@warning "-8"] (`int i1) (`int i2) -> `int (op i1 i2)
 
 and unop op = comap (pop %> fun (s, v) -> 
-  push s (`thunk (comap (fun s -> push s (op v)))))
+  push s (`thunk (lit (op v), colit (op v))))
 
 and iuop op = unop @@ fun[@warning "-8"] (`int i) -> `int (op i)
 
@@ -241,7 +250,10 @@ and parse = comap (pop %> function[@warning "-8"] (s, `str x) ->
 and show_int = comap (pop %> function[@warning "-8"] (s, `int i) -> 
   push s (`str (Int.to_string i)) | _ -> failwith "Can't show - not an int")
 
-and lit v = comap (fun s -> push s v)
+and lit v = comap @@ fun s -> push s v
+and colit w = cobind @@ pop %> fun (s, v) -> 
+  if w = v then pure @@ Real s
+  else empty
 
 and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `gen -> expr ctx (`elim, sp) i
@@ -254,7 +266,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 
   | `swap -> expr ctx (`swap, sp) i
   | `unit -> cobind (pop %> fun (s, v) -> match v with
-    | `thunk f -> f (Real s)
+    | `thunk (f, _) -> f (Real s)
     | `closure _ -> empty
     | _ -> raise Noncallable) i
   | `cat | `call -> raise HigherOrderUnif
@@ -266,12 +278,12 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 
   (* | `dis -> cobind (pop2 %> fun (s, v2, v1) -> match v2, v1 with
     | `clo) *)
-  (* | `star -> 
-    i 
-    |> cobind (pop %> fun (s, v) -> )
-    |> expr ctx (`star, sp) *)
-  (* | `mark -> expr ctx (`mark, sp) i *)
-
+  | `star -> comap (pop %> fun (s, v) -> 
+    push s (`thunk ( ~*(cocall v), ~*(call v) ))) i
+  | `mark -> comap (pop %> fun (s, v) -> 
+    push s (`thunk (
+      (fun x -> pure x <|> cocall v x), 
+      (fun x -> pure x <|> call v x)))) i
   
   
   | _ -> failwith "todo"
