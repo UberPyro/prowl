@@ -22,6 +22,7 @@ let rec bind f x = match get x with
   | None -> x
   | Some (h, t) -> append_delayed (f h) (bind f) t
 
+let empty = nil
 let pure x = cons x nil
 let make xs = unique @@ of_list xs
 let list = to_list
