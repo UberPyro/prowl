@@ -276,8 +276,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
     | v, _ when v2 = v1 -> pure @@ Real (push s v)
     | _ -> empty) i
 
-  (* | `dis -> cobind (pop2 %> fun (s, v2, v1) -> match v2, v1 with
-    | `clo) *)
+  | `dis -> failwith "todo disjunction (eventually)"
   | `star -> comap (pop %> fun (s, v) -> 
     push s (`thunk ( ~*(cocall v), ~*(call v) ))) i
   | `mark -> comap (pop %> fun (s, v) -> 
