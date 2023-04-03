@@ -266,8 +266,11 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 
   (* | `dis -> cobind (pop2 %> fun (s, v2, v1) -> match v2, v1 with
     | `clo) *)
-  | `star -> expr ctx (`star, sp) i
-  | `mark -> expr ctx (`mark, sp) i
+  (* | `star -> 
+    i 
+    |> cobind (pop %> fun (s, v) -> )
+    |> expr ctx (`star, sp) *)
+  (* | `mark -> expr ctx (`mark, sp) i *)
 
   
   
