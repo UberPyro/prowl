@@ -84,6 +84,19 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
     | Fake j -> j
   end
 
+  | `pick es -> 
+    let rec go c es = match c, es with
+      | Real _, e :: _ -> expr ctx e c
+      | Fake c', _ :: es' -> go c' es'
+      | _, [] -> pure c in
+    go i es
+  | `ponder es -> 
+    let rec go c es = match c, es with
+      | Real _, e :: _ -> expr ctx e c
+      | Fake c', _ :: es' -> go c' es' |> LazyList.map (fun y -> Fake y)
+      | _, [] -> pure c in
+    go i es
+
   | `swap -> comap (pop2 %> fun (s, v2, v1) -> push2 s v1 v2) i
   | `unit -> comap (pop %> fun (s, v) -> plot s (lit_ref v) (colit_ref v)) i
   | `cat -> comap (pop2 %> fun (s, v2, v1) -> 
@@ -93,6 +106,22 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `dup -> comap (pop %> fun (s, v) -> push2 s v v) i
   | `dip -> cobind (pop2 %> fun (s, v2, v1) -> 
     call v1 (Real s) >>= comap (fun s -> push s v2)) i
+  
+  | `fork es -> cobind (pop %> fun (s, v) -> 
+      let rec go es c = match es with
+        | e :: es -> go es c >>= comap (fun s -> push s v) >>= expr ctx e
+        | [] -> pure c in
+      go es (Real s)
+    ) i
+
+  | `par es -> cobind (fun s -> 
+      let rec go xs_init es_init = match xs_init, es_init with
+        | x :: xs, e :: es -> 
+          go xs es >>= comap (fun s -> push s x) >>= expr ctx e
+        | s', [] -> pure (Real s')
+        | [], _ :: _ -> raise EmptyStack in
+      go s es
+    ) i
   
   | `eq -> query (=) i
   | `cmp -> cobind (pop2 %> fun (s, v2, v1) -> 
@@ -202,6 +231,14 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `elim -> expr ctx (`gen, sp) i
   | `exch -> expr ctx (`exch, sp) i
 
+  | `pick _ -> failwith "awful"
+  | `ponder es -> 
+    let rec go c es = match c, es with
+      | Real _, e :: _ -> expr_rev ctx e c
+      | Fake c', _ :: es' -> go c' es' |> LazyList.map (fun y -> Fake y)
+      | _, [] -> pure c in
+    go i es
+
   | `swap -> expr ctx (`swap, sp) i
   | `unit -> cobind (pop %> fun (s, v) -> match uget v with
     | `thunk (f, _) -> f (Real s)
@@ -212,6 +249,9 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `dup -> cobind (pop %> fun (s, v) -> lit_ref v (Real s)) i
   | `dip -> cobind (pop2 %> fun (s, v2, v1) -> 
     cocall v1 (Real s) >>= comap (fun s -> push s v2)) i
+  
+  | `fork _ -> failwith "todo"
+  | `par _ -> failwith "todo"
 
   | `eq -> begin match i with
     | Real s -> 

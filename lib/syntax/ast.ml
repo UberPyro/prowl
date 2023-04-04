@@ -6,12 +6,11 @@ type 'a core = [
   | `bind_var of (string * 'a) list * 'a
   | `jux of 'a list
   | `dis of 'a * 'a
-  | `mark of 'a
-  | `plus of 'a
-  | `star of 'a
-  | `quote of 'a
-  | `list of 'a list
+  | `mark of 'a | `plus of 'a | `star of 'a
+  | `quote of 'a | `list of 'a list
   | `dag of 'a
+  | `pick of 'a list | `ponder of 'a list
+  | `fork of 'a list | `par of 'a list
 ] [@@deriving show]
 
 type 'a sugar = [
@@ -44,6 +43,10 @@ let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
   | `quote e -> `quote (desugar e)
   | `list es -> `list (List.map desugar es)
   | `dag e -> `dag (desugar e)
+  | `pick es -> `pick (List.map desugar es)
+  | `ponder es -> `ponder (List.map desugar es)
+  | `fork es -> `fork (List.map desugar es)
+  | `par es -> `par (List.map desugar es)
 
   | `binop (e1, op, e2) -> 
     let e1, e2 = desugar e1, desugar e2 in
