@@ -102,6 +102,9 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
       | -1 -> Fake (Fake (Real s))
     ) i
   
+  | `succ -> iuop (fun x -> x + 1) i
+  | `pred -> iuop (fun x -> x - 1) i
+  
   | `add -> ibop (+) i
   | `mul -> ibop ( * ) i
   | `intdiv -> ibop (/) i
@@ -226,6 +229,9 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
     | Fake (Fake (Fake c)) -> pure c
   end
 
+  | `succ -> iuop (fun x -> x - 1) i
+  | `pred -> iuop (fun x -> x + 1) i
+
   | `add | `mul | `intdiv | `neg ->
     failwith "Converse arithmetic not implemented"
 
@@ -323,4 +329,6 @@ let init : Mir.expr Dict.t =
     "mk", `mk;
     "parse", `parse;
     "show", `show;
+    "succ", `succ;
+    "pred", `pred;
   ]
