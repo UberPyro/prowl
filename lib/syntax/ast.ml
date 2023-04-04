@@ -11,6 +11,7 @@ type 'a core = [
   | `star of 'a
   | `quote of 'a
   | `list of 'a list
+  | `dag of 'a
 ] [@@deriving show]
 
 type 'a sugar = [
@@ -28,7 +29,7 @@ and _expr = [
   | expr sugar
 ] [@@deriving show]
 
-type desug = [Prim.word | Prim.op | desug Prim.dag | desug core] * Span.t
+type desug = [Prim.word | Prim.op | desug core] * Span.t
 
 let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
   | #Prim.word as word -> word
@@ -42,6 +43,7 @@ let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
   | `star e -> `star (desugar e)
   | `quote e -> `quote (desugar e)
   | `list es -> `list (List.map desugar es)
+  | `dag e -> `dag (desugar e)
 
   | `binop (e1, op, e2) -> 
     let e1, e2 = desugar e1, desugar e2 in

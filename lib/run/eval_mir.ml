@@ -1,7 +1,9 @@
 open! Batteries
-open! Uref
-open! Syntax
-open! LazySet
+open Uref
+
+open Syntax
+open Metadata
+open LazySet
 
 exception EmptyStack
 exception Polycall
@@ -89,6 +91,8 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `call -> cobind (pop %> fun (s, v) -> call v (Real s)) i
   | `zap -> comap (pop %> fst) i
   | `dup -> comap (pop %> fun (s, v) -> push2 s v v) i
+  | `dip -> cobind (pop2 %> fun (s, v2, v1) -> 
+    call v1 (Real s) >>= comap (fun s -> push s v2)) i
   
   | `eq -> query (=) i
   | `cmp -> cobind (pop2 %> fun (s, v2, v1) -> 
@@ -205,6 +209,8 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `cat | `call -> raise HigherOrderUnif
   | `zap -> lit (`free !!()) i
   | `dup -> cobind (pop %> fun (s, v) -> lit_ref v (Real s)) i
+  | `dip -> cobind (pop2 %> fun (s, v2, v1) -> 
+    cocall v1 (Real s) >>= comap (fun s -> push s v2)) i
 
   | `eq -> begin match i with
     | Real s -> 
@@ -286,3 +292,36 @@ and rev_const_callable f i = try
   f @@ Real [] >>= cobind @@ fun temp_stack -> 
   List.fold (fun a x -> a >=> colit_ref x) pure temp_stack i
 with EmptyStack -> raise HigherOrderUnif
+
+let dm = Span.dummy
+
+(* let run_infix word : Mir._expr = `jux [
+  `quote (`call, dm), dm;
+  `dip, dm;
+  `call, dm;
+  word, dm;
+  `unit, dm;
+] *)
+
+let init : Mir.expr Dict.t = 
+  Dict.map (fun x -> x, Span.dummy) @@ Dict.of_enum @@ List.enum [
+    "gen", `gen;
+    "fab", `fab;
+    "elim", `elim;
+    "exch", `exch;
+    "swap", `swap;
+    "unit", `unit;
+    "cat", `cat;
+    "zap", `zap;
+    "dup", `dup;
+    "eq", `eq;
+    "cmp", `cmp;
+    "add", `add;
+    "mul", `mul;
+    "intdiv", `intdiv;
+    "neg", `neg;
+    "concat", `concat;
+    "mk", `mk;
+    "parse", `parse;
+    "show", `show;
+  ]

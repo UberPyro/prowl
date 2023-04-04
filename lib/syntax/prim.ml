@@ -10,12 +10,10 @@ type word = [
 
 type op = [
   | `gen | `fab | `elim | `exch
-  | `swap | `unit | `call | `zap | `dup | `cat
+  | `swap | `unit | `call | `zap | `dup | `cat | `dip
 
   | `eq | `cmp
   | `add | `mul | `intdiv | `neg
   | `concat | `mk
   | `parse | `show
 ] [@@deriving show]
-
-type 'a dag = [ `dag of 'a ] [@@deriving show]
