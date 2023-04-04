@@ -14,8 +14,8 @@ let sp = 0, 0
 let () = print_newline ()
 
 let jx x = `jux (List.map (fun x -> x, sp) x)
-let dg x = `dag (x, sp)
-let ds x y = `dis ((x, sp), (y, sp))
+(* let dg x = `dag (x, sp)
+let ds x y = `dis ((x, sp), (y, sp)) *)
 
 let () = LazyList.iter (Eval_mir.show_costack %> print_endline) @@ 
   Eval_mir.expr Eval_mir.init (jx [
