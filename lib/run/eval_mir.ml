@@ -210,7 +210,18 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `zap -> lit (`free !!()) i
   | `dup -> cobind (pop %> fun (s, v) -> lit_ref v (Real s)) i
 
-  | `dis -> failwith "todo disjunction (eventually)"
+  (* | `dis -> failwith "todo disjunction (eventually)" *)
+  (* | `dis -> cobind (pop %> fun (s, v) ->  *)
+    (* let cs = fray @@ call v @@ Real s in 
+    let cs_rev = fray @@ cocall v @@ Real s in
+    LazyList.fold_left (fun a (x, y) -> Real (push2 s )) (LazyList.combine cs cs_rev) *)
+
+    (* plot s (call v) (cocall v) *)
+  (* ) i *)
+  (* reverse disjunction is very hard to handle -- 
+     nondeterminism is potentially hidden behind the 
+     application to the functions! *)
+  | `dis -> failwith "todo: reverse disjunction"
   | `star -> expr ctx (`star, sp) i
   | `mark -> expr ctx (`mark, sp) i
 
@@ -250,3 +261,9 @@ and unify v1 v2 = unite ~sel:(curry @@ function
   | `free _, v | v, `free _ | v, _ when v1 = v2 -> v
   | _ -> `empty
 ) v1 v2
+
+and fray x = 
+  LazyList.combinations @@ LazyList.to_list x
+  |> LazyList.map @@ LazyList.of_list %> fun y -> 
+    let _, s = interdiff x y in
+    y, s
