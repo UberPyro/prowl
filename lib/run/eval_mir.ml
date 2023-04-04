@@ -150,9 +150,8 @@ and cocall v c = match uget v with
   | `thunk (_, f') -> f' c
   | _ -> raise Noncallable
 
-and binop op = comap (pop2 %> fun (s, v2, v1) -> 
-  let v = op (uget v1) (uget v2) in
-  plot s (lit v) (colit v))
+and binop op = cobind (pop2 %> fun (s, v2, v1) -> 
+  lit (op (uget v1) (uget v2)) (Real s))
 
 and query op = cobind (pop2 %> fun (s, v2, v1) -> 
   pure @@ if op v2 v1 then Real s
@@ -161,9 +160,8 @@ and query op = cobind (pop2 %> fun (s, v2, v1) ->
 and ibop op = 
   binop @@ fun[@warning "-8"] (`int i1) (`int i2) -> `int (op i1 i2)
 
-and unop op = comap (pop %> fun (s, v) -> 
-  let v' = op (uget v) in
-  plot s (lit v') (colit v'))
+and unop op = cobind (pop %> fun (s, v) -> 
+  lit (op (uget v)) (Real s))
 
 and iuop op = unop @@ fun[@warning "-8"] (`int i) -> `int (op i)
 

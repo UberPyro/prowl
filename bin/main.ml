@@ -15,5 +15,5 @@ let () = print_newline ()
 
 let () = LazyList.iter (Eval_mir.show_costack %> print_endline) @@ 
   Eval_mir.expr Eval_mir.init (`jux [
-    `str "Hello, World!", sp
+    `int 2, sp; `int 2, sp; `add, sp; `str "quick maffs", sp;
   ], sp) (Real [])
