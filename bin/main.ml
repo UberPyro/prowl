@@ -19,5 +19,5 @@ let ds x y = `dis ((x, sp), (y, sp))
 
 let () = LazyList.iter (Eval_mir.show_costack %> print_endline) @@ 
   Eval_mir.expr Eval_mir.init (jx [
-    ds (`int 0) (`int 1); `dup; dg (`int 1);
+    
   ], sp) (Real [])
