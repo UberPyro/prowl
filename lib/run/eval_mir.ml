@@ -276,7 +276,8 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 
 and unify v1 v2 = unite ~sel:(curry @@ function
   | `empty, _ | _, `empty -> `empty
-  | `free _, v | v, `free _ | v, _ when v1 = v2 -> v
+  | v, _ when v1 = v2 -> v
+  | `free _, v | v, `free _ -> v
   | _ -> `empty
 ) v1 v2
 
