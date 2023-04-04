@@ -253,8 +253,37 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
         ), (s1, r :: l)) (Deque.rear d)
     | _ -> failwith "Not a string"
   ) i
-  
-  | _ -> failwith "todo"
+
+  | `mk -> cobind (pop %> fun (s, v) -> pure @@ match uget v with
+    | `closedList (#callable as h :: t) -> 
+      Real (push2 s (uref (`closedList t)) (uref h))
+    | `closedList [] -> Fake (Real s)
+    | _ -> failwith "mk - not a list"
+  ) i
+
+  | `parse -> expr ctx (`show, sp) i
+  | `show -> expr ctx (`parse, sp) i
+
+  | `int _ | `str _ as x -> colit x i
+  | `quote e -> comap (pop %> fun (s, v) -> plot s
+    (call v >=> rev_const_callable @@ expr ctx e)
+    (expr ctx e >=> cocall v)
+  ) i
+  | `list es -> comap (pop %> fun (s, v) -> match uget v with
+    | `closedList xs -> push s @@ uref @@
+      `closedList (List.map2 (fun (#callable as x) e -> `thunk (
+        call @@ uref x >=> rev_const_callable @@ expr ctx e, 
+        expr ctx e >=> cocall @@ uref x
+      )) xs es)
+    | _ -> failwith "not a list"
+  ) i
+
+  | `jux es -> List.fold_right (fun e a -> a >=> expr_rev ctx e) es pure i
+  | `bind_var (bs, e) -> expr_rev (Dict.add_seq (List.to_seq bs) ctx) e i
+
+  | `id x -> expr_rev ctx (Dict.find x ctx) i
+
+  | `dag e -> expr ctx e i
 
 and unify v1 v2 = unite ~sel:(curry @@ function
   | `empty, _ | _, `empty -> `empty
@@ -267,3 +296,8 @@ and fray x =
   |> LazyList.map @@ LazyList.of_list %> fun y -> 
     let _, s = interdiff x y in
     y, s
+
+and rev_const_callable f i = try
+  f @@ Real [] >>= cobind @@ fun temp_stack -> 
+  List.fold (fun a x -> a >=> colit_ref x) pure temp_stack i
+with EmptyStack -> raise HigherOrderUnif
