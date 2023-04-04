@@ -5,6 +5,7 @@ open Metadata
 type 'a core = [
   | `bind_var of (string * 'a) list * 'a
   | `jux of 'a list
+  | `dis of 'a * 'a
   | `quote of 'a
   | `list of 'a list
 ] [@@deriving show]
@@ -32,6 +33,7 @@ let rec desugar ((_, sp as x) : expr) : desug = x |> Tuple2.map1 @@ function
   | `bind_var (ls, e) -> 
     `bind_var (List.map (Tuple2.map2 desugar) ls, desugar e)
   | `jux es -> `jux (List.map desugar es)
+  | `dis (e1, e2) -> `dis (desugar e1, desugar e2)
   | `quote e -> `quote (desugar e)
   | `list es -> `list (List.map desugar es)
 

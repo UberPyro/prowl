@@ -90,9 +90,6 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `zap -> comap (pop %> fst) i
   | `dup -> comap (pop %> fun (s, v) -> push2 s v v) i
 
-  | `dis -> comap (pop2 %> fun (s, v2, v1) -> plot s 
-    (fun c -> call v2 c <|> call v1 c)
-    (fun c -> cocall v2 c <|> cocall v1 c)) i
   | `star -> comap (pop %> fun (s, v) -> plot s ~*(call v) ~*(cocall v)) i
   | `mark -> comap (pop %> fun (s, v) -> plot s 
     (fun x -> pure x <|> call v x)
@@ -132,6 +129,7 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
     lit (`closedList (List.map (fun e' -> `closure (e', ctx)) es)) i
   
   | `jux es -> List.fold_left (fun a x -> a >>= expr ctx x) (pure i) es
+  | `dis (e1, e2) -> expr ctx e1 i <|> expr ctx e2 i
   | `bind_var (bs, e) -> expr (Dict.add_seq (List.to_seq bs) ctx) e i
 
   | `id x -> expr ctx (Dict.find x ctx) i
@@ -210,18 +208,6 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `zap -> lit (`free !!()) i
   | `dup -> cobind (pop %> fun (s, v) -> lit_ref v (Real s)) i
 
-  (* | `dis -> failwith "todo disjunction (eventually)" *)
-  (* | `dis -> cobind (pop %> fun (s, v) ->  *)
-    (* let cs = fray @@ call v @@ Real s in 
-    let cs_rev = fray @@ cocall v @@ Real s in
-    LazyList.fold_left (fun a (x, y) -> Real (push2 s )) (LazyList.combine cs cs_rev) *)
-
-    (* plot s (call v) (cocall v) *)
-  (* ) i *)
-  (* reverse disjunction is very hard to handle -- 
-     nondeterminism is potentially hidden behind the 
-     application to the functions! *)
-  | `dis -> failwith "todo: reverse disjunction"
   | `star -> expr ctx (`star, sp) i
   | `mark -> expr ctx (`mark, sp) i
 
@@ -279,6 +265,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   ) i
 
   | `jux es -> List.fold_right (fun e a -> a >=> expr_rev ctx e) es pure i
+  | `dis (e1, e2) -> expr_rev ctx e1 i <|> expr_rev ctx e2 i
   | `bind_var (bs, e) -> expr_rev (Dict.add_seq (List.to_seq bs) ctx) e i
 
   | `id x -> expr_rev ctx (Dict.find x ctx) i
