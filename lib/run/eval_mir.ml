@@ -235,10 +235,10 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 
   | `concat -> cobind (pop %> fun (s, v) -> match uget v with
     | `str x -> 
-      LazyList.unfold (Deque.of_enum (String.enum x), []) @@ fun (d, l) -> 
+      LazyList.unfold (Deque.of_enum @@ String.enum x, []) @@ fun (d, l) -> 
         Option.map (fun (s1, r) -> Real (push2 s
-          (uref (`str (String.of_enum (Deque.enum d))))
-          (uref (`str (String.of_list l)))
+          (uref @@ `str (String.of_enum @@ Deque.enum d))
+          (uref @@ `str (String.of_list l))
         ), (s1, r :: l)) (Deque.rear d)
     | _ -> failwith "Not a string"
   ) i
