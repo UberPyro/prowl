@@ -1,1 +1,1 @@
-type t [@@deriving show]
+type t = int * int [@@deriving show]
