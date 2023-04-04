@@ -89,11 +89,6 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `call -> cobind (pop %> fun (s, v) -> call v (Real s)) i
   | `zap -> comap (pop %> fst) i
   | `dup -> comap (pop %> fun (s, v) -> push2 s v v) i
-
-  | `star -> comap (pop %> fun (s, v) -> plot s ~*(call v) ~*(cocall v)) i
-  | `mark -> comap (pop %> fun (s, v) -> plot s 
-    (fun x -> pure x <|> call v x)
-    (fun x -> pure x <|> cocall v x)) i
   
   | `eq -> query (=) i
   | `cmp -> cobind (pop2 %> fun (s, v2, v1) -> 
@@ -130,6 +125,9 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   
   | `jux es -> List.fold_left (fun a x -> a >>= expr ctx x) (pure i) es
   | `dis (e1, e2) -> expr ctx e1 i <|> expr ctx e2 i
+  | `mark e -> pure i <|> expr ctx e i
+  | `plus e -> expr ctx e i >>= ~*(expr ctx e)
+  | `star e -> ~*(expr ctx e) i
   | `bind_var (bs, e) -> expr (Dict.add_seq (List.to_seq bs) ctx) e i
 
   | `id x -> expr ctx (Dict.find x ctx) i
@@ -208,9 +206,6 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `zap -> lit (`free !!()) i
   | `dup -> cobind (pop %> fun (s, v) -> lit_ref v (Real s)) i
 
-  | `star -> expr ctx (`star, sp) i
-  | `mark -> expr ctx (`mark, sp) i
-
   | `eq -> begin match i with
     | Real s -> 
       let v = uref @@ `free !!() in
@@ -266,6 +261,9 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 
   | `jux es -> List.fold_right (fun e a -> a >=> expr_rev ctx e) es pure i
   | `dis (e1, e2) -> expr_rev ctx e1 i <|> expr_rev ctx e2 i
+  | `mark e -> pure i <|> expr_rev ctx e i
+  | `plus e -> expr_rev ctx e i >>= ~*(expr_rev ctx e)
+  | `star e -> ~*(expr_rev ctx e) i
   | `bind_var (bs, e) -> expr_rev (Dict.add_seq (List.to_seq bs) ctx) e i
 
   | `id x -> expr_rev ctx (Dict.find x ctx) i

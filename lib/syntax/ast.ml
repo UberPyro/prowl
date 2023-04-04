@@ -6,6 +6,9 @@ type 'a core = [
   | `bind_var of (string * 'a) list * 'a
   | `jux of 'a list
   | `dis of 'a * 'a
+  | `mark of 'a
+  | `plus of 'a
+  | `star of 'a
   | `quote of 'a
   | `list of 'a list
 ] [@@deriving show]
@@ -27,13 +30,16 @@ and _expr = [
 
 type desug = [Prim.word | Prim.op | desug Prim.dag | desug core] * Span.t
 
-let rec desugar ((_, sp as x) : expr) : desug = x |> Tuple2.map1 @@ function
+let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
   | #Prim.word as word -> word
 
   | `bind_var (ls, e) -> 
     `bind_var (List.map (Tuple2.map2 desugar) ls, desugar e)
   | `jux es -> `jux (List.map desugar es)
   | `dis (e1, e2) -> `dis (desugar e1, desugar e2)
+  | `mark e -> `mark (desugar e)
+  | `plus e -> `plus (desugar e)
+  | `star e -> `star (desugar e)
   | `quote e -> `quote (desugar e)
   | `list es -> `list (List.map desugar es)
 
