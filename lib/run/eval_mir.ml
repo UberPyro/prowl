@@ -329,40 +329,6 @@ with EmptyStack -> raise HigherOrderUnif
 
 let dm = Span.dummy
 
-(* let run_infix word : Mir._expr = `jux [
-  `quote (`call, dm), dm;
-  `dip, dm;
-  `call, dm;
-  word, dm;
-  `unit, dm;
-] *)
-
-(* let init = 
-    Context.Dict.empty |> Context.Dict.add_seq @@ Seq.of_list @@ 
-      List.map (Tuple2.map2 (fun x -> x, Span.dummy)) [
-        "gen", `gen;
-        "fab", `fab;
-        "elim", `elim;
-        "exch", `exch;
-        "swap", `swap;
-        "unit", `unit;
-        "cat", `cat;
-        "zap", `zap;
-        "dup", `dup;
-        "eq", `eq;
-        "cmp", `cmp;
-        "add", `add;
-        "mul", `mul;
-        "intdiv", `intdiv;
-        "neg", `neg;
-        "concat", `concat;
-        "mk", `mk;
-        "parse", `parse;
-        "show", `show;
-        "succ", `succ;
-        "pred", `pred;
-      ] *)
-
 let init () = Context.Dict.add_seq ([
   "gen", `gen;
   "fab", `fab;
