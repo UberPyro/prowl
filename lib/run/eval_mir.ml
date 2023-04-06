@@ -13,14 +13,6 @@ exception Disequal
 
 let pp_uref fmt x y = fmt x (uget y)
 
-module Dict = struct
-  include Map.Make(String)
-  module D = struct
-    type 'a t = (string * 'a) list [@@deriving show]
-  end
-  let pp h fmt = bindings %> D.pp h fmt
-end
-
 type fn = costack -> costack LazyList.t [@@deriving show]
 
 and callable = [
@@ -37,7 +29,7 @@ and _value = [
   | `empty
 ] [@@deriving show]
 
-and context = Mir.expr Dict.t [@@deriving show]
+and context = (Mir.expr, value) Context.t [@@deriving show]
 
 and value = _value uref [@@deriving show]
 and stack = value list [@@deriving show]
@@ -161,9 +153,9 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `mark e -> pure i <|> expr ctx e i
   | `plus e -> ~+(expr ctx e) i
   | `star e -> ~*(expr ctx e) i
-  | `bind_var (bs, e) -> expr (Dict.add_seq (List.to_seq bs) ctx) e i
+  | `bind_var (bs, e) -> expr (Context.add_many bs ctx) e i
 
-  | `id x -> expr ctx (Dict.find x ctx) i
+  | `id x -> expr ctx (Context.find x ctx) i
 
   | `dag e -> expr_rev ctx e i
 
@@ -311,9 +303,9 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `mark e -> pure i <|> expr_rev ctx e i
   | `plus e -> expr_rev ctx e i >>= ~*(expr_rev ctx e)
   | `star e -> ~*(expr_rev ctx e) i
-  | `bind_var (bs, e) -> expr_rev (Dict.add_seq (List.to_seq bs) ctx) e i
+  | `bind_var (bs, e) -> expr_rev (Context.add_many bs ctx) e i
 
-  | `id x -> expr_rev ctx (Dict.find x ctx) i
+  | `id x -> expr_rev ctx (Context.find x ctx) i
 
   | `dag e -> expr ctx e i
 
@@ -345,27 +337,53 @@ let dm = Span.dummy
   `unit, dm;
 ] *)
 
-let init : Mir.expr Dict.t = 
-  Dict.map (fun x -> x, Span.dummy) @@ Dict.of_enum @@ List.enum [
-    "gen", `gen;
-    "fab", `fab;
-    "elim", `elim;
-    "exch", `exch;
-    "swap", `swap;
-    "unit", `unit;
-    "cat", `cat;
-    "zap", `zap;
-    "dup", `dup;
-    "eq", `eq;
-    "cmp", `cmp;
-    "add", `add;
-    "mul", `mul;
-    "intdiv", `intdiv;
-    "neg", `neg;
-    "concat", `concat;
-    "mk", `mk;
-    "parse", `parse;
-    "show", `show;
-    "succ", `succ;
-    "pred", `pred;
-  ]
+(* let init = 
+    Context.Dict.empty |> Context.Dict.add_seq @@ Seq.of_list @@ 
+      List.map (Tuple2.map2 (fun x -> x, Span.dummy)) [
+        "gen", `gen;
+        "fab", `fab;
+        "elim", `elim;
+        "exch", `exch;
+        "swap", `swap;
+        "unit", `unit;
+        "cat", `cat;
+        "zap", `zap;
+        "dup", `dup;
+        "eq", `eq;
+        "cmp", `cmp;
+        "add", `add;
+        "mul", `mul;
+        "intdiv", `intdiv;
+        "neg", `neg;
+        "concat", `concat;
+        "mk", `mk;
+        "parse", `parse;
+        "show", `show;
+        "succ", `succ;
+        "pred", `pred;
+      ] *)
+
+let init () = Context.Dict.add_seq ([
+  "gen", `gen;
+  "fab", `fab;
+  "elim", `elim;
+  "exch", `exch;
+  "swap", `swap;
+  "unit", `unit;
+  "cat", `cat;
+  "zap", `zap;
+  "dup", `dup;
+  "eq", `eq;
+  "cmp", `cmp;
+  "add", `add;
+  "mul", `mul;
+  "intdiv", `intdiv;
+  "neg", `neg;
+  "concat", `concat;
+  "mk", `mk;
+  "parse", `parse;
+  "show", `show;
+  "succ", `succ;
+  "pred", `pred;
+] |> List.map (Tuple2.map2 (fun x -> x, dm)) |> Seq.of_list)
+  Context.Dict.empty |> Context.init
