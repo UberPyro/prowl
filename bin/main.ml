@@ -19,10 +19,11 @@ let star x = `star x, sp
 (* let plus x = `plus x, sp *)
 let zap = `zap, sp
 
-let () = LazyList.iter (Eval_mir.show_costack %> print_endline) @@ 
-  Eval_mir.expr (Eval_mir.init ()) (jux [
-    int 0; star (jux [
-      zap;
-      int 1;
-    ])
-  ]) (Real [])
+let () = 
+  LazyList.iter (Eval_mir.show_costack %> print_endline) @@ 
+    Eval_mir.expr (Eval_mir.init ()) (jux [
+      int 0; star (jux [
+        zap;
+        int 1;
+      ])
+    ]) (Real [])
