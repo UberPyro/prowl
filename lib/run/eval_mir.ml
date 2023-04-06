@@ -21,11 +21,6 @@ module Dict = struct
   let pp h fmt = bindings %> D.pp h fmt
 end
 
-let c = ref (-1)
-let (!!)() = 
-  incr c;
-  !c
-
 type fn = costack -> costack LazyList.t [@@deriving show]
 
 and callable = [
@@ -38,7 +33,7 @@ and _value = [
   | `closure of Mir.expr * context
   | `thunk of fn * fn
   | `closedList of callable list
-  | `free of int
+  | `free
   | `empty
 ] [@@deriving show]
 
@@ -247,7 +242,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
     | `closure _ -> empty
     | _ -> raise Noncallable) i
   | `cat | `call -> raise HigherOrderUnif
-  | `zap -> lit (`free !!()) i
+  | `zap -> lit `free i
   | `dup -> cobind (pop %> fun (s, v) -> lit_ref v (Real s)) i
   | `dip -> cobind (pop2 %> fun (s, v2, v1) -> 
     cocall v1 (Real s) >>= comap (fun s -> push s v2)) i
@@ -257,7 +252,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 
   | `eq -> begin match i with
     | Real s -> 
-      let v = uref @@ `free !!() in
+      let v = uref `free in
       pure @@ Real (push2 s v v)
     | Fake (Real _) -> raise Disequal
     | Fake (Fake c) -> pure c
@@ -265,7 +260,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `cmp -> begin match i with
     | Real _ -> raise Disequal
     | Fake (Real s) -> 
-      let v = uref @@ `free !!() in
+      let v = uref `free in
       pure @@ Real (push2 s v v)
     | Fake (Fake (Real _)) -> raise Disequal
     | Fake (Fake (Fake c)) -> pure c
@@ -325,7 +320,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 and unify v1 v2 = unite ~sel:(curry @@ function
   | `empty, _ | _, `empty -> `empty
   | v, _ when v1 = v2 -> v
-  | `free _, v | v, `free _ -> v
+  | `free, v | v, `free -> v
   | _ -> `empty
 ) v1 v2
 
