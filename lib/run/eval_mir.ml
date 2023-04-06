@@ -26,15 +26,17 @@ let (!!)() =
   incr c;
   !c
 
-type callable = [
+type fn = costack -> costack LazyList.t [@@deriving show]
+
+and callable = [
   | `closure of Mir.expr * context
-  | `thunk of (costack -> costack LazyList.t) * (costack -> costack LazyList.t)
+  | `thunk of fn * fn
 ] [@deriving show]
 
 and _value = [
   | Prim.lit
   | `closure of Mir.expr * context
-  | `thunk of (costack -> costack LazyList.t) * (costack -> costack LazyList.t)
+  | `thunk of fn * fn
   | `closedList of callable list
   | `free of int
   | `empty
