@@ -162,7 +162,7 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `jux es -> List.fold_left (fun a x -> a >>= expr ctx x) (pure i) es
   | `dis (e1, e2) -> expr ctx e1 i <|> expr ctx e2 i
   | `mark e -> pure i <|> expr ctx e i
-  | `plus e -> expr ctx e i >>= ~*(expr ctx e)
+  | `plus e -> ~+(expr ctx e) i
   | `star e -> ~*(expr ctx e) i
   | `bind_var (bs, e) -> expr (Dict.add_seq (List.to_seq bs) ctx) e i
 

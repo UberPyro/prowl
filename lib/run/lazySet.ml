@@ -51,11 +51,15 @@ let interdiff s1_init s2_init =
   s1_populated s1_init s2_init Set.empty |> enum |> Enum.switch is_left
   |> Tuple2.mapn (Enum.map Fun.(Either.fold ~left:id ~right:id) %> of_enum)
 
+let rec fix f s1 = 
+  if is_empty s1 then empty else 
+    let s3, s4 = interdiff s1 (s1 >>= f) in
+    append_delayed s3 (fix f) s4
+
+let plus f = pure %> fix f
 let star f x = 
-  let rec go s1 = 
-    let s2 = s1 >>= f in
-    let s3, s4 = interdiff s1 s2 in
-    append_delayed s3 go s4 in
-  go @@ pure x
+  let y = pure x in
+  y <|> fix f y
 
 let ( ~* ) = star
+let ( ~+ ) = plus
