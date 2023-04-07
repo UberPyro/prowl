@@ -21,15 +21,16 @@ end
 
 type 'a uctx = 'a uref Dict.t * 'a uref HDict.t [@@deriving show]
 
-type ('a, 'b) t = 'a Dict.t * 'b uctx [@@deriving show]
+type ('a, 'b) t = (string, 'a) Ouro.t * 'b uctx [@@deriving show]
 
-let init d = d, (Dict.empty, HDict.create 4)
+let make d = d, (Dict.empty, HDict.create 8)
 
-let add k v = map1 (Dict.add k v)
-let add_many es = 
-  map1 (fun d -> List.fold (fun a (k, v) -> Dict.add k v a) d es)
-let find k = first %> Dict.find k
-let find_opt k = first %> Dict.find_opt k
+let add k v = map1 (Ouro.insert k v)
+let add_many es = map1 (Ouro.insert_many es)
+let find k x = (first %> Ouro.find_rec k
+  %> map2 (fun (lazy y) -> y, snd x)) x
+let find_opt k x = (first %> Ouro.find_rec_opt k
+  %> Option.map (map2 (fun (lazy y) -> y, snd x))) x
 
 let rec unite unite_val k v (d, (escapees, locals as env)) = 
   match HDict.find_option locals k with
@@ -48,4 +49,4 @@ let ret k (_, (escapees, locals)) =
     | None -> failwith "Unbound unification variable"
 
 let narrow (d, (escapees, locals)) = 
-  HDict.fold Dict.add locals escapees, snd @@ init d
+  HDict.fold Dict.add locals escapees, snd @@ make d

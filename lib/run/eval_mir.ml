@@ -155,7 +155,9 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `star e -> ~*(expr ctx e) i
   | `bind_var (bs, e) -> expr (Context.add_many bs ctx) e i
 
-  | `id x -> expr ctx (Context.find x ctx) i
+  | `id x -> 
+    let e, ctx' = Context.find x ctx in
+    expr ctx' e i
 
   | `dag e -> expr_rev ctx e i
 
@@ -305,7 +307,9 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `star e -> ~*(expr_rev ctx e) i
   | `bind_var (bs, e) -> expr_rev (Context.add_many bs ctx) e i
 
-  | `id x -> expr_rev ctx (Context.find x ctx) i
+  | `id x -> 
+      let e, ctx' = Context.find x ctx in
+      expr_rev ctx' e i
 
   | `dag e -> expr ctx e i
 
@@ -323,7 +327,7 @@ with EmptyStack -> raise HigherOrderUnif
 
 let dm = Span.dummy
 
-let init () = Context.Dict.add_seq ([
+let init () = Ouro.insert_many ([
   "gen", `gen;
   "fab", `fab;
   "elim", `elim;
@@ -345,5 +349,5 @@ let init () = Context.Dict.add_seq ([
   "show", `show;
   "succ", `succ;
   "pred", `pred;
-] |> List.map (Tuple2.map2 (fun x -> x, dm)) |> Seq.of_list)
-  Context.Dict.empty |> Context.init
+] |> List.map (Tuple2.map2 (fun x -> x, dm)))
+  Ouro.empty |> Context.make
