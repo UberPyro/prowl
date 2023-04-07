@@ -30,8 +30,9 @@ let (<|>) l1 l2 = append l1 l2 |> unique
 
 let rec fix cache f s0 = 
   let res = s0 >>= f |> filter @@ fun x -> 
-    if Hashtbl.mem cache x then false
-    else (Hashtbl.add cache x (); true) in
+    let is_rep = not @@ Hashtbl.mem cache x in
+    if is_rep then Hashtbl.add cache x ();
+    is_rep in
   if is_empty res then empty
   else append_delayed res (fix cache f) res
 
