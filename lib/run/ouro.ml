@@ -44,8 +44,6 @@ let insert k v s =
   and s' = lazy (blacken (ins s)) in
   force s'
 
-(* let insert_many kvs = List.fold_right (fun (k, v) -> insert k v) kvs *)
-
 let insert_many kvs s = 
   let rec ins k v = function
     | E -> T (R, E, (k, v, s'), E)
