@@ -29,7 +29,7 @@ and _value = [
   | `empty
 ] [@@deriving show]
 
-and context = (Mir.expr, value) Context.t [@@deriving show]
+and context = (Mir.expr, _value) Context.t [@@deriving show]
 
 and value = _value uref [@@deriving show]
 and stack = value list [@@deriving show]
@@ -153,11 +153,13 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `mark e -> pure i <|> expr ctx e i
   | `plus e -> ~+(expr ctx e) i
   | `star e -> ~*(expr ctx e) i
-  | `bind_var (bs, e) -> expr (Context.add_many bs ctx) e i
 
+  | `bind_var (bs, e) -> expr (Context.add_many bs ctx) e i
   | `id x -> 
     let e, ctx' = Context.find x ctx in
     expr ctx' e i
+  | `exists (ss, e) -> expr (Context.init_many (uref `free) ss ctx) e i
+  | `uvar u -> lit_ref (Context.return u ctx) i
 
   | `dag e -> expr_rev ctx e i
 
@@ -305,11 +307,13 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `mark e -> pure i <|> expr_rev ctx e i
   | `plus e -> expr_rev ctx e i >>= ~*(expr_rev ctx e)
   | `star e -> ~*(expr_rev ctx e) i
-  | `bind_var (bs, e) -> expr_rev (Context.add_many bs ctx) e i
 
+  | `bind_var (bs, e) -> expr_rev (Context.add_many bs ctx) e i
   | `id x -> 
       let e, ctx' = Context.find x ctx in
       expr_rev ctx' e i
+  | `exists (ss, e) -> expr_rev (Context.init_many (uref `free) ss ctx) e i
+  | `uvar u -> colit_ref (Context.return u ctx) i
 
   | `dag e -> expr ctx e i
 

@@ -6,6 +6,7 @@ type lit = [
 type word = [
   | lit
   | `id of string
+  | `uvar of string
 ] [@@deriving show]
 
 type op = [
