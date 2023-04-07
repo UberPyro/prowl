@@ -158,7 +158,7 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `id x -> 
     let e, ctx' = Context.find x ctx in
     expr ctx' e i
-  | `exists (ss, e) -> expr (Context.init_many (uref `free) ss ctx) e i
+  | `ex (ss, e) -> expr (Context.init_many (uref `free) ss ctx) e i
   | `uvar u -> lit_ref (Context.return u ctx) i
 
   | `dag e -> expr_rev ctx e i
@@ -312,7 +312,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `id x -> 
       let e, ctx' = Context.find x ctx in
       expr_rev ctx' e i
-  | `exists (ss, e) -> expr_rev (Context.init_many (uref `free) ss ctx) e i
+  | `ex (ss, e) -> expr_rev (Context.init_many (uref `free) ss ctx) e i
   | `uvar u -> colit_ref (Context.return u ctx) i
 
   | `dag e -> expr ctx e i

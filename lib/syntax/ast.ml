@@ -4,7 +4,7 @@ open Metadata
 
 type 'a core = [
   | `bind_var of (string * 'a) list * 'a
-  | `exists of string list * 'a
+  | `ex of string list * 'a
   | `jux of 'a list
   | `dis of 'a * 'a
   | `mark of 'a | `plus of 'a | `star of 'a
@@ -36,7 +36,7 @@ let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
 
   | `bind_var (ls, e) -> 
     `bind_var (List.map (Tuple2.map2 desugar) ls, desugar e)
-  | `exists (ss, e) -> `exists (ss, desugar e)
+  | `ex (ss, e) -> `ex (ss, desugar e)
   | `jux es -> `jux (List.map desugar es)
   | `dis (e1, e2) -> `dis (desugar e1, desugar e2)
   | `mark e -> `mark (desugar e)
