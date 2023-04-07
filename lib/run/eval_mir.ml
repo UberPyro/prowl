@@ -316,12 +316,6 @@ and unify v1 v2 = unite ~sel:(curry @@ function
   | _ -> `empty
 ) v1 v2
 
-and fray x = 
-  LazyList.combinations @@ LazyList.to_list x
-  |> LazyList.map @@ LazyList.of_list %> fun y -> 
-    let _, s = interdiff x y in
-    y, s
-
 and rev_const_callable f i = try
   f @@ Real [] >>= cobind @@ fun temp_stack -> 
   List.fold (fun a x -> a >=> colit_ref x) pure temp_stack i

@@ -1,7 +1,5 @@
 open! Batteries
 
-open Either
-
 module LazyList = struct
   include LazyList
   module PP = struct
@@ -28,38 +26,19 @@ let make xs = unique @@ of_list xs
 let list = to_list
 let (>>=) x f = bind f x
 let (>=>) f g x = pure x >>= f >>= g
-let (<|>) l1 l2 = append_delayed l1 Fun.id l2
+let (<|>) l1 l2 = append l1 l2 |> unique
 
-let interdiff s1_init s2_init = 
+let rec fix cache f s0 = 
+  let res = s0 >>= f |> filter @@ fun x -> 
+    if not @@ Hashtbl.mem cache x then (Hashtbl.add cache x (); true)
+    else false in
+  if is_empty res then empty
+  else append_delayed res (fix cache f) res
 
-  let rec s1_populated s1 s2 cache = match get s2 with
-    | Some (h2, t2) -> 
-      if Set.mem h2 cache
-      then lazy (Cons (Left h2, s1_populated s1 t2 (Set.remove h2 cache)))
-      else s2_selected s1 t2 cache h2
-    | None -> nil
-  
-  and s2_selected s1 s2 cache h2 = match get s1 with
-    | Some (h1, t1) -> 
-      if h1 = h2 then lazy (Cons (Left h2, s1_populated t1 s2 (Set.remove h2 cache)))
-      else s2_selected t1 s2 (Set.add h1 cache) h2
-    | None -> lazy (Cons (Right h2, (s1_forced s2 cache)))
-  
-  and s1_forced s2 cache = 
-    map (fun x -> if Set.mem x cache then Left x else Right x) s2 in
-  
-  s1_populated s1_init s2_init Set.empty |> enum |> Enum.switch is_left
-  |> Tuple2.mapn (Enum.map Fun.(Either.fold ~left:id ~right:id) %> of_enum)
-
-let rec fix f s1 = 
-  if is_empty s1 then empty else 
-    let s3, s4 = interdiff s1 (s1 >>= f) in
-    append_delayed s3 (fix f) s4
-
-let plus f = pure %> fix f
+let plus f = pure %> fix (Hashtbl.create 16) f %> unique
 let star f x = 
   let y = pure x in
-  y <|> fix f y
+  y <|> fix (Hashtbl.create 16) f y
 
 let ( ~* ) = star
 let ( ~+ ) = plus
