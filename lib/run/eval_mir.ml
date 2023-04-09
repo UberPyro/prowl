@@ -258,7 +258,13 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
     cocall v1 (Real s) >>= comap (fun s -> push s v2)) i
   
   | `fork _ -> failwith "todo"
-  | `par _ -> failwith "todo"
+  | `par es' -> 
+    let rec go c = function
+      | e :: es -> 
+        expr_rev ctx e c >>= cobind @@ pop %> fun (s, v) -> 
+          go (Real s) es >>= lit_ref v
+      | [] -> pure c in
+    go i es'
 
   | `eq -> begin match i with
     | Real s -> 
