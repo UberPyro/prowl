@@ -51,13 +51,15 @@ let () =
     Eval_mir.expr (Eval_mir.init ()) (
       def [
         "append", jux [
-          quote (dag mk); dip;
-          swap; mk; pick [
-            id "append";
+          dag mk; pick [
+            par [
+              mk;
+              jux [id "append"; gen];
+            ];
             jux [];
           ]
         ]
-      ] (jux [list [int 1; int 2]; list [int 3]; id "append"])
+      ] (jux [list [int 2; int 1]; list [int 3]; id "append"])
     ) (Real (Sys.argv |> Array.to_list |> List.tl |> List.map (fun x -> 
       Uref.uref @@ `int (String.to_int x))))
 
