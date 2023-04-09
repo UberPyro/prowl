@@ -56,7 +56,7 @@ let () =
               mk;
               jux [id "append"; gen];
             ];
-            jux [];
+            gen;
           ]
         ]
       ] (jux [list [int 2; int 1]; list [int 3]; id "append"])

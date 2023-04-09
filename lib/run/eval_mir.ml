@@ -232,7 +232,10 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `pick _ -> failwith "awful"
   | `ponder es -> 
     let rec go c es = match c, es with
-      | Real _, e :: _ -> expr_rev ctx e c
+      | Real _, e :: _ -> expr_rev ctx e c |> LazyList.filter begin function
+        | Real _ -> true
+        | Fake _ -> false
+      end
       | Fake c', _ :: es' -> go c' es' |> LazyList.map (fun y -> Fake y)
       | _, [] -> pure c in
     go i es
