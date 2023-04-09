@@ -137,7 +137,8 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
       end :: qs) |> fun x -> Real (push s' x) |> pure
       | _ -> failwith "Type error: not a list"
     end
-    | Fake c -> lit (`closedList []) c
+    | Fake (Real _ as c) -> lit (`closedList []) c
+    | Fake (Fake _) as c -> pure c
   end
 
   | `parse -> parse i

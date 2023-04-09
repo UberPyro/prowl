@@ -40,13 +40,24 @@ let cmp = `cmp, sp
 let fork es = `fork es, sp
 let add = `add, sp
 let mk = `mk, sp
+let list es = `list es, sp
+let par es = `par es, sp
+let swap = `swap, sp
+let quote e = `quote e, sp
+let dip = `dip, sp
 
 let () = 
   LazyList.iter (Eval_mir.show_costack %> print_endline) @@ 
     Eval_mir.expr (Eval_mir.init ()) (
-      jux [
-        fab; mk; gen; int 1; mk
-      ]
+      def [
+        "append", jux [
+          quote (dag mk); dip;
+          swap; mk; pick [
+            id "append";
+            jux [];
+          ]
+        ]
+      ] (jux [list [int 1; int 2]; list [int 3]; id "append"])
     ) (Real (Sys.argv |> Array.to_list |> List.tl |> List.map (fun x -> 
       Uref.uref @@ `int (String.to_int x))))
 
