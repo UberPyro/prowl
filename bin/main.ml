@@ -59,7 +59,7 @@ let () =
             gen;
           ]
         ]
-      ] (jux [list [int 2; int 1]; list [int 3]; id "append"])
+      ] (jux [list [int 2; int 1]; dag @@ id "append"])
     ) (Real (Sys.argv |> Array.to_list |> List.tl |> List.map (fun x -> 
       Uref.uref @@ `int (String.to_int x))))
 
