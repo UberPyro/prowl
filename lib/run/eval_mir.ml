@@ -133,7 +133,7 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
     | Real s -> s |> pop2 %> begin fun (s', v2, v1) -> match uget v2 with
       | `closedList qs -> uref @@ `closedList (begin match uget v1 with
         | #callable as c -> c
-        | _ -> raise Noncallable
+        | _ -> `thunk (lit_ref v1, colit_ref v1)
       end :: qs) |> fun x -> Real (push s' x) |> pure
       | _ -> failwith "Type error: not a list"
     end
