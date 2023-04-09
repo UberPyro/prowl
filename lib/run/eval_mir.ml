@@ -220,6 +220,12 @@ and colit_ref w = cobind @@ pop %> fun (s, v) ->
 
 and plot s th coth = push s (uref @@ `thunk (th, coth))
 
+and filter_real = LazyList.filter @@ function
+  | Real _ -> true
+  | Fake _ -> false
+
+and disjoin = LazyList.map (fun y -> Fake y)
+
 and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `gen -> expr ctx (`elim, sp) i
   | `fab -> begin match i with
@@ -229,14 +235,14 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `elim -> expr ctx (`gen, sp) i
   | `exch -> expr ctx (`exch, sp) i
 
-  | `pick _ -> failwith "awful"
+  | `pick es -> i |> cobind @@ fun s -> 
+    List.fold_right
+      (fun e a -> expr_rev ctx e (Real s) <|> disjoin a)
+      es empty
   | `ponder es -> 
     let rec go c es = match c, es with
-      | Real _, e :: _ -> expr_rev ctx e c |> LazyList.filter begin function
-        | Real _ -> true
-        | Fake _ -> false
-      end
-      | Fake c', _ :: es' -> go c' es' |> LazyList.map (fun y -> Fake y)
+      | Real _, e :: _ -> expr_rev ctx e c |> filter_real
+      | Fake c', _ :: es' -> go c' es' |> disjoin
       | _, [] -> pure c in
     go i es
 
