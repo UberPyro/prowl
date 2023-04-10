@@ -325,18 +325,6 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `quote e' -> colit (`closure (e', ctx)) i
   | `list es -> 
     colit (`closedList (List.map (fun e' -> `closure (e', ctx)) es)) i
-  (* | `quote e -> comap (pop %> fun (s, v) -> plot s
-    (call v >=> rev_const_callable @@ expr ctx e)
-    (expr ctx e >=> cocall v)
-  ) i
-  | `list es -> comap (pop %> fun (s, v) -> match uget v with
-    | `closedList xs -> push s @@ uref @@
-      `closedList (List.map2 (fun (#callable as x) e -> `thunk (
-        call @@ uref x >=> rev_const_callable @@ expr ctx e, 
-        expr ctx e >=> cocall @@ uref x
-      )) xs es)
-    | _ -> failwith "not a list"
-  ) i *)
 
   | `jux es -> List.fold_right (fun e a -> a >=> expr_rev ctx e) es pure i
   | `dis (e1, e2) -> expr_rev ctx e1 i <|> expr_rev ctx e2 i
@@ -388,15 +376,6 @@ and costack_map2 f c1 c2 =
 and unpure s = match LazyList.to_list s with
   | [c] -> c
   | _ -> failwith "Cannot transpose a quoted multifunction"
-
-(* and costack_map2 f c1 c2 = begin
-  c1 |> LazyList.map @@ fun c1 -> 
-    c2 |> LazyList.map @@ fun c2 -> 
-    match c1, c2 with
-    | Real s1, Real s2 -> Real (f s1 s2)
-    | Fake c1', Fake c2' -> Fake (costack_map2 f c1' c2')
-    | _ -> raise @@ Invalid_argument "costack_map2"
-end |> LazyList.flatten |> LazyList.unique *)
 
 and rev_const_callable f i = try
   f @@ Real [] >>= cobind @@ fun temp_stack -> 
