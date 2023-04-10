@@ -2,6 +2,12 @@ open! Batteries
 
 open Metadata
 
+type valop = [
+  | `add of int
+  | `subl of int | `subr of int
+  | `mul of int
+] [@@deriving show]
+
 type 'a core = [
   | `bind_var of (string * 'a) list * 'a
   | `ex of string list * 'a
@@ -12,13 +18,16 @@ type 'a core = [
   | `dag of 'a
   | `pick of 'a list | `ponder of 'a list
   | `fork of 'a list | `par of 'a list
+  | valop
 ] [@@deriving show]
 
 type 'a sugar = [
+  (* all 4 of these need to be special-cased for valops *)
   | `binop of 'a * string * 'a
   | `sectLeft of string * 'a
   | `sectRight of 'a * string
   | `sect of string
+
   | `arrow of 'a * 'a
 ] [@@deriving show]
 
@@ -32,7 +41,7 @@ and _expr = [
 type desug = [Prim.word | Prim.op | desug core] * Span.t
 
 let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
-  | #Prim.word as word -> word
+  | #Prim.word | #valop as v -> v
 
   | `bind_var (ls, e) -> 
     `bind_var (List.map (Tuple2.map2 desugar) ls, desugar e)

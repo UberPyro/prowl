@@ -120,13 +120,11 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
       | -1 -> Fake (Fake (Real s))
     ) i
   
-  | `succ -> iuop (fun x -> x + 1) i
-  | `pred -> iuop (fun x -> x - 1) i
-  
-  | `add -> ibop (+) i
-  | `mul -> ibop ( * ) i
-  | `intdiv -> ibop (/) i
-  | `neg -> iuop (fun x -> -x) i
+  | `add n -> iproc (fun x -> x + n) i
+  | `subl n -> iproc (fun x -> x - n) i
+  | `subr n -> iproc (fun x -> n - x) i
+  | `mul n -> iproc (fun x -> x * n) i
+
   | `concat -> sbop (^) i
 
   | `mk -> begin match i with
@@ -192,6 +190,11 @@ and ibop op =
 
 and unop op = cobind (pop %> fun (s, v) -> 
   lit (op (uget v)) (Real s))
+
+and iproc op i = 
+  i |> comap @@ pop %> fun (s, v) -> match uget v with
+    | `int n -> uref @@ `int (op n) |> push s
+    | _ -> failwith "Not an int"
 
 and iuop op = unop @@ fun[@warning "-8"] (`int i) -> `int (op i)
 
@@ -288,11 +291,15 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
     | Fake (Fake (Fake c)) -> pure c
   end
 
-  | `succ -> iuop (fun x -> x - 1) i
-  | `pred -> iuop (fun x -> x + 1) i
-
-  | `add | `mul | `intdiv | `neg ->
-    failwith "Converse arithmetic not implemented"
+  | `add n -> iproc (fun x -> x - n) i
+  | `subl n -> iproc (fun x -> x + n) i
+  | `subr n -> iproc (fun x -> n - x) i
+  | `mul n -> i |> cobind begin pop %> fun (s, v) -> match uget v with
+    | `int m when m mod n = 0 -> 
+      Real (uref @@ `int (m / n) |> push s) |> pure
+    | `int _ -> empty
+    | _ -> failwith "Not an int"
+  end
 
   | `concat -> cobind (pop %> fun (s, v) -> match uget v with
     | `str x -> 
