@@ -322,7 +322,10 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `show -> expr ctx (`parse, sp) i
 
   | `int _ | `str _ as x -> colit x i
-  | `quote e -> comap (pop %> fun (s, v) -> plot s
+  | `quote e' -> colit (`closure (e', ctx)) i
+  | `list es -> 
+    colit (`closedList (List.map (fun e' -> `closure (e', ctx)) es)) i
+  (* | `quote e -> comap (pop %> fun (s, v) -> plot s
     (call v >=> rev_const_callable @@ expr ctx e)
     (expr ctx e >=> cocall v)
   ) i
@@ -333,7 +336,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
         expr ctx e >=> cocall @@ uref x
       )) xs es)
     | _ -> failwith "not a list"
-  ) i
+  ) i *)
 
   | `jux es -> List.fold_right (fun e a -> a >=> expr_rev ctx e) es pure i
   | `dis (e1, e2) -> expr_rev ctx e1 i <|> expr_rev ctx e2 i
@@ -354,12 +357,46 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
     print_endline (show_costack i); 
     pure i
 
-and unify v1 v2 = unite ~sel:(curry @@ function
+and unify v1 v2 = unite ~sel v1 v2
+
+and sel v1_ v2_ = match v1_, v2_ with
   | `empty, _ | _, `empty -> `empty
-  | v, _ when v1 = v2 -> v
+  | v1, v2 when v1 = v2 -> v1
   | `free, v | v, `free -> v
+  | (#callable as q), (#callable as r) -> begin try
+    (costack_map2 (List.map2 (fun u1 u2 -> 
+      uref @@ sel (uget u1) (uget u2))))
+      (call (uref q) (Real []))
+      (call (uref r) (Real []))
+    |> begin function
+      | Real s -> 
+        let f c = c |> comap @@ fun s' -> s @ s' in
+        `thunk (f, rev_const_callable f)
+      | _ -> failwith "internal sel"
+    end
+    with EmptyStack -> raise HigherOrderUnif
+  end
   | _ -> `empty
-) v1 v2
+
+and costack_map2 f c1 c2 = 
+  let rec go c1 c2 = match c1, c2 with
+    | Real s1, Real s2 -> Real (f s1 s2)
+    | Fake c1', Fake c2' -> Fake (go c1' c2')
+    | _ -> raise @@ Invalid_argument "costack_map2" in
+  go (unpure c1) (unpure c2)
+
+and unpure s = match LazyList.to_list s with
+  | [c] -> c
+  | _ -> failwith "Cannot transpose a quoted multifunction"
+
+(* and costack_map2 f c1 c2 = begin
+  c1 |> LazyList.map @@ fun c1 -> 
+    c2 |> LazyList.map @@ fun c2 -> 
+    match c1, c2 with
+    | Real s1, Real s2 -> Real (f s1 s2)
+    | Fake c1', Fake c2' -> Fake (costack_map2 f c1' c2')
+    | _ -> raise @@ Invalid_argument "costack_map2"
+end |> LazyList.flatten |> LazyList.unique *)
 
 and rev_const_callable f i = try
   f @@ Real [] >>= cobind @@ fun temp_stack -> 
@@ -380,15 +417,9 @@ let init () = Ouro.insert_many ([
   "dup", `dup;
   "eq", `eq;
   "cmp", `cmp;
-  "add", `add;
-  "mul", `mul;
-  "intdiv", `intdiv;
-  "neg", `neg;
   "concat", `concat;
   "mk", `mk;
   "parse", `parse;
   "show", `show;
-  "succ", `succ;
-  "pred", `pred;
 ] |> List.map (Tuple2.map2 (fun x -> x, dm)))
   Ouro.empty |> Context.make
