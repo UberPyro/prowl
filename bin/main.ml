@@ -46,7 +46,7 @@ let swap = `swap, sp
 let quote e = `quote e, sp
 let dip = `dip, sp
 
-let () = 
+(* let () = 
   LazyList.iter (Eval_mir.show_costack %> print_endline) @@ 
     Eval_mir.expr (Eval_mir.init ()) (
       def [
@@ -61,7 +61,7 @@ let () =
         ]
       ] (jux [list [int 2; int 1]; dag @@ id "append"])
     ) (Real (Sys.argv |> Array.to_list |> List.tl |> List.map (fun x -> 
-      Uref.uref @@ `int (String.to_int x))))
+      Uref.uref @@ `int (String.to_int x)))) *)
 
 (* let () = 
   LazyList.iter (Eval_mir.show_costack %> print_endline) @@ 
