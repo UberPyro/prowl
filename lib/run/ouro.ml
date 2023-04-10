@@ -28,7 +28,7 @@ let balance = function
   | T (B, T (R, a, x, T (R, b, y, c)), z, d)
   | T (B, a, x, T (R, T (R, b, y, c), z, d)) 
   | T (B, a, x, T (R, b, y, T (R, c, z, d))) -> 
-    T (B, T (B, a, x, b), y, T (B, c, z, d))
+    T (R, T (B, a, x, b), y, T (B, c, z, d))
   | t -> t
 
 let[@warning "-8"] blacken (T (_, a, y, b)) = T (B, a, y, b)
