@@ -59,10 +59,15 @@ let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
   | `subr e -> `subr (desugar e)
   | `mul e -> `mul (desugar e)
 
-  (* | `binop (e1, "+", e2) -> 
-    `jux [`quote (desugar e1), snd e1; `call, snd e1; `add (e2), sp]
+  | `binop (e1, "+", e2) -> 
+    `jux [`quote (desugar e1), snd e1; `call, snd e1; `add (desugar e2), sp]
   | `binop (e1, "*", e2) -> 
-    `jux [`quote e1, snd e1; `call, snd e1; `mul e2, sp] *)
+    `jux [`quote (desugar e1), snd e1; `call, snd e1; `mul (desugar e2), sp]
+  | `binop (e1, "-", e2) -> 
+    `jux [`quote (desugar e1), snd e1; `call, snd e1; `subl (desugar e2), sp]
+  
+  (* todo: full sects *)
+  
   | `binop (e1, op, e2) -> 
     let e1, e2 = desugar e1, desugar e2 in
     `jux [`quote e1, snd e1; `quote e2, snd e2; `id op, sp; `call, sp]
