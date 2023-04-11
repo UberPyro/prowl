@@ -161,11 +161,6 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `uvar u -> lit_ref (Context.return u ctx) i
 
   | `dag e -> expr_rev ctx e i
-
-  | `debug -> 
-    print_endline (show_costack i); 
-    pure i
-
 and value v = comap (fun s -> push s v)
 
 and call v c = match uget v with
@@ -353,10 +348,6 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `uvar u -> colit_ref (Context.return u ctx) i
 
   | `dag e -> expr ctx e i
-
-  | `debug -> 
-    print_endline (show_costack i); 
-    pure i
 
 and unify v1 v2 = unite ~sel v1 v2
 

@@ -7,5 +7,4 @@ and _expr = [
   | Prim.word
   | Prim.op
   | expr Ast.core
-  | `debug
 ] [@@deriving show]
