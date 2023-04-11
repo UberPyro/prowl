@@ -240,7 +240,7 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
 
   | `pick es -> i |> cobind @@ fun s -> 
     List.fold_right
-      (fun e a -> expr_rev ctx e (Real s) <|> disjoin a)
+      (fun e a -> filter_real @@ expr_rev ctx e (Real s) <|> disjoin a)
       es empty
   | `ponder es -> 
     let rec go c es = match c, es with
