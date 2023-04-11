@@ -65,6 +65,12 @@ rule token = parse
   | ";"         {SEMICOLON}
   | "--"        {BAR}
 
+  | (integer as i) {INT (int_of_string i)}
+  | '"' (string_body as s) '"' {STR s}
+
+  | id     as s {ID s}
+  | cap_id as s {UVAR s}
+
 and comment level = parse
   | "*/" {if level = 0 then token lexbuf
           else comment (level-1) lexbuf}
