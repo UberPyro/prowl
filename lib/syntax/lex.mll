@@ -20,6 +20,8 @@ let integer = '0' | sig_digits
 let string_body = ([^ '"'] | "\\\"")*
 
 rule token = parse
+  | (id as s) whitespace "=" {ASSIGN s}
+
   | "/*"        {comment 0 lexbuf}
   | eof         {EOF}
   | eol         {new_line lexbuf; token lexbuf}
@@ -27,7 +29,6 @@ rule token = parse
   | '\t'        {token lexbuf}
 
   | "let"       {LET}
-  | "="         {ASSIGN}
   | "in"        {IN}
   | "ex"        {EX}
   | "."         {DOT}

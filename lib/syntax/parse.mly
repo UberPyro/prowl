@@ -4,7 +4,7 @@
 %}
 
 %token
-  LET ASSIGN IN EX DOT
+  LET IN EX DOT
   PIPE QUANT_MARK QUANT_PLUS QUANT_STAR TILDE
   PICK PONDER FORK PAR END
   PICK_OP PONDER_OP FORK_OP PAR_OP
@@ -16,7 +16,7 @@
 
   COMMA SEMICOLON BAR EOF
 
-%token<string> STR ID UVAR
+%token<string> STR ID UVAR ASSIGN
 %token<int> INT
 
 %right IN
@@ -30,8 +30,6 @@
 %left PLUS MINUS
 %left STAR
 
-%nonassoc TILDE QUANT_MARK QUANT_PLUS QUANT_STAR QMARK
-
 %start<expr> prog
 
 %%
@@ -39,7 +37,7 @@
 prog: e1 EOF {$1}
 
 sect: _sect {$1, $loc}
-_sect: 
+%inline _sect: 
   | PLUS e1 {`add $2}
   | e1 PLUS {`add $1}
   | MINUS e1 {`subl $2}
@@ -53,7 +51,7 @@ _sect:
   | e1 {fst $1}
 
 e1: _e1 {$1, $loc}
-_e1: 
+%inline _e1: 
   | e1 BAR e1 {`arrow ($1, $3)}
   | e1 PIPE e1 {`dis ($1, $3)}
   | e1 PICK_OP e1 {`pick [$3; $1]}
@@ -65,22 +63,25 @@ _e1:
   | e1 MINUS e1 {`binop ($1, "-", $3)}
   | e1 STAR e1 {`binop ($1, "*", $3)}
 
-  | e1 TILDE {`dag $1}
-  | e1 QUANT_MARK {`mark $1}
-  | e1 QUANT_PLUS {`plus $1}
-  | e1 QUANT_STAR {`star $1}
-  | e1 QMARK {`isthis $1}
+  | LET nonempty_list(s1) IN e1 {`bind_var ($2, $4)}
+  | EX nonempty_list(ID) DOT e1 {`ex ($2, $4)}
+  | nonempty_list(e2) {`jux $1}
+
+e2: _e2 {$1, $loc}
+%inline _e2: 
+  | e2 TILDE {`dag $1}
+  | e2 QUANT_MARK {`mark $1}
+  | e2 QUANT_PLUS {`plus $1}
+  | e2 QUANT_STAR {`star $1}
+  | e2 QMARK {`isthis $1}
 
   | LPAREN sect RPAREN {fst $2}
   | LBRACK sect RBRACK {`quote $2}
-  | LBRACE separated_list(COMMA, sect) RBRACE {`list $2}
+  | LBRACE separated_list(COMMA, sect) RBRACE {`list (List.rev $2)}
   | PICK separated_list(SEMICOLON, sect) END {`pick $2}
   | PONDER separated_list(SEMICOLON, sect) END {`ponder $2}
   | FORK separated_list(SEMICOLON, sect) END {`fork $2}
   | PAR separated_list(SEMICOLON, sect) END {`par $2}
-
-  | LET nonempty_list(s1) IN e1 {`bind_var ($2, $4)}
-  | EX nonempty_list(ID) DOT e1 {`ex ($2, $4)}
 
   | INT {`int $1}
   | STR {`str $1}
@@ -88,4 +89,4 @@ _e1:
   | UVAR {`uvar $1}
 
 s1: 
-  | ID ASSIGN e1 {$1, $3}
+  | ASSIGN e1 {$1, $2}
