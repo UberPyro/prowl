@@ -45,11 +45,11 @@ and print_value v = match uget v with
     begin match cs with
       | [] -> ()
       | #callable as h :: t -> 
-        print_set (call (uref h) (Real []));
-        t |> List.iter begin fun (#callable as c) -> 
-          printf ", ";
-          call (uref c) (Real []) |> print_set
-        end
+        t |> List.rev |> List.iter begin fun (#callable as c) -> 
+          call (uref c) (Real []) |> print_set;
+          printf ", "
+        end;
+        print_set (call (uref h) (Real []))
     end;
     printf "}"
   | `free -> printf "<free>"
