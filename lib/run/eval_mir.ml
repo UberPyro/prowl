@@ -404,5 +404,6 @@ let init () = Ouro.insert_many ([
   "mk", `mk;
   "parse", `parse;
   "show", `show;
+  "id", `jux [];
 ] |> List.map (Tuple2.map2 (fun x -> x, dm)))
   Ouro.empty |> Context.make
