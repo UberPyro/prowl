@@ -23,6 +23,7 @@ type 'a sugar = [
   | `sectLeft of string * 'a
   | `sectRight of 'a * string
   | `sect of string
+  | `isthis of 'a
 
   | `arrow of 'a * 'a
 ] [@@deriving show]
@@ -58,6 +59,7 @@ let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
   | `subl e -> `subl (desugar e)
   | `subr e -> `subr (desugar e)
   | `mul e -> `mul (desugar e)
+  | `isthis e -> `jux [desugar e; `eq, sp]
 
   | `binop (e1, "+", e2) -> 
     `jux [`quote (desugar e1), snd e1; `call, snd e1; `add (desugar e2), sp]
