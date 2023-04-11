@@ -120,10 +120,10 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
       | -1 -> Fake (Fake (Real s))
     ) i
   
-  | `add n -> iproc (fun x -> x + n) i
-  | `subl n -> iproc (fun x -> x - n) i
-  | `subr n -> iproc (fun x -> n - x) i
-  | `mul n -> iproc (fun x -> x * n) i
+  | `add e -> iproc ctx (+) e i
+  | `subl e -> iproc ctx (-) e i
+  | `subr e -> iproc ctx (Fun.flip (-)) e i
+  | `mul e -> iproc ctx ( * ) e i
 
   | `concat -> sbop (^) i
 
@@ -191,10 +191,20 @@ and ibop op =
 and unop op = cobind (pop %> fun (s, v) -> 
   lit (op (uget v)) (Real s))
 
-and iproc op i = 
-  i |> comap @@ pop %> fun (s, v) -> match uget v with
-    | `int n -> uref @@ `int (op n) |> push s
+and iproc ctx op n i = 
+  ibind (fun x -> LazyList.map (fun n' -> op x n') (evaluate ctx n)) i
+
+and ibind op i = 
+  i |> cobind @@ pop %> fun (s, v) -> match uget v with
+    | `int i ->
+      op i |> LazyList.map @@ fun x -> 
+        uref @@ `int x |> push s |> fun s' -> Real s'
     | _ -> failwith "Not an int"
+
+and evaluate ctx e = 
+  expr ctx e (Real [])
+  |> LazyList.map @@ function[@warning "-8"] Real [v] -> 
+    uget v |> function[@warning "-8"] `int i -> i
 
 and iuop op = unop @@ fun[@warning "-8"] (`int i) -> `int (op i)
 
@@ -291,15 +301,18 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
     | Fake (Fake (Fake c)) -> pure c
   end
 
-  | `add n -> iproc (fun x -> x - n) i
-  | `subl n -> iproc (fun x -> x + n) i
-  | `subr n -> iproc (fun x -> n - x) i
-  | `mul n -> i |> cobind begin pop %> fun (s, v) -> match uget v with
-    | `int m when m mod n = 0 -> 
-      Real (uref @@ `int (m / n) |> push s) |> pure
-    | `int _ -> empty
-    | _ -> failwith "Not an int"
-  end
+  | `add e -> iproc ctx (-) e i
+  | `subl e -> iproc ctx (+) e i
+  | `subr e -> iproc ctx (Fun.flip (-)) e i
+  | `mul e -> 
+    evaluate ctx e |> LazyList.enum |> Enum.map begin fun n -> 
+      i |> cobind begin pop %> fun (s, v) -> match uget v with
+        | `int m when m mod n = 0 -> 
+          Real (uref @@ `int (m / n) |> push s) |> pure
+        | `int _ -> empty
+        | _ -> failwith "Not an int"
+      end
+    end |> Enum.fold LazyList.append LazyList.nil |> LazyList.unique
 
   | `concat -> cobind (pop %> fun (s, v) -> match uget v with
     | `str x -> 

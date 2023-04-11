@@ -2,12 +2,6 @@ open! Batteries
 
 open Metadata
 
-type valop = [
-  | `add of int
-  | `subl of int | `subr of int
-  | `mul of int
-] [@@deriving show]
-
 type 'a core = [
   | `bind_var of (string * 'a) list * 'a
   | `ex of string list * 'a
@@ -18,7 +12,9 @@ type 'a core = [
   | `dag of 'a
   | `pick of 'a list | `ponder of 'a list
   | `fork of 'a list | `par of 'a list
-  | valop
+  | `add of 'a
+  | `subl of 'a | `subr of 'a
+  | `mul of 'a
 ] [@@deriving show]
 
 type 'a sugar = [
@@ -41,7 +37,7 @@ and _expr = [
 type desug = [Prim.word | Prim.op | desug core] * Span.t
 
 let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
-  | #Prim.word | #valop as v -> v
+  | #Prim.word as w -> w
 
   | `bind_var (ls, e) -> 
     `bind_var (List.map (Tuple2.map2 desugar) ls, desugar e)
@@ -58,6 +54,10 @@ let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
   | `ponder es -> `ponder (List.map desugar es)
   | `fork es -> `fork (List.map desugar es)
   | `par es -> `par (List.map desugar es)
+  | `add e -> `add (desugar e)
+  | `subl e -> `subl (desugar e)
+  | `subr e -> `subr (desugar e)
+  | `mul e -> `mul (desugar e)
 
   (* | `binop (e1, "+", e2) -> 
     `jux [`quote (desugar e1), snd e1; `call, snd e1; `add (e2), sp]
