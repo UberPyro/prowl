@@ -83,7 +83,3 @@ _e1:
 
 s1: 
   | ID ASSIGN e1 {$1, $3}
-
-
-sep2(sep, x): 
-  x sep separated_nonempty_list(sep, x) {$1 :: $3}
