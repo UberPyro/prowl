@@ -1,3 +1,6 @@
+(menhir
+  (modules parse)
+  (flags --explain --strict))
 (library
  (name syntax)
  (libraries metadata)

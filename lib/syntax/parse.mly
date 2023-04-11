@@ -1,8 +1,6 @@
 %{
-  open Batteries
-  open Syntax
-
-  open Ast
+  open! Batteries
+  open! Ast
 %}
 
 %token
@@ -16,10 +14,13 @@
   LBRACK RBRACK
   LBRACE RBRACE
 
-  COMMA SEMICOLON BAR
+  COMMA SEMICOLON BAR EOF
 
 %token<string> STR ID UVAR
 %token<int> INT
+
+%right IN
+%right DOT
 
 %right BAR
 %left PIPE
@@ -27,33 +28,38 @@
 %right FORK_OP PAR_OP
 
 %left PLUS MINUS
-%left TIMES
+%left STAR
 
 %nonassoc TILDE QUANT_MARK QUANT_PLUS QUANT_STAR QMARK
 
+%start<expr> prog
+
 %%
+
+prog: e1 EOF {$1}
 
 sect: _sect {$1, $loc}
 _sect: 
-  | PLUS expr {`add $2}
-  | expr PLUS {`add $1}
-  | MINUS expr {`subl $2}
-  | expr MINUS {`subr $1}
-  | STAR expr {`mul $2}
-  | expr STAR {`mul $1}
+  | PLUS e1 {`add $2}
+  | e1 PLUS {`add $1}
+  | MINUS e1 {`subl $2}
+  | e1 MINUS {`subr $1}
+  | STAR e1 {`mul $2}
+  | e1 STAR {`mul $1}
 
   | PLUS {`sect "+"}
   | MINUS {`sect "-"}
   | STAR {`sect "*"}
+  | e1 {fst $1}
 
 e1: _e1 {$1, $loc}
 _e1: 
   | e1 BAR e1 {`arrow ($1, $3)}
   | e1 PIPE e1 {`dis ($1, $3)}
-  | sep2(PICK_OP, e1) {`pick (List.rev $1)}
-  | sep2(PONDER_OP, e1) {`ponder (List.rev $1)}
-  | sep2(FORK_OP, e1) {`fork (List.rev $1)}
-  | sep2(PAR_OP, e1) {`par (List.rev $1)}
+  | e1 PICK_OP e1 {`pick [$3; $1]}
+  | e1 PONDER_OP e1 {`ponder [$3; $1]}
+  | e1 FORK_OP e1 {`fork [$3; $1]}
+  | e1 PAR_OP e1 {`par [$3; $1]}
   
   | e1 PLUS e1 {`binop ($1, "+", $3)}
   | e1 MINUS e1 {`binop ($1, "-", $3)}
@@ -65,13 +71,13 @@ _e1:
   | e1 QUANT_STAR {`star $1}
   | e1 QMARK {`isthis $1}
 
-  | LPAREN e1 RPAREN {fst $2}
-  | LBRACK e1 RBRACK {quote $2}
-  | LBRACE separated_list(COMMA, e1) RBRACE {`list $2}
-  | PICK separated_list(SEMICOLON, e1) END {`pick $2}
-  | PONDER separated_list(SEMICOLON, e1) END {`ponder $2}
-  | FORK separated_list(SEMICOLON, e1) END {`fork $2}
-  | PAR separated_list(SEMICOLON, e1) END {`par $2}
+  | LPAREN sect RPAREN {fst $2}
+  | LBRACK sect RBRACK {`quote $2}
+  | LBRACE separated_list(COMMA, sect) RBRACE {`list $2}
+  | PICK separated_list(SEMICOLON, sect) END {`pick $2}
+  | PONDER separated_list(SEMICOLON, sect) END {`ponder $2}
+  | FORK separated_list(SEMICOLON, sect) END {`fork $2}
+  | PAR separated_list(SEMICOLON, sect) END {`par $2}
 
   | LET nonempty_list(s1) IN e1 {`bind_var ($2, $4)}
   | EX nonempty_list(ID) DOT e1 {`ex ($2, $4)}

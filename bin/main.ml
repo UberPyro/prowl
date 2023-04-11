@@ -10,7 +10,7 @@ open! Prowl
 open! Syntax
 open! Run
 
-let sp = 0, 0
+let sp = Metadata.Span.dummy
 
 let () = print_newline ()
 
