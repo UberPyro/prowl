@@ -1,2 +1,3 @@
 (test
- (name prowl))
+ (name prowl)
+ (libraries batteries alcotest prowl))

@@ -4,53 +4,53 @@ open Uref
 open LazyList
 open Printf
 
-let rec printn n s = take n s |> print
+let rec printn fmt n s = take n s |> print fmt
 
-and print s = 
-  print_set s;
-  print_newline ()
+and print fmt s = 
+  print_set fmt s;
+  fprintf fmt "\n"
 
-and print_set s = match get s with
+and print_set fmt s = match get s with
   | None -> ()
   | Some (h, t) -> 
-    print_costack h;
+    print_costack fmt h;
     iter begin fun c -> 
-      print_newline ();
-      print_costack c
+      fprintf fmt "\n";
+      print_costack fmt c
     end t
 
-and print_costack = function
-  | Real s -> print_stack s
+and print_costack fmt = function
+  | Real s -> print_stack fmt s
   | Fake c -> 
-    printf "<Fake> ";
-    print_costack c
+    fprintf fmt "<Fake> ";
+    print_costack fmt c
 
-and print_stack = function
+and print_stack fmt = function
   | [] -> ()
-  | [v] -> print_value v
+  | [v] -> print_value fmt v
   | h :: t -> 
-    print_stack t;
-    printf " ";
-    print_value h
+    print_stack fmt t;
+    fprintf fmt " ";
+    print_value fmt h
 
-and print_value v = match uget v with
-  | `int i -> printf "%d" i
-  | `str s -> printf "%s" s
+and print_value fmt v = match uget v with
+  | `int i -> fprintf fmt "%d" i
+  | `str s -> fprintf fmt "%s" s
   | #callable -> 
-    printf "[";
-    call v (Real []) |> print_set;
-    printf "]"
+    fprintf fmt "[";
+    call v (Real []) |> print_set fmt;
+    fprintf fmt "]"
   | `closedList cs -> 
-    printf "{";
+    fprintf fmt "{";
     begin match cs with
       | [] -> ()
       | #callable as h :: t -> 
         t |> List.rev |> List.iter begin fun (#callable as c) -> 
-          call (uref c) (Real []) |> print_set;
-          printf ", "
+          call (uref c) (Real []) |> print_set fmt;
+          fprintf fmt ", "
         end;
-        print_set (call (uref h) (Real []))
+        print_set fmt (call (uref h) (Real []))
     end;
-    printf "}"
-  | `free -> printf "<free>"
-  | `empty -> printf "<empty>"
+    fprintf fmt "}"
+  | `free -> fprintf fmt "<free>"
+  | `empty -> fprintf fmt "<empty>"
