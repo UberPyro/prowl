@@ -235,12 +235,19 @@ and filter_real = LazyList.filter @@ function
 and disjoin = LazyList.map (fun y -> Fake y)
 
 and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
-  | `gen -> expr ctx (`elim, sp) i
+  | `gen -> begin match i with
+    | Real _ -> pure i
+    | Fake (Real _) -> empty
+    | Fake (Fake _ as c) -> pure c
+  end
   | `fab -> begin match i with
     | Real _ -> empty
     | Fake c -> pure c
   end
-  | `elim -> expr ctx (`gen, sp) i
+  | `elim -> begin match i with
+      | Real _ -> pure i <|> pure @@ Fake i
+      | Fake _ -> pure @@ Fake i
+    end
   | `exch -> expr ctx (`exch, sp) i
 
   | `pick es -> i |> cobind @@ fun s -> 
