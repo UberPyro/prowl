@@ -412,5 +412,7 @@ let init () = Ouro.insert_many ([
   "parse", `parse;
   "show", `show;
   "id", `jux [];
+  "succ", `add (`int 1, dm);
+  "pred", `subl (`int 1, dm);
 ] |> List.map (Tuple2.map2 (fun x -> x, dm)))
   Ouro.empty |> Context.make
