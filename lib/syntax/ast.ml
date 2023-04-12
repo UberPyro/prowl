@@ -2,6 +2,8 @@ open! Batteries
 
 open Metadata
 
+type cats = [`addcat | `subcat | `mulcat] [@@deriving show]
+
 type 'a core = [
   | `bind_var of (string * 'a) list * 'a
   | `ex of string list * 'a
@@ -15,6 +17,7 @@ type 'a core = [
   | `add of 'a
   | `subl of 'a | `subr of 'a
   | `mul of 'a
+  | cats
 ] [@@deriving show]
 
 type 'a sugar = [
@@ -38,7 +41,7 @@ and _expr = [
 type desug = [Prim.word | Prim.op | desug core] * Span.t
 
 let rec desugar (#_expr, sp as x) : desug = x |> Tuple2.map1 @@ function
-  | #Prim.word as w -> w
+  | #Prim.word | #cats as w -> w
 
   | `bind_var (ls, e) -> 
     `bind_var (List.map (Tuple2.map2 desugar) ls, desugar e)

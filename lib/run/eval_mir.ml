@@ -10,6 +10,7 @@ exception Polycall
 exception Noncallable
 exception HigherOrderUnif
 exception Disequal
+exception UnboundVariable of string * Span.t
 
 let pp_uref fmt x y = fmt x (uget y)
 
@@ -58,7 +59,7 @@ let pop2 = function
 let push t h = h :: t
 let push2 t h2 h1 = h1 :: h2 :: t
 
-let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
+let rec expr ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `gen -> pure begin match i with
     | Real _ -> i
     | Fake _ -> Fake i
@@ -125,6 +126,10 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
   | `subr e -> iproc ctx (Fun.flip (-)) e i
   | `mul e -> iproc ctx ( * ) e i
 
+  | `addcat -> catproc (+) i
+  | `subcat -> catproc (-) i
+  | `mulcat -> catproc ( * ) i
+
   | `concat -> sbop (^) i
 
   | `mk -> begin match i with
@@ -155,7 +160,9 @@ let rec expr ctx ((e_, _) : Mir.expr) i = match e_ with
 
   | `bind_var (bs, e) -> expr (Context.add_many bs ctx) e i
   | `id x -> 
-    let e, ctx' = Context.find x ctx in
+    let e, ctx' = match Context.find_opt x ctx with
+      | Some t -> t
+      | None -> raise @@ UnboundVariable (x, sp) in
     expr ctx' e i
   | `ex (ss, e) -> expr (Context.init_many (uref `free) ss ctx) e i
   | `uvar u -> lit_ref (Context.return u ctx) i
@@ -200,6 +207,12 @@ and evaluate ctx e =
   expr ctx e (Real [])
   |> LazyList.map @@ function[@warning "-8"] Real [v] -> 
     uget v |> function[@warning "-8"] `int i -> i
+
+and catproc op i = i |> comap begin pop2 %> fun (s, v1, v2) -> 
+  match uget v1, uget v2 with
+    | `int i1, `int i2 -> push s (uref @@ `int (op i1 i2))
+    | _ -> failwith "Not an int"
+  end
 
 and iuop op = unop @@ fun[@warning "-8"] (`int i) -> `int (op i)
 
@@ -315,6 +328,8 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
         | _ -> failwith "Not an int"
       end
     end |> Enum.fold LazyList.append LazyList.nil |> LazyList.unique
+  
+  | `addcat | `subcat | `mulcat -> failwith "later"
 
   | `concat -> cobind (pop %> fun (s, v) -> match uget v with
     | `str x -> 

@@ -45,9 +45,9 @@ sect: _sect {$1, $loc}
   | STAR e1 {`mul $2}
   | e1 STAR {`mul $1}
 
-  | PLUS {`sect "+"}
-  | MINUS {`sect "-"}
-  | STAR {`sect "*"}
+  | PLUS {`addcat}
+  | MINUS {`subcat}
+  | STAR {`mulcat}
   | e1 {fst $1}
 
 e1: _e1 {$1, $loc}

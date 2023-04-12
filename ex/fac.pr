@@ -1,1 +1,1 @@
-let fac = 0? exch && (1 || pred fac ** (*)) in fac
+let fac = 0? exch && (1 || pred fac && (*)) in fac
