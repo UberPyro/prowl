@@ -1,0 +1,1 @@
+let fib = dup (> 1) pred (fib && pred fib) (+) elim in fib
