@@ -275,17 +275,17 @@ and expr_rev ctx ((e_, sp) : Mir.expr) i = match e_ with
   | `fork es' -> 
     let rec go c v = function
       | e :: es -> 
-        filter_real @@ expr_rev ctx e c >>= colit_ref v >>= cobind @@ fun s -> 
+        expr_rev ctx e c >>= colit_ref v >>= cobind @@ fun s -> 
           go (Real s) v es
       | [] -> pure c in
-    go i (uref `free) es'
+    go i (uref `free) es' |> filter_real
   | `par es' -> 
     let rec go c = function
       | e :: es -> 
-        filter_real @@ expr_rev ctx e c >>= cobind @@ pop %> fun (s, v) -> 
+        expr_rev ctx e c >>= cobind @@ pop %> fun (s, v) -> 
           go (Real s) es >>= lit_ref v
       | [] -> pure c in
-    go i es'
+    go i es' |> filter_real
 
   | `eq -> begin match i with
     | Real s -> 
