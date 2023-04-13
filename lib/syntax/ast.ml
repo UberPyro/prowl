@@ -16,6 +16,9 @@ type expr =
   | Ex of string list * expr
   | List of expr list
 
+  | Uop of uop
+  | Bop of bop
+
 and uop = 
   | Mark | Plus | Star | Dag | Quote | Lift
   | Add | SubL | SubR | Mul
