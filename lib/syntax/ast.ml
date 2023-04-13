@@ -1,4 +1,9 @@
-type expr = 
+open! Batteries
+
+open Metadata
+
+type expr = _expr * Span.t
+and _expr = 
   | Int of int
   | Str of string
   | Id of string
@@ -29,6 +34,7 @@ and bop =
   | Fork | Tensor
   | Copick | Cofork
 
-and stmt = 
+and stmt = _stmt * Span.t
+and _stmt = 
   | Def of string * expr
   [@@deriving show]
