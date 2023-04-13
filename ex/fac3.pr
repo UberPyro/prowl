@@ -1,4 +1,0 @@
-let fac = dup 0? pick
-  succ;
-  N -- N * (N - 1) fac
-end in fac

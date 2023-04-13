@@ -1,8 +1,0 @@
-(ocamllex lex)
-(menhir
-  (modules parse)
-  (flags --explain --strict))
-(library
- (name syntax)
- (libraries metadata)
- (preprocess (pps ppx_deriving.show)))

@@ -1,4 +1,0 @@
-let
-  is-even = 0? exch && (gen || (- 1) is-odd)
-  is-odd = is-even exch
-in 4 is-even 5 is-even

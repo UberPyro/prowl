@@ -1,4 +1,0 @@
-let fac = dup 0? pick
-  succ;
-  dup pred fac (*)
-end in 5 fac
