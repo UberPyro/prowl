@@ -55,12 +55,12 @@ let rec meaning (ctx : Context.t) (e0 : Ast.expr) : semantic =
           let g2, z2 = f2 s2 in
           if z1 == z2 then (fun z -> Monad.bind (g2 z) @@ 
             function[@warning "-8"] 0, s -> g1 s), z2
-          (* else failwith "fork arguments must have same in-arity" *)
-          else match stack_sub_sym z1 z2 with
+          else failwith "fork arguments must have same in-arity"
+          (* else match stack_sub_sym z1 z2 with
             | Left h -> (fun z -> Monad.bind (g2 (h @ z)) @@
               function[@warning "-8"] 0, s -> g1 s), z1
             | Right _ -> (fun z -> Monad.bind (g2 z) @@ 
-              function[@warning "-8"] 0, s -> g1 s), z1
+              function[@warning "-8"] 0, s -> g1 s), z1 *)
       ), s1)
     end
 
@@ -73,14 +73,17 @@ let rec meaning (ctx : Context.t) (e0 : Ast.expr) : semantic =
             Enum.map (fun (i', y) -> i' + i, y) (f' x)), s'), s1)
         | Left (i', c'') -> Left (i' + i, c'')
     end
-
   (* problem -- need to know # of arguments eliminated from costack *)
-  (* | Bop (e1, Pick, e2) -> 
+  | Bop (e1, Pick, e2) -> 
     begin match meaning ctx e1 c with
       | Right (f1, s1) -> Right (f1, s1)
-      | Left (i, c') -> match meaning ctx e2 c with
-        | 
-    end *)
+      | Left (i1, c1) -> match meaning ctx e2 c1 with
+        | Right (f2, s2) -> Right (f2, s2)
+        | Left (i2, c2) -> 
+          if i1 = i2 then Left (i2, c2)
+          else failwith "pick arguments must have same out-arity"
+        
+    end
 
   | _ -> failwith "Todo!"
 
