@@ -21,8 +21,8 @@ and _expr =
   | Ex of string list * expr
   | List of expr list
 
-  | Uop of uop
-  | Bop of bop
+  | Uop of expr * uop
+  | Bop of expr * bop * expr
 
 and uop = 
   | Mark | Plus | Star | Dag | Quote | Lift
