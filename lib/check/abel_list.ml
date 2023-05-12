@@ -20,18 +20,27 @@ module Make(A : Abelian) = struct
     | Abel of A.t
     | AVar of int
   
-  type aexpr = {
-    vars : A.t Ptmap.t;
+  type 'a aexpr = {
+    vars : 'a;  (* A.t array | A.t Ptmap.t *)
     const : A.t;
   }
 
+  let count = 
+    Array.fold_left begin fun a x -> 
+      Ptmap.update x begin function
+        | Some c -> Some (c + 1)
+        | None -> Some 0
+      end a
+    end Ptmap.empty
 
+  let one_side l r = {
+    vars = Ptmap.fold begin fun k v a ->
+      Ptmap.update k begin function
+        | Some v' -> Some (A.add v' (A.inv v))
+        | None -> Some (A.inv v)
+      end a
+    end r.vars l.vars;
+    const = A.add l.const (A.inv r.const)
+  }
 
 end
-
-(* trivial case *)
-(* let sel_abel l r = match l, r with
-  | _, AVar -> l
-  | AVar, _ -> r
-  | Abel i, Abel j when i = j -> l
-  | _ -> raise AbelError *)
