@@ -1,4 +1,4 @@
 (library
  (name check)
  (libraries batteries parse ptmap)
- (preprocess (pps ppx_deriving.show ppx_deriving.eq)))
+ (preprocess (pps ppx_deriving.show)))
