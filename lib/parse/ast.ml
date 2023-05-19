@@ -63,5 +63,7 @@ module Make(M : T) = struct
   and _stmt = 
     | Def of string * expr
     [@@deriving show]
+  
+  type toplevel = stmt list [@@deriving show]
 
 end
