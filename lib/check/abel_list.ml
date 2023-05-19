@@ -1,6 +1,6 @@
 (* Abelian Lists *)
 
-open! Batteries
+(* open! Batteries
 open Uref
 
 exception UIntError
@@ -61,7 +61,7 @@ and solve (m1, b1) (m2, b2) =
       Ptmap.remove uid diff_arr
       |> Ptmap.map (fun x -> -x)
     and b' = -diff_b in
-    Some (uid, coeff, m', b')
+    Some (uid, coeff, m', b') *)
 
 
 
