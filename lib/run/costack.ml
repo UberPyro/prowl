@@ -1,5 +1,4 @@
 (* Length-tracking dualized stacks *)
-
 open! Batteries
 
 (* theoretical representation (unsized) *)
