@@ -1,7 +1,10 @@
 open! Batteries
 open Uref
 
-(* open Parse *)
+open Parse
+open Metadata
+
+module Code = Ast.Make(Span)
 
 let pp_uref fmt x y = fmt x (uget y)
 
@@ -18,11 +21,12 @@ and lit =
   | List of exec
 
 and exec = 
-  | Closure (* ast * env *) (* need a span to make ast *)
+  | Closure of Code.expr * context
   | Thunk of fn * fn
 
 and stack = value Depth_stack.t
 and costack = stack Costack.t
 
 and fn = costack -> costack LazyList.t * int * int
+and context = (Code.expr, _value) Context.t
 [@@deriving show]
