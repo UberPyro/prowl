@@ -11,5 +11,6 @@ let pop2 (xs, i) = match[@warning "-8"] xs with
   | h1 :: h2 :: t -> h1, h2, (t, i - 2)
 
 let of_list xs = xs, List.length xs
+let bottom = [], 0
 
 let len (_, i) = i
