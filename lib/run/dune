@@ -1,4 +1,4 @@
 (library
  (name run)
- (libraries batteries)
+ (libraries batteries parse)
  (preprocess (pps ppx_deriving.show)))

@@ -1,7 +1,7 @@
 open! Batteries
-open Uref
+(* open Uref *)
 
-type value = _value uref
+(* type value = _value uref
 and _value = 
   | Lit of lit
   | Exec
@@ -20,4 +20,4 @@ and exec =
 and stack = value Stack.t
 and costack = stack Costack.t
 
-and fn = costack -> costack LazyList.t * int * int
+and fn = costack -> costack LazyList.t * int * int *)
