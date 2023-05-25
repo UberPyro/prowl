@@ -7,3 +7,6 @@ val pop2 : 'a t -> 'a * 'a * 'a t
 val of_list : 'a list -> 'a t
 val bottom : 'a t
 val len : 'a t -> int
+
+val takedrop : int -> 'a t -> 'a t * 'a t
+val append : 'a t -> 'a t -> 'a t

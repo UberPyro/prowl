@@ -14,3 +14,11 @@ let of_list xs = xs, List.length xs
 let bottom = [], 0
 
 let len (_, i) = i
+
+let takedrop n (xs, i) = 
+  let t, d = List.takedrop n xs in
+  assert (i - n >= 0);
+  (t, n), (d, i - n)
+
+let append (xs, i) (ys, j) = 
+  ys @ xs, i + j
