@@ -22,11 +22,12 @@ and lit =
 
 and exec = 
   | Closure of Code.expr * context
-  | Thunk of mode * mode
+  | Thunk of fn * fn
 
-and stack = |   (* TODO: Implement diff. lists & stacks *)
-and costack = | (* TODO: Implement diff. costacks *)
+and stack = value list
+and costack = stack * int
 
-and mode = costack LazySet.t uref -> costack LazySet.t uref -> unit
+and coord = int * int
+and fn = costack * coord -> costack LazySet.t * coord * coord
 and context = (Code.expr, _value) Context.t
 [@@deriving show]
