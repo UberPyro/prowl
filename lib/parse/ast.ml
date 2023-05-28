@@ -16,19 +16,24 @@ module Make(M : T) = struct
     | Dop of expr * dop * expr
     | Nop of nop
 
+    | Lit of lit
     | Var of string
     | UVar of string
     | Let of stmt list * expr
     | Ex of string list * expr
 
-  (* binary operators *)
-  and bop = _bop * M.t
-  and _bop = 
+  and bop = 
+    | Aop of aop
+    | Cop of cop
+  
+  (* arithmetic operators *)
+  and aop = 
     | Add
     | Sub
     | Mul
-    | DivMod
 
+  (* comparison operators *)
+  and cop = 
     | Eq
     | Neq
     | Gt
@@ -37,13 +42,11 @@ module Make(M : T) = struct
     | Ne
   
   (* unary (dataflow) operators *)
-  and uop = _uop * M.t
-  and _uop = 
+  and uop = 
     | Dag
   
   (* dataflow operators *)
-  and dop = _dop * M.t
-  and _dop = 
+  and dop = 
     | Tensor
     | Ponder
     | Fork
@@ -53,11 +56,17 @@ module Make(M : T) = struct
     | Union
   
   (* nullary/stack operators *)
-  and nop = _nop * M.t
-  and _nop = 
-    | Gen | Fab | Exch | Elim
+  and nop = 
+    | Gen | Fab | Exch | Elim | Cmp
     | Dup | Zap | Swap | Cons | Dip | Cat | Unit
-    | Lin | Parse | Show
+    | DivMod | Lin | Bin | Parse | Show
+  
+  and lit = 
+    | Int of int
+    | String of string
+
+    | Quote of expr
+    | List of expr list
   
   and stmt = _stmt * M.t
   and _stmt = 
