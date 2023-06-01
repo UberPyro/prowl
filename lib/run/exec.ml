@@ -111,7 +111,7 @@ let cop sp (op : Code.cop) (f : fn) (g : fn)
 
   else (s, i), (dc, ds), (dc, ds)
 
-let uop _sp (_op : Code.uop) (f : fn) ((s, i), (dc, ds)) = 
+let uop _sp (_op : Code.uop) (_f : fn) ((s, i), (dc, ds)) = 
 
   if dc = 0 then
 
@@ -119,4 +119,14 @@ let uop _sp (_op : Code.uop) (f : fn) ((s, i), (dc, ds)) =
 
   else (s, i), (dc, ds), (dc, ds)
 
+(* let get_stack *)
 
+(* let tensor sp (f : fn) (g : fn) ((s, i), (dc, ds)) = 
+
+  if dc = 0 then
+
+
+
+
+
+  else (s, i), (dc, ds), (dc, ds) *)
