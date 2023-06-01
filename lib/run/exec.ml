@@ -91,4 +91,32 @@ let aop sp (op : Code.aop) (f : fn) (g : fn)
 
   else (s, i), (dc, ds), (dc, ds) *)
 
+let cop sp (op : Code.cop) (f : fn) (g : fn)
+  (((s, i), (dc, ds)) : costack * coord) = 
+
+  if dc = 0 then
+
+    let i_l = get_value sp f "Left" |> extract_int sp in
+    let i_r = get_value sp g "Right" |> extract_int sp in
+    let op_function = match op with
+      | Eq -> (=) | Neq -> (<>)
+      | Gt -> (>) | Lt -> (<)
+      | Ge -> (>=) | Le -> (<=) in
+    
+    let degree = 
+      if op_function i_l i_r then 0
+      else 1 in
+    
+    (s, degree), (dc + 1, ds), (dc, ds)
+
+  else (s, i), (dc, ds), (dc, ds)
+
+let uop _sp (_op : Code.uop) (f : fn) ((s, i), (dc, ds)) = 
+
+  if dc = 0 then
+
+    failwith "Todo: converse"
+
+  else (s, i), (dc, ds), (dc, ds)
+
 

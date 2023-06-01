@@ -18,9 +18,9 @@ module Make(M : T) = struct
 
     | Lit of lit
     | Var of string
-    | UVar of string
+    (* | UVar of string *)
     | Let of stmt list * expr
-    | Ex of string list * expr
+    (* | Ex of string list * expr *)
 
   and bop = 
     | Aop of aop
@@ -39,7 +39,7 @@ module Make(M : T) = struct
     | Gt
     | Lt
     | Ge
-    | Ne
+    | Le
   
   (* unary (dataflow) operators *)
   and uop = 
