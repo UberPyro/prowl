@@ -40,7 +40,8 @@ let _lit (_v : _value) (((s, i), (dc, ds)) : costack * coord) =
   if i = 0 then LS.pure (uref _v :: s, i), (dc, ds + 1), (dc, ds)
   else LS.pure (s, i), (dc, ds), (dc, ds)
 
-let get_value sp h bias = match h (([], 0), (0, 0)) |> Tuple3.map1 LazySet.list with
+let get_value sp h bias = 
+  match h (([], 0), (0, 0)) |> Tuple3.map1 LazySet.list with
   | [[v], 0], _, _ -> v
   | [x, 0], _, _ -> 
     raise (ProwlError (sp, 
@@ -109,7 +110,7 @@ let cop sp (op : Code.cop) (f : fn) (g : fn)
     
     (s, degree), (dc + 1, ds), (dc, ds)
 
-  else (s, i), (dc, ds), (dc, ds)
+  else (s, i), (dc + 1, ds), (dc, ds)
 
 let uop _sp (_op : Code.uop) (_f : fn) ((s, i), (dc, ds)) = 
 
@@ -119,7 +120,9 @@ let uop _sp (_op : Code.uop) (_f : fn) ((s, i), (dc, ds)) =
 
   else (s, i), (dc, ds), (dc, ds)
 
-(* let get_stack *)
+(* let get_stack sp h bias = 
+  match h (([], 0), (0, 0)) |> Tuple3.map1 LazySet.list with
+  | [s], _, ds -> s, ds *)
 
 (* let tensor sp (f : fn) (g : fn) ((s, i), (dc, ds)) = 
 
