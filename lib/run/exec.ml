@@ -36,100 +36,50 @@ and fn = costack * coord -> costack LazySet.t * coord * coord
 and context = (Code.expr, _value) Context.t
 [@@deriving show]
 
-let _lit (_v : _value) (((s, i), (dc, ds)) : costack * coord) = 
-  if i = 0 then LS.pure (uref _v :: s, i), (dc, ds + 1), (dc, ds)
-  else LS.pure (s, i), (dc, ds), (dc, ds)
+let get_stacks sp (f : fn) = 
+  let cs, tot, dep = f (([], 0), (0, 0)) in
+  cs |> LS.map_uniq begin function
+    | s, 0 -> s
+    | _ -> raise @@ ProwlError (sp, sprintf "Unexpected costack push")
+  end, tot, dep
 
-let get_value sp h bias = 
-  match h (([], 0), (0, 0)) |> Tuple3.map1 LazySet.list with
-  | [[v], 0], _, _ -> v
-  | [x, 0], _, _ -> 
-    raise (ProwlError (sp, 
-      sprintf "%s bop arg was nonunital, pushed +%d" bias (List.length x)))
-  | [_, c], _, _ -> 
-    raise (ProwlError (sp, 
-      sprintf "%s bop arg pushed to costack +%d" bias c))
-  | s, _, _ -> 
-    raise (ProwlError (sp, 
-      sprintf "%s bop arg was nondet, mult=%d" bias (List.length s)))
+let get_values sp (f : fn) = 
+  let ss, _, _ = get_stacks sp f in
+  ss |> LS.map_uniq @@ function
+    | [x] -> x
+    | _ -> raise @@ ProwlError (sp, sprintf "Unexpected nonunital stack")
 
-let extract_int sp v = match uget v with
-  | Lit Int i -> i
-  | x -> raise @@ ProwlError (sp, 
-    sprintf "Expected integer, got %s" (show__value x))
+let apply_values vs = function
+  | (s, 0), (ds, dc) -> 
+    LS.map_uniq (fun v -> v :: s, 0) vs, (ds + 1, dc), (ds, dc)
+  | c, (ds, dc) -> LS.pure c, (ds, dc), (ds, dc)
 
-let aop sp (op : Code.aop) (f : fn) (g : fn)
-  (((s, i), (dc, ds)) : costack * coord) = 
+let lift_bin f vs1 vs2 = 
+  LS.bind_uniq (fun v1 -> LS.map_uniq (fun v2 -> f v1 v2) vs2) vs1
 
-  if dc = 0 then
+let aop spl spr f (op : Code.aop) g : fn = 
+  let vs1 = get_values spl f in
+  let vs2 = get_values spr g in
+  let vs_op = match op with
+    | Add -> (+)
+    | Sub -> (-)
+    | Mul -> ( * ) in
+  let vs_f = uget %> function
+    | Lit Int i -> begin uget %> function
+        | Lit Int j -> uref @@ Lit (Int (vs_op i j)) 
+        | _ -> raise @@ ProwlError (spr, sprintf "Unexpected noninteger")
+      end
+    | _ -> raise @@ ProwlError (spl, sprintf "Unexpected noninteger") in
+  apply_values @@ lift_bin vs_f vs1 vs2
 
-    let i_l = get_value sp f "Left" |> extract_int sp in
-    let i_r = get_value sp g "Right" |> extract_int sp in
-    let i_o = match op with
-      | Add -> i_l + i_r
-      | Sub -> i_l - i_r
-      | Mul -> i_l * i_r in
-    
-    (uref (Lit (Int i_o)) :: s, i), (dc, ds + 1), (dc, ds)
-
-  else (s, i), (dc, ds), (dc, ds)
+(* let cop spl spr f (op : Code.cop) g = 
+  let vs1 = get_values spl f in
+  let vs2 = get_values spr g in
+  let vs_op = match op with
+    | Eq -> (=)
+    | Neq -> (<>)
+    | Gt -> (>)
+    | Lt -> (<)
+    | Ge -> (>=)
+    | Le -> (<=) in *)
   
-(* let divmod sp (f : fn) (g : fn) 
-  (((s, i), (dc, ds)) : costack * coord) = 
-
-  if dc = 0 then 
-
-    let i_l = get_value sp f "Left" |> extract_int sp in
-    let i_r = get_value sp g "Right" |> extract_int sp in
-    let i_div = i_l / i_r in
-    let i_mod = 
-      let x = i_l mod i_r in
-      if x > 0 then x
-      else x + i_r in
-    
-    (uref (Lit (Int i_div)) :: uref (Lit (Int i_mod)) :: s, i), 
-    (dc, ds + 2), (dc, ds)
-
-  else (s, i), (dc, ds), (dc, ds) *)
-
-let cop sp (op : Code.cop) (f : fn) (g : fn)
-  (((s, i), (dc, ds)) : costack * coord) = 
-
-  if dc = 0 then
-
-    let i_l = get_value sp f "Left" |> extract_int sp in
-    let i_r = get_value sp g "Right" |> extract_int sp in
-    let op_function = match op with
-      | Eq -> (=) | Neq -> (<>)
-      | Gt -> (>) | Lt -> (<)
-      | Ge -> (>=) | Le -> (<=) in
-    
-    let degree = 
-      if op_function i_l i_r then 0
-      else 1 in
-    
-    (s, degree), (dc + 1, ds), (dc, ds)
-
-  else (s, i), (dc + 1, ds), (dc, ds)
-
-let uop _sp (_op : Code.uop) (_f : fn) ((s, i), (dc, ds)) = 
-
-  if dc = 0 then
-
-    failwith "Todo: converse"
-
-  else (s, i), (dc, ds), (dc, ds)
-
-(* let get_stack sp h bias = 
-  match h (([], 0), (0, 0)) |> Tuple3.map1 LazySet.list with
-  | [s], _, ds -> s, ds *)
-
-(* let tensor sp (f : fn) (g : fn) ((s, i), (dc, ds)) = 
-
-  if dc = 0 then
-
-
-
-
-
-  else (s, i), (dc, ds), (dc, ds) *)
