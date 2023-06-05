@@ -204,3 +204,8 @@ let ponder (f : fn) (g : fn) : fn = fun in_ ->
   let (ds_out', dc_out'), (ds_depth', dc_depth') = !ds in
   assert (dc_out' >= dc_depth');
   cs_out, (ds_out', dc_out' + dc_diff), (ds_depth', dc_depth')
+
+(* let pick (f : fn) (g : fn) = fun in_ -> 
+  let cs, (ds_out, dc_out), (ds_depth, dc_depth) = f in_ in
+  assert (dc_out >= dc_depth);
+  let ds = ref ((ds_out, dc_out), (ds_depth, dc_depth)) in *)
