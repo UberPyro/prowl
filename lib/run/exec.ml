@@ -202,4 +202,5 @@ let ponder (f : fn) (g : fn) : fn = fun in_ ->
     cs' in
   LS.ready cs_out;
   let (ds_out', dc_out'), (ds_depth', dc_depth') = !ds in
+  assert (dc_out' >= dc_depth');
   cs_out, (ds_out', dc_out' + dc_diff), (ds_depth', dc_depth')
