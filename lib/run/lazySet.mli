@@ -3,6 +3,7 @@ type 'a t [@@deriving show]
 val empty : 'a t
 val pure : 'a -> 'a t
 val make : 'a list -> 'a t
+val ready : 'a t -> unit
 val bind_uniq : ('a -> 'b t) -> 'a t -> 'b t
 val kleisli : ('a -> 'b t) -> ('b -> 'c t) -> 'a -> 'c t
 val append_uniq : 'a t -> 'a t -> 'a t

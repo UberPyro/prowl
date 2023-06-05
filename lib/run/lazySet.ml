@@ -26,6 +26,7 @@ let empty = nil
 let pure x = cons x nil
 let make xs = unique @@ of_list xs
 let list = to_list
+let ready x = x |> LazyList.get %> ignore
 (* let (>>=) x f = bind_uniq f x *)
 let kleisli f g x = pure x |> bind f |> bind g
 (* let (>=>) = kleisli *)

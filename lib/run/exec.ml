@@ -186,9 +186,20 @@ let cop_sect sp (op : Code.cop) : fn =
     (ds - 2, dc + 1), (ds - 2, dc)
   | c, (dc, ds) -> LS.pure c, (ds, dc + 1), (ds, dc)
 
-(* let ponder (f : fn) (g : fn) = fun in_ -> 
+let ponder (f : fn) (g : fn) : fn = fun in_ -> 
   let cs, (ds_out, dc_out), (ds_depth, dc_depth) = f in_ in
-  assert (dc_out >= dc_depth);
-  cs |> LS.bind_uniq @@ fun c -> 
+  let dc_diff = dc_out - dc_depth in
+  assert (dc_diff >= 0);
+  let ds = ref ((ds_out, dc_out), (ds_depth, dc_depth)) in
+  let cs_out = cs |> LS.bind_uniq @@ fun c -> 
     let cs', (ds_out', dc_out'), (ds_depth', dc_depth') = 
-      f (c, (ds_out, dc_depth)) in *)    
+      g (c, (ds_out, dc_depth)) in
+    assert (
+         !ds = ((ds_out , dc_out ), (ds_depth , dc_depth )) 
+      || !ds = ((ds_out', dc_out'), (ds_depth', dc_depth'))
+    );
+    ds := (ds_out', dc_out'), (ds_depth', dc_depth');
+    cs' in
+  LS.ready cs_out;
+  let (ds_out', dc_out'), (ds_depth', dc_depth') = !ds in
+  cs_out, (ds_out', dc_out' + dc_diff), (ds_depth', dc_depth')
