@@ -156,3 +156,32 @@ let aop_sect sp (op : Code.aop) =
     LS.pure (uref (Lit (Int (vs_op i j))) :: s', 0), 
     (ds - 1, dc), (ds - 2, dc)
   | c, coord -> LS.pure c, coord, coord
+
+let cop_left sp (op : Code.cop) g : fn = 
+  let vs = get_values sp g in
+  let vs_op = cop_impl op in
+  function
+  | (s, 0), (ds, dc) -> 
+    let s', j = pop1_int sp s in
+    gather_bind_unary sp vs (fun x -> s', vs_op x j |> Bool.to_int), 
+    (ds - 1, dc + 1), (ds - 1, dc)
+  | c, (ds, dc) -> LS.pure c, (ds, dc + 1), (ds, dc)
+
+let cop_right sp f (op : Code.cop) : fn = 
+  let vs = get_values sp f in
+  let vs_op = cop_impl op in
+  function
+  | (s, 0), (ds, dc) -> 
+    let s', i = pop1_int sp s in
+    gather_bind_unary sp vs (fun x -> s', vs_op i x |> Bool.to_int), 
+    (ds - 1, dc + 1), (ds - 1, dc)
+  | c, (ds, dc) -> LS.pure c, (ds, dc + 1), (ds, dc)
+
+let cop_sect sp (op : Code.cop) : fn = 
+  let vs_op = cop_impl op in
+  function
+  | (s, 0), (ds, dc) -> 
+    let s', i, j = pop2_int sp s in
+    LS.pure (s', vs_op j i |> Bool.to_int), 
+    (ds - 2, dc + 1), (ds - 2, dc)
+  | c, (dc, ds) -> LS.pure c, (ds, dc + 1), (ds, dc)
