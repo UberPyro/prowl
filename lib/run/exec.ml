@@ -36,6 +36,25 @@ and fn = costack * coord -> costack LazySet.t * coord * coord
 and context = (Code.expr, _value) Context.t
 [@@deriving show]
 
+let costack_bimap f g = function
+  | (s, 0), coord -> f s coord
+  | c, coord -> g c coord
+
+let pop1 sp = function
+  | h :: t -> t, h
+  | [] -> raise @@ ProwlError (sp, sprintf "Unexpected nonunital stack")
+
+let pop1_int sp = pop1 sp %> fun (t, x) -> x |> uget %> function
+  | Lit Int i -> t, i
+  | _ -> raise @@ ProwlError (sp, sprintf "Unexpected noninteger")
+
+let pop2_gen f sp = 
+  f sp %> fun (t, h1) -> 
+    f sp t |> fun (t2, h2) -> t2, h2, h1
+
+let pop2 sp = pop2_gen pop1 sp
+let pop2_int = pop2_gen pop1_int
+  
 let get_stacks sp (f : fn) = 
   let cs, tot, dep = f (([], 0), (0, 0)) in
   cs |> LS.map_uniq begin function
@@ -57,41 +76,83 @@ let apply_values vs = function
 let lift_bin f vs1 vs2 = 
   LS.bind_uniq (fun v1 -> LS.map_uniq (fun v2 -> f v1 v2) vs2) vs1
 
+let gather_inputs spl spr w op = 
+  uget %> function
+    | Lit Int i -> begin uget %> function
+        | Lit Int j -> w (op i j)
+        | _ -> raise @@ ProwlError (spr, sprintf "Unexpected noninteger")
+      end
+    | _ -> raise @@ ProwlError (spl, sprintf "Unexpected noninteger")
+
+let aop_impl : Code.aop -> 'a = function
+  | Add -> (+)
+  | Sub -> (-)
+  | Mul -> ( * )
+
 let aop spl spr f (op : Code.aop) g : fn = 
   let vs1 = get_values spl f in
   let vs2 = get_values spr g in
-  let vs_op = match op with
-    | Add -> (+)
-    | Sub -> (-)
-    | Mul -> ( * ) in
-  let vs_f = uget %> function
-    | Lit Int i -> begin uget %> function
-        | Lit Int j -> uref @@ Lit (Int (vs_op i j)) 
-        | _ -> raise @@ ProwlError (spr, sprintf "Unexpected noninteger")
-      end
-    | _ -> raise @@ ProwlError (spl, sprintf "Unexpected noninteger") in
+  let vs_op = aop_impl op in
+  let vs_f = gather_inputs spl spr (fun x -> uref @@ Lit (Int x)) vs_op in
   apply_values @@ lift_bin vs_f vs1 vs2
 
-let cop sp spl spr f (op : Code.cop) g = 
-  let vs1 = get_values spl f in
-  let vs2 = get_values spr g in
-  let vs_op = match op with
-    | Eq -> (=)
-    | Neq -> (<>)
-    | Gt -> (>)
-    | Lt -> (<)
-    | Ge -> (>=)
-    | Le -> (<=) in
-  function
-  | (s, 0), (ds, dc) -> 
-    vs1 |> LS.bind_uniq begin uget %> function 
+let gather_bind spl spr vs1 vs2 w op = 
+  vs1 |> LS.bind_uniq @@ uget %> function 
       | Lit Int i -> 
         vs2 |> LS.map_uniq begin uget %> function 
-          | Lit Int j -> s, 1 - Bool.to_int (vs_op i j)
+          | Lit Int j -> w (op i j)
           | _ -> raise @@ ProwlError (spr, sprintf "Unexpected noninteger")
         end
       | _ -> raise @@ ProwlError (spl, sprintf "Unexpected Noninteger")
-    end, (ds, dc + 1), (ds, dc)
-  | _ -> raise @@ ProwlError (sp, sprintf "Unexpected costack push")
 
+let cop_impl : Code.cop -> 'a = function
+  | Eq -> (=)
+  | Neq -> (<>)
+  | Gt -> (>)
+  | Lt -> (<)
+  | Ge -> (>=)
+  | Le -> (<=)
 
+let cop spl spr f (op : Code.cop) g : fn = 
+  let vs1 = get_values spl f in
+  let vs2 = get_values spr g in
+  let vs_op = cop_impl op in
+  function
+  | (s, 0), (ds, dc) -> 
+    gather_bind spl spr vs1 vs2 (fun x -> s, 1 - Bool.to_int x) vs_op, 
+    (ds, dc + 1), (ds, dc)
+  | c, (ds, dc) -> LS.pure c, (ds, dc + 1), (ds, dc)
+
+let gather_bind_unary sp vs f = 
+  vs |> LS.map_uniq @@ uget %> function
+    | Lit Int i -> f i
+    | _ -> raise @@ ProwlError (sp, sprintf "Unexpected noninteger")
+
+let aop_left sp (op : Code.aop) g : fn = 
+  let vs = get_values sp g in
+  let vs_op = aop_impl op in
+  function
+  | (s, 0), (ds, dc) -> 
+    let s', j = pop1_int sp s in
+    gather_bind_unary sp vs (fun x -> uref (Lit (Int (vs_op j x))) :: s', 0), 
+    (ds, dc), (ds - 1, dc)
+  | c, coord -> LS.pure c, coord, coord
+
+let aop_right sp f (op : Code.aop) : fn = 
+  let vs = get_values sp f in
+  let vs_op = aop_impl op in
+  function
+  | (s, 0), (ds, dc) -> 
+    let s', i = pop1_int sp s in
+    gather_bind_unary sp vs (fun x -> uref (Lit (Int (vs_op x i))):: s', 0), 
+    (ds, dc), (ds - 1, dc)
+  | c, coord -> LS.pure c, coord, coord
+
+let aop_sect sp (op : Code.aop) = 
+  let vs_op = aop_impl op in
+  function
+  | (s, 0), (ds, dc) -> 
+    let s', i, j = pop2_int sp s in
+    LS.pure (uref (Lit (Int (vs_op i j))) :: s', 0), 
+    (ds - 1, dc), (ds - 2, dc)
+  | c, coord -> LS.pure c, coord, coord
