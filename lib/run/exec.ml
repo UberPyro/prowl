@@ -72,7 +72,7 @@ let aop spl spr f (op : Code.aop) g : fn =
     | _ -> raise @@ ProwlError (spl, sprintf "Unexpected noninteger") in
   apply_values @@ lift_bin vs_f vs1 vs2
 
-(* let cop spl spr f (op : Code.cop) g = 
+let cop sp spl spr f (op : Code.cop) g = 
   let vs1 = get_values spl f in
   let vs2 = get_values spr g in
   let vs_op = match op with
@@ -81,5 +81,17 @@ let aop spl spr f (op : Code.aop) g : fn =
     | Gt -> (>)
     | Lt -> (<)
     | Ge -> (>=)
-    | Le -> (<=) in *)
-  
+    | Le -> (<=) in
+  function
+  | (s, 0), (ds, dc) -> 
+    vs1 |> LS.bind_uniq begin uget %> function 
+      | Lit Int i -> 
+        vs2 |> LS.map_uniq begin uget %> function 
+          | Lit Int j -> s, 1 - Bool.to_int (vs_op i j)
+          | _ -> raise @@ ProwlError (spr, sprintf "Unexpected noninteger")
+        end
+      | _ -> raise @@ ProwlError (spl, sprintf "Unexpected Noninteger")
+    end, (ds, dc + 1), (ds, dc)
+  | _ -> raise @@ ProwlError (sp, sprintf "Unexpected costack push")
+
+

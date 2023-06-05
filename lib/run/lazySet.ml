@@ -16,10 +16,8 @@ let rec append_delayed l1 f l2 = match get l1 with
   | None -> f l2
   | Some (h, t) -> lazy (Cons (h, append_delayed t f l2))
 
-(* let append_delayed_uniq l1 f l2 = unique @@ append_delayed l1 f l2 *)
-
 let rec bind f x = match get x with
-  | None -> x
+  | None -> nil
   | Some (h, t) -> append_delayed (f h) (bind f) t
 
 let bind_uniq f x = unique @@ bind f x
