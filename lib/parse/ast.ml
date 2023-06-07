@@ -1,76 +1,68 @@
 open! Batteries
 
-module type T = sig
-  type t [@@deriving show]
-end
+type expr = _expr * Metadata.Span.t * Types.dc * Types.dc
+and _expr = 
+  | Bop of expr * bop * expr
+  | SectLeft of bop * expr
+  | SectRight of expr * bop
+  | Sect of bop
+  | Uop of expr * uop
+  | Dop of expr * dop * expr
+  | Nop of nop
 
-module Make(M : T) = struct
+  | Lit of lit
+  | Var of string
+  | Let of stmt list * expr
 
-  type expr = _expr * M.t
-  and _expr = 
-    | Bop of expr * bop * expr
-    | SectLeft of bop * expr
-    | SectRight of expr * bop
-    | Sect of bop
-    | Uop of expr * uop
-    | Dop of expr * dop * expr
-    | Nop of nop
+and bop = 
+  | Aop of aop
+  | Cop of cop
 
-    | Lit of lit
-    | Var of string
-    | Let of stmt list * expr
+(* arithmetic operators *)
+and aop = 
+  | Add
+  | Sub
+  | Mul
 
-  and bop = 
-    | Aop of aop
-    | Cop of cop
-  
-  (* arithmetic operators *)
-  and aop = 
-    | Add
-    | Sub
-    | Mul
+(* comparison operators *)
+and cop = 
+  | Eq
+  | Neq
+  | Gt
+  | Lt
+  | Ge
+  | Le
 
-  (* comparison operators *)
-  and cop = 
-    | Eq
-    | Neq
-    | Gt
-    | Lt
-    | Ge
-    | Le
-  
-  (* unary (dataflow) operators *)
-  and uop = 
-    | Dag
-  
-  (* dataflow operators *)
-  and dop = 
-    | Tensor
-    | Ponder
-    | Fork
-    | Pick
-    
-    | Jux
-    | Union
-  
-  (* nullary/stack operators *)
-  and nop = 
-    | Gen | Fab | Exch | Elim | Cmp
-    | Dup | Zap | Swap | Cons | Dip | Cat | Unit
-    | DivMod | Lin | Bin | Parse | Show
-  
-  and lit = 
-    | Int of int
-    | String of string
+(* unary (dataflow) operators *)
+and uop = 
+  | Dag
 
-    | Quote of expr
-    | List of expr list
+(* dataflow operators *)
+and dop = 
+  | Tensor
+  | Ponder
+  | Fork
+  | Pick
   
-  and stmt = _stmt * M.t
-  and _stmt = 
-    | Def of string * expr
-    [@@deriving show]
-  
-  type toplevel = stmt list [@@deriving show]
+  | Jux
+  | Union
 
-end
+(* nullary/stack operators *)
+and nop = 
+  | Gen | Fab | Exch | Elim | Cmp
+  | Dup | Zap | Swap | Cons | Dip | Cat | Unit
+  | DivMod | Lin | Bin | Parse | Show
+
+and lit = 
+  | Int of int
+  | String of string
+
+  | Quote of expr
+  | List of expr list
+
+and stmt = _stmt * Metadata.Span.t
+and _stmt = 
+  | Def of string * expr
+  [@@deriving show]
+
+type toplevel = stmt list [@@deriving show]
