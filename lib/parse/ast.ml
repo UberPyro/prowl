@@ -1,5 +1,3 @@
-open! Batteries
-
 type expr = _expr * Metadata.Span.t * Types.dc * Types.dc
 and _expr = 
   | Bop of expr * bop * expr
