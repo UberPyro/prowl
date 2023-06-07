@@ -1,10 +1,11 @@
 open! Batteries
 open Uref
+open Ull
 
 type tlit = Int | String
-type tcon = Quote | List
+and tcon = Quote | List
 
-type v = v_contents uref
+and v = v_contents uref
 and v_contents = 
   | TLit of tlit
   | TCon of tcon * dc * dc
@@ -15,14 +16,17 @@ and ds = s * s
 
 and c = ds Ull.t
 and dc = c * c
+[@@deriving show]
 
 let rec unify_dc (x1, x2) (y1, y2) = 
-  Ull.unite unify_ds occ_ds x1 y1;
-  Ull.unite unify_ds occ_ds x2 y2
+  unify_c x1 y1;
+  unify_c x2 y2
+and unify_c c1 = Ull.unite unify_ds occ_ds c1
 
 and unify_ds (x1, x2) (y1, y2) = 
-  Ull.unite unify_v occ_v x1 y1;
-  Ull.unite unify_v occ_v x2 y2
+  unify_s x1 y1;
+  unify_s x2 y2
+and unify_s s1 = Ull.unite unify_v occ_v s1
 
 and unify_v = Uref.unite ~sel: begin curry @@ function
     | (TMeta _, v) | (v, TMeta _) -> v
