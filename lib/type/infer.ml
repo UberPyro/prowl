@@ -209,6 +209,28 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       unify_s dsl2_high dsl_high;
       infer ctx e1;
       infer ctx e2;
+    
+    | Dop ((_, _, dcl1, dcr1 as e1), Jux, (_, _, dcl2, dcr2 as e2)) -> 
+      unify_dc dcl dcl1;
+      unify_dc dcr dcr2;
+      unify_dc dcr1 dcl2;
+      infer ctx e1;
+      infer ctx e2;
+    
+    | Dop ((_, _, dcl1, dcr1 as e1), Contra, (_, _, dcl2, dcr2 as e2)) -> 
+      unify_dc dcl dcr1;
+      unify_dc dcr dcl2;
+      unify_dc dcl1 dcr2;
+      infer ctx e1;
+      infer ctx e2;
+    
+    | Dop ((_, _, dcl1, dcr1 as e1), Union, (_, _, dcl2, dcr2 as e2)) -> 
+      unify_dc dcl dcl1;
+      unify_dc dcl dcl2;
+      unify_dc dcr dcr1;
+      unify_dc dcr dcr2;
+      infer ctx e1;
+      infer ctx e2;
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)
