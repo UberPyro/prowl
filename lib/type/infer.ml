@@ -96,6 +96,11 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       let dc3 = mk_dc () in
       unify_dc (dc3 <: TLit TInt <: TLit TInt) dcl;
       unify_dc (dup_dc dc3) dcr;
+    
+    | Uop ((_, _, dcl1, dcr1 as e1), Dag) -> 
+      unify_dc dcr1 dcl;
+      unify_dc dcl1 dcr;
+      infer ctx e1;
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)
