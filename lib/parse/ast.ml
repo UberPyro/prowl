@@ -41,8 +41,11 @@ and dop =
   | Ponder
   | Fork
   | Pick
+  | Cross
+  | Guess
   
   | Jux
+  | Contra
   | Union
 
 (* nullary/stack operators *)
