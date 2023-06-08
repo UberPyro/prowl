@@ -149,11 +149,11 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       infer ctx e2;
     
     | Dop ((_, _, dcl1, dcr1 as e1), Pick, (_, _, dcl2, dcr2 as e2)) -> 
+      unify_dc dcr dcr1;
+      unify_dc dcr dcr2;
       let dcl_low, dcl_high = dcl in
       let dcl1_low, dcl1_high = dcl1 in
       let dcl2_low, dcl2_high = dcl2 in
-      unify_dc dcr dcr1;
-      unify_dc dcr dcr2;
       unify_c dcl1_high dcl2_low;
       unify_c dcl1_low dcl_low;
       unify_c dcl2_high dcl_high;
@@ -176,6 +176,37 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       unify_s dsr1_high dsr2_low;
       unify_s dsr1_low dsr_low;
       unify_s dsr2_high dsr_high;
+      infer ctx e1;
+      infer ctx e2;
+    
+    | Dop ((_, _, dcl1, dcr1 as e1), Guess, (_, _, dcl2, dcr2 as e2)) -> 
+      unify_dc dcl dcl1;
+      unify_dc dcl dcl2;
+      let dcr_low, dcr_high = dcr in
+      let dcr1_low, dcr1_high = dcr1 in
+      let dcr2_low, dcr2_high = dcr2 in
+      unify_c dcr1_high dcr2_low;
+      unify_c dcr1_low dcr_low;
+      unify_c dcr2_high dcr_high;
+      infer ctx e1;
+      infer ctx e2;
+    
+    | Dop ((_, _, dcl1, dcr1 as e1), Cross, (_, _, dcl2, dcr2 as e2)) -> 
+      unify_dc dcr dcr1;
+      unify_dc dcr dcr2;
+      let dcl_low, dcl_high = dcl in
+      let dcl1_low, dcl1_high = dcl1 in
+      let dcl2_low, dcl2_high = dcl2 in
+      unify_c dcl_low dcl1_low;
+      unify_c dcl_low dcl2_low;
+      let (dsl_low, dsl_high), dcl' = upop dcl_high in
+      let (dsl1_low, dsl1_high), dcl1' = upop dcl1_high in
+      let (dsl2_low, dsl2_high), dcl2' = upop dcl2_high in
+      unify_c dcl' dcl1';
+      unify_c dcl' dcl2';
+      unify_s dsl1_high dsl2_low;
+      unify_s dsl1_low dsl_low;
+      unify_s dsl2_high dsl_high;
       infer ctx e1;
       infer ctx e2;
 
