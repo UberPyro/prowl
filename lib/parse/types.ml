@@ -61,3 +61,5 @@ let (<:) dc v_ = dc <+ uref v_
 let no_ds () : ds = Ull.(unil (), unil ())
 let no_c () : c = usome (no_ds ())
 let no_dc () : dc = no_c (), no_c ()
+
+let dup_dc (dcl, dcr) : dc = dcl, dup_hd dcr
