@@ -34,6 +34,10 @@ let map_hd f us = match uget us with
   | UCons (x, xs) -> uref @@ UCons (f x, xs)
   | UNil | USeq _ -> us
 
+let dup_hd us = match uget us with
+  | UCons (x, _) -> uref @@ UCons (x, us)
+  | UNil | USeq _ -> raise @@ Invalid_argument "dup_hd"
+
 let assert_exn exn x y = if x = y then raise exn
 
 let rec unite unite_val occurs_val = 

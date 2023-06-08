@@ -51,9 +51,9 @@ and occ_c i = Ull.occurs occ_ds i
 and occ_ds i (s1, s2) = List.iter (occ_s i) [s1; s2]
 and occ_s i = Ull.occurs occ_v i
 
-let mk_ds () : ds = Ull.(ufresh (), ufresh ())
+let mk_ds () : ds = ufresh (), ufresh ()
 let mk_c () : c = usome (mk_ds ())
-let mk_dc () : dc = mk_c (), mk_c ()
+let mk_dc () : dc = ufresh (), mk_c ()
 let (<+) ((c1, c2) : dc) v : dc = 
   c1, map_hd (fun (s1, s2) -> s1, ucons v s2) c2
 let (<:) dc v_ = dc <+ uref v_
