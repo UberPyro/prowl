@@ -117,6 +117,36 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       unify_c dcr2_high dcr_high;
       infer ctx e1;
       infer ctx e2;
+    
+    | Dop ((_, _, dcl1, dcr1 as e1), Tensor, (_, _, dcl2, dcr2 as e2)) -> 
+      let dcl_low, dcl_high = dcl in
+      let dcr_low, dcr_high = dcr in
+      let dcl1_low, dcl1_high = dcl1 in
+      let dcr1_low, dcr1_high = dcr1 in
+      let dcl2_low, dcl2_high = dcl2 in
+      let dcr2_low, dcr2_high = dcr2 in
+      unify_c dcl_low dcl1_low;
+      unify_c dcl_low dcl2_low;
+      unify_c dcr_low dcr1_low;
+      unify_c dcr_low dcr2_low;
+      let (dsl_low, dsl_high), dcl' = upop dcl_high in
+      let (dsr_low, dsr_high), dcr' = upop dcr_high in
+      let (dsl1_low, dsl1_high), dcl1' = upop dcl1_high in
+      let (dsr1_low, dsr1_high), dcr1' = upop dcr1_high in
+      let (dsl2_low, dsl2_high), dcl2' = upop dcl2_high in
+      let (dsr2_low, dsr2_high), dcr2' = upop dcr2_high in
+      unify_c dcl' dcl1';
+      unify_c dcl' dcl2';
+      unify_c dcr' dcr1';
+      unify_c dcr' dcr2';
+      unify_s dsl1_high dsl2_low;
+      unify_s dsl1_low dsl_low;
+      unify_s dsl2_high dsl_high;
+      unify_s dsr1_high dsr2_low;
+      unify_s dsr1_low dsr_low;
+      unify_s dsr2_high dsr_high;
+      infer ctx e1;
+      infer ctx e2;
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)
