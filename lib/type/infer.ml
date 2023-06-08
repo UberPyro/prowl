@@ -231,6 +231,11 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       unify_dc dcr dcr2;
       infer ctx e1;
       infer ctx e2;
+    
+    | Nop (Gen | Fab) -> 
+      let dc3 = mk_dc () in
+      unify_dc dcl dc3;
+      unify_dc dcr (dup_dc dc3);
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)
