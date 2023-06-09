@@ -8,7 +8,7 @@ open Parse
 
 exception InferError of Span.t * string
 
-let rec infer (ctx : (string, bool * dc * dc) Ouro.t) ((node, sp, dcl, dcr) : Ast.expr) = 
+let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) = 
   try begin
     match node with
     | Bop ((_, sp1, dcl1, dcr1 as e1), Aop _, (_, sp2, dcl2, dcr2 as e2)) -> 
@@ -383,4 +383,8 @@ and stmts_rec generalized ctx stmts =
   List.iter (fun (Ast.Def (_, e), _) -> infer ctx' e) stmts;
   Ouro.vmap (fun (_, l, r) -> generalized, l, r) ctx'
 
-let top_stmts = stmts_rec true
+let top_stmts ctx = 
+  List.fold_left begin fun ctx' (Ast.Def (d, (_, _, l, r as e)), _) -> 
+    infer ctx' e;
+    Ouro.insert d (true, l, r) ctx
+  end ctx
