@@ -2,6 +2,6 @@
  (modules parse)
  (flags --explain --strict))
 (library
- (name parse)
+ (name syntax)
  (libraries batteries metadata)
  (preprocess (pps ppx_deriving.show)))

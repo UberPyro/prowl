@@ -4,7 +4,7 @@ open Printf
 open Metadata
 open Ull
 open Types
-open Parse
+open Syntax
 
 exception InferError of Span.t * string
 

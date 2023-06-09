@@ -19,18 +19,10 @@
   DUP ZAP SWAP CONS DIP CAT UNIT
   DIVMOD LIN BIN PARSE SHOW
   NOP ID AB
-  COMMA EOF
+  COMMA EOF END
 
 %token<string> VAR STRING
 %token<int> INT
-
-// %left UNION
-// %left PONDER PICK GUESS
-// %left TENSOR FORK CROSS
-// %left EQ NEQ GT LT GE LE
-// %left ADD SUB MUL
-// %right CONTRA
-// %nonassoc DAG MARK PLUS STAR
 
 %start<stmt list> prog
 
@@ -74,7 +66,7 @@ _term:
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}
   | LPAREN RPAREN {Nop Noop}
-  // | LET list(stmt) IN hiexpr {Let ($2, $4)}
+  | LET nonempty_list(stmt) IN hiexpr END {Let ($2, $4)}
   | nop {Nop $1}
   | VAR {Var $1}
 
