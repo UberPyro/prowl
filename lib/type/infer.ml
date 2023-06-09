@@ -378,9 +378,9 @@ let rec infer (ctx : (string, bool * dc * dc) Ouro.t) ((node, sp, dcl, dcr) : As
   end with UnifError msg -> raise @@ InferError (sp, msg)
 
 and stmts_rec generalized ctx stmts = 
-  let unwrap (Ast.Def (s, (_, _, l, r)), _) = s, (generalized, l, r) in
+  let unwrap (Ast.Def (s, (_, _, l, r)), _) = s, (false, l, r) in
   let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
   List.iter (fun (Ast.Def (_, e), _) -> infer ctx' e) stmts;
-  ctx'
+  Ouro.vmap (fun (_, l, r) -> generalized, l, r) ctx'
 
 let top_stmts = stmts_rec true

@@ -62,3 +62,8 @@ let rec to_list = function
 
 type ('a, 'b) collected = ('a * 'b) list [@@deriving show]
 let pp f g h = to_list %> pp_collected f g h
+
+let rec vmap f t = match t with
+    | E -> E
+    | T (c, a, (k, v, lazy r), b) -> 
+      T (c, vmap f a, (k, f v, lazy (vmap f r)), vmap f b)
