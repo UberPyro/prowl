@@ -382,3 +382,5 @@ and stmts_rec generalized ctx stmts =
   let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
   List.iter (fun (Ast.Def (_, e), _) -> infer ctx' e) stmts;
   ctx'
+
+let top_stmts = stmts_rec true
