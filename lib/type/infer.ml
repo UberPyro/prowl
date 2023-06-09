@@ -266,6 +266,36 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       let v2 = TMeta (unique ()) in
       unify_dc dcl (dc3 <: v1 <: v2);
       unify_dc dcr (dc3 <: v2 <: v1);
+    
+    | Nop Cons -> 
+      let r = mk_dc () in
+      let s = mk_dc () in
+      let t = mk_dc () in
+      let v = TMeta (unique ()) in
+      unify_dc dcl (t <: v <: TCon (TQuote, r <: v, s));
+      unify_dc dcr (t <: TCon (TQuote, r, s));
+    
+    | Nop Dip -> 
+      let r = mk_dc () in
+      let s = mk_dc () in
+      let v = TMeta (unique ()) in
+      unify_dc dcl (r <: v <: TCon (TQuote, r, s));
+      unify_dc dcr (s <: v);
+    
+    | Nop Cat -> 
+      let r = mk_dc () in
+      let s = mk_dc () in
+      let t = mk_dc () in
+      let q = mk_dc () in
+      unify_dc dcl (q <: TCon (TQuote, r, s) <: TCon (TQuote, s, t));
+      unify_dc dcr (q <: TCon (TQuote, r, t));
+    
+    | Nop Unit -> 
+      let r = mk_dc () in
+      let s = mk_dc () in
+      let v = TMeta (unique ()) in
+      unify_dc dcl (r <: v);
+      unify_dc dcr (r <: TCon (TQuote, s, s <: v));
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)
