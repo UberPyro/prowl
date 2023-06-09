@@ -8,7 +8,7 @@ open Parse
 
 exception InferError of Span.t * string
 
-let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) = 
+let rec infer (ctx : (string, bool * dc * dc) Ouro.t) ((node, sp, dcl, dcr) : Ast.expr) = 
   try begin
     match node with
     | Bop ((_, sp1, dcl1, dcr1 as e1), Aop _, (_, sp2, dcl2, dcr2 as e2)) -> 
@@ -359,9 +359,12 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
     
     | Var k -> 
       begin match Ouro.find_rec_opt k ctx with
-        | Some ((dcl1, dcr1), _) -> 
-          unify_dc dcl dcl1;
-          unify_dc dcr dcr1;
+        | Some ((generalized, dcl1, dcr1), _) -> 
+          let transform = 
+            if generalized then freshen_dc @@ Gen.mk_cache () 
+            else Fun.id in
+          unify_dc dcl (transform dcl1);
+          unify_dc dcr (transform dcr1);
         | None -> 
           let msg = sprintf "Cannot find unbound variable [%s]" k in
           raise @@ UnifError msg
@@ -375,9 +378,7 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
   end with UnifError msg -> raise @@ InferError (sp, msg)
 
 and stmts_rec generalized ctx stmts = 
-  if generalized then failwith "todo"
-  else
-    let unwrap (Ast.Def (s, (_, _, l, r)), _) = s, (l, r) in
-    let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
-    List.iter (fun (Ast.Def (_, e), _) -> infer ctx' e) stmts;
-    ctx'
+  let unwrap (Ast.Def (s, (_, _, l, r)), _) = s, (generalized, l, r) in
+  let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
+  List.iter (fun (Ast.Def (_, e), _) -> infer ctx' e) stmts;
+  ctx'

@@ -62,3 +62,9 @@ let rec unite unite_val occurs_val =
 and occurs occurs_val v = 
   let msg = "Cannot unify a variable with a sequence that contains it" in
   uiter ~g:(assert_exn (UnifError msg) v) (occurs_val v)
+
+let rec freshen memo freshen_v ulst = match uget ulst with
+  | UCons (u, us) -> 
+    uref @@ UCons (freshen_v memo u, freshen memo freshen_v us)
+  | UNil -> ulst
+  | USeq i -> uref @@ USeq (Gen.freshen memo i)

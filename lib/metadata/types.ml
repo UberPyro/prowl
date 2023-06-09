@@ -66,3 +66,14 @@ let no_c () : c = usome (no_ds ())
 let no_dc () : dc = no_c (), no_c ()
 
 let dup_dc (dcl, dcr) : dc = dcl, dup_hd dcr
+
+let rec freshen_v memo v = match uget v with
+  | TLit _ -> v
+  | TCon (tc, dcl, dcr) -> 
+    uref @@ TCon (tc, freshen_dc memo dcl, freshen_dc memo dcr)
+  | TMeta i -> uref @@ TMeta (Gen.freshen memo i)
+
+and freshen_s memo (s : s) : s = Ull.freshen memo freshen_v s
+and freshen_ds memo = Tuple2.mapn (freshen_s memo)
+and freshen_c memo c = Ull.freshen memo freshen_ds c
+and freshen_dc memo = Tuple2.mapn (freshen_c memo)
