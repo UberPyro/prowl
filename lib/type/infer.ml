@@ -328,6 +328,32 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       let r = mk_dc () in
       unify_dc dcl (r <: TLit TString);
       unify_dc dcr (r <: TLit TInt);
+    
+    | Lit Int _ -> 
+      let r = mk_dc () in
+      unify_dc dcl r;
+      unify_dc dcr (r <: TLit TInt);
+    
+    | Lit String _ -> 
+      let r = mk_dc () in
+      unify_dc dcl r;
+      unify_dc dcr (r <: TLit TString);
+    
+    | Lit Quote (_, _, dclq, dcrq as e) -> 
+      let r = mk_dc () in
+      unify_dc dcl r;
+      unify_dc dcr (r <: TCon (TQuote, dclq, dcrq));
+      infer ctx e;
+    
+    | Lit List es -> 
+      let r = mk_dc () in
+      unify_dc dcl r;
+      unify_dc dcr (r <: TCon (TList, mk_dc (), mk_dc ()));
+      es |> List.iter begin fun (_, sp', dcl', dcr' as e') -> 
+        infer ctx e'; 
+        try unify_dc dcr (r <: TCon (TList, dcl', dcr'))
+        with UnifError msg -> raise @@ InferError (sp', msg)
+      end;
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)
