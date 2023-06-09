@@ -8,6 +8,7 @@
 %token
   LPAREN RPAREN
   LBRACK RBRACK
+  LBRACE RBRACE
   LET ASSIGN IN
   ADD SUB MUL
   EQ NEQ GT LT GE LE
@@ -40,14 +41,14 @@ stmt: _stmt {$1, $loc}
   | ASSIGN VAR uexpr {Def ($2, $3)}
 
 sect: _sect {$1, $loc, mk_dc (), mk_dc ()}
-%inline _sect: 
+_sect: 
   | bop uexpr {SectLeft ($1, $2)}
-  | uexpr bop {SectRight ($1, $2)}
+  // | uexpr bop {SectRight ($1, $2)}
   | bop {Sect $1}
   | _uexpr {$1}
 
 uexpr: _uexpr {$1, $loc, mk_dc (), mk_dc ()}
-%inline _uexpr: 
+_uexpr: 
   | juxt DAG {Uop ($1, Dag)}
   | juxt MARK {Uop ($1, Mark)}
   | juxt PLUS {Uop ($1, Plus)}
@@ -55,21 +56,21 @@ uexpr: _uexpr {$1, $loc, mk_dc (), mk_dc ()}
   | _juxt {$1}
 
 juxt: _juxt {$1, $loc, mk_dc (), mk_dc ()}
-%inline _juxt: 
+_juxt: 
   // | juxt CONTRA expr {Dop ($1, Contra, $3)}
   // | juxt expr {Dop ($1, Jux, $2)}
   | _expr {$1}
 
 expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
-%inline _expr: 
+_expr: 
   | term bop expr {Bop ($1, $2, $3)}
   | term dop expr {Dop ($1, $2, $3)}
   | _term {$1}
 
 term: _term {$1, $loc, mk_dc (), mk_dc ()}
-%inline _term: 
-  // | lit {Lit $1}
-  // | LPAREN sect RPAREN {Tuple4.first $2}
+_term: 
+  | lit {Lit $1}
+  | LPAREN _sect RPAREN {$2}
   | LPAREN RPAREN {Nop Noop}
   // | LET list(stmt) IN uexpr {Let ($2, $4)}
   | nop {Nop $1}
@@ -79,10 +80,7 @@ term: _term {$1, $loc, mk_dc (), mk_dc ()}
   | INT {Int $1}
   | STRING {String $1}
   | LBRACK sect RBRACK {Quote $2}
-  | LPAREN COMMA RPAREN {List []}
-  | LPAREN sect COMMA RPAREN {List [$2]}
-  | LPAREN sect COMMA separated_nonempty_list(COMMA, sect) RPAREN
-    {List ($2 :: $4)}
+  | LBRACE separated_list(COMMA, sect) RBRACE {List $2}
 
 %inline bop: 
   | ADD {Aop Add}
