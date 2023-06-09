@@ -296,6 +296,38 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       let v = TMeta (unique ()) in
       unify_dc dcl (r <: v);
       unify_dc dcr (r <: TCon (TQuote, s, s <: v));
+    
+    | Nop DivMod -> 
+      let r = mk_dc () <: TLit TInt <: TLit TInt in
+      unify_dc dcl r;
+      unify_dc dcr r;
+    
+    | Nop Lin -> 
+      let r = mk_dc () in
+      let s = mk_dc () in
+      let t = mk_dc () in
+      unify_dc dcl (t <: TCon (TList, r, s) <: TCon (TQuote, r, s));
+      unify_dc dcr (t <: TCon (TList, r, s));
+    
+    | Nop Bin -> 
+      let r = mk_dc () in
+      let s = mk_dc () in
+      let t = mk_dc () in
+      unify_dc dcl (t 
+        <: TCon (TTree, r, s)
+        <: TCon (TTree, r, s)
+        <: TCon (TQuote, r, s));
+      unify_dc dcr (t <: TCon (TTree, r, s));
+    
+    | Nop Parse -> 
+      let r = mk_dc () in
+      unify_dc dcl (r <: TLit TInt);
+      unify_dc dcr (r <: TLit TString);
+    
+    | Nop Show -> 
+      let r = mk_dc () in
+      unify_dc dcl (r <: TLit TString);
+      unify_dc dcr (r <: TLit TInt);
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)

@@ -3,7 +3,7 @@ open Uref
 open Ull
 
 type tlit = TInt | TString
-and tcon = TQuote | TList
+and tcon = TQuote | TList | TTree
 
 and v = v_contents uref
 and v_contents = 
