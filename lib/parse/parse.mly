@@ -29,6 +29,8 @@
 // %left TENSOR FORK CROSS
 // %left EQ NEQ GT LT GE LE
 // %left ADD SUB MUL
+// %right CONTRA
+// %nonassoc DAG MARK PLUS STAR
 
 %start<stmt list> prog
 
@@ -38,27 +40,27 @@ prog: list(stmt) EOF {$1}
 
 stmt: _stmt {$1, $loc}
 %inline _stmt: 
-  | ASSIGN VAR uexpr {Def ($2, $3)}
+  | ASSIGN VAR hiexpr {Def ($2, $3)}
 
 sect: _sect {$1, $loc, mk_dc (), mk_dc ()}
 _sect: 
-  | bop uexpr {SectLeft ($1, $2)}
-  // | uexpr bop {SectRight ($1, $2)}
+  | bop hiexpr {SectLeft ($1, $2)}
+  // | hiexpr bop {SectRight ($1, $2)}
   | bop {Sect $1}
-  | _uexpr {$1}
+  | _hiexpr {$1}
 
-uexpr: _uexpr {$1, $loc, mk_dc (), mk_dc ()}
-_uexpr: 
-  | uexpr DAG {Uop ($1, Dag)}
-  | uexpr MARK {Uop ($1, Mark)}
-  | uexpr PLUS {Uop ($1, Plus)}
-  | uexpr STAR {Uop ($1, Star)}
+hiexpr: _hiexpr {$1, $loc, mk_dc (), mk_dc ()}
+_hiexpr: 
+  | hiexpr DAG {Uop ($1, Dag)}
+  | hiexpr MARK {Uop ($1, Mark)}
+  | hiexpr PLUS {Uop ($1, Plus)}
+  | hiexpr STAR {Uop ($1, Star)}
   | _juxt {$1}
 
 juxt: _juxt {$1, $loc, mk_dc (), mk_dc ()}
 _juxt: 
-  // | juxt CONTRA expr {Dop ($1, Contra, $3)}
-  // | juxt expr {Dop ($1, Jux, $2)}
+  | juxt CONTRA expr {Dop ($1, Contra, $3)}
+  | juxt expr {Dop ($1, Jux, $2)}
   | _expr {$1}
 
 expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
@@ -72,7 +74,7 @@ _term:
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}
   | LPAREN RPAREN {Nop Noop}
-  | LET list(stmt) IN uexpr {Let ($2, $4)}
+  // | LET list(stmt) IN hiexpr {Let ($2, $4)}
   | nop {Nop $1}
   | VAR {Var $1}
 
