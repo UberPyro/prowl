@@ -1,3 +1,5 @@
+; (menhir
+;  (modules parse))
 (library
  (name parse)
  (libraries batteries metadata)

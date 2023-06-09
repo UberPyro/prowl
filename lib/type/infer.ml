@@ -104,6 +104,12 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       unify_dc dcl1 dcr;
       infer ctx e1;
     
+    | Uop ((_, _, dcl1, dcr1 as e1), (Mark | Plus | Star)) -> 
+      unify_dc dcl1 dcr1;
+      unify_dc dcl dcl1;
+      unify_dc dcr dcr1;
+      infer ctx e1;
+    
     | Dop ((_, _, dcl1, dcr1 as e1), Ponder, (_, _, dcl2, dcr2 as e2)) -> 
       let dcl_low, dcl_high = dcl in
       let dcr_low, dcr_high = dcr in
@@ -330,6 +336,14 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       let r = mk_dc () in
       unify_dc dcl (r <: TLit TString);
       unify_dc dcr (r <: TLit TInt);
+    
+    | Nop Noop -> 
+      unify_dc dcl dcr;
+    
+    | Nop (Id | Ab) -> 
+      let r = mk_dc () <: TMeta (unique ()) in
+      unify_dc dcl r;
+      unify_dc dcr r;
     
     | Lit Int _ -> 
       let r = mk_dc () in

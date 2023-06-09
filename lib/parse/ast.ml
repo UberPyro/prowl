@@ -33,9 +33,12 @@ and cop =
   | Ge
   | Le
 
-(* unary (dataflow) operators *)
+(* unary operators *)
 and uop = 
   | Dag
+  | Mark
+  | Plus
+  | Star
 
 (* dataflow operators *)
 and dop = 
@@ -55,6 +58,7 @@ and nop =
   | Gen | Fab | Exch | Elim | Cmp
   | Dup | Zap | Swap | Cons | Dip | Cat | Unit
   | DivMod | Lin | Bin | Parse | Show
+  | Noop | Id | Ab
 
 and lit = 
   | Int of int
