@@ -49,10 +49,10 @@ _sect:
 
 uexpr: _uexpr {$1, $loc, mk_dc (), mk_dc ()}
 _uexpr: 
-  | juxt DAG {Uop ($1, Dag)}
-  | juxt MARK {Uop ($1, Mark)}
-  | juxt PLUS {Uop ($1, Plus)}
-  | juxt STAR {Uop ($1, Star)}
+  | uexpr DAG {Uop ($1, Dag)}
+  | uexpr MARK {Uop ($1, Mark)}
+  | uexpr PLUS {Uop ($1, Plus)}
+  | uexpr STAR {Uop ($1, Star)}
   | _juxt {$1}
 
 juxt: _juxt {$1, $loc, mk_dc (), mk_dc ()}
@@ -72,7 +72,7 @@ _term:
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}
   | LPAREN RPAREN {Nop Noop}
-  // | LET list(stmt) IN uexpr {Let ($2, $4)}
+  | LET list(stmt) IN uexpr {Let ($2, $4)}
   | nop {Nop $1}
   | VAR {Var $1}
 
