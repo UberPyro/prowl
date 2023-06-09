@@ -58,6 +58,9 @@ let (<+) ((c1, c2) : dc) v : dc =
   c1, map_hd (fun (s1, s2) -> s1, ucons v s2) c2
 let (<:) dc v_ = dc <+ uref v_
 
+let mk_dvoid () : dc = ufresh (), unil ()
+let (<::) ((c1, c2) : dc) (ds : ds) = c1, ucons ds c2
+
 let no_ds () : ds = Ull.(unil (), unil ())
 let no_c () : c = usome (no_ds ())
 let no_dc () : dc = no_c (), no_c ()
