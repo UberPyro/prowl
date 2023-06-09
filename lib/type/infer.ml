@@ -248,6 +248,24 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
       let dc3 = mk_dc () in
       unify_dc dcl (dc3 <: TLit TInt <: TLit TInt);
       unify_dc dcr (dup_dc @@ dup_dc dc3);
+    
+    | Nop Dup -> 
+      let dc3 = mk_dc () in
+      let var = TMeta (unique ()) in
+      unify_dc dcl (dc3 <: var);
+      unify_dc dcr (dc3 <: var <: var);
+    
+    | Nop Zap -> 
+      let dc3 = mk_dc () in
+      unify_dc dcl (dc3 <: TMeta (unique ()));
+      unify_dc dcr dc3
+    
+    | Nop Swap -> 
+      let dc3 = mk_dc () in
+      let v1 = TMeta (unique ()) in
+      let v2 = TMeta (unique ()) in
+      unify_dc dcl (dc3 <: v1 <: v2);
+      unify_dc dcr (dc3 <: v2 <: v1);
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)
