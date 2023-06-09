@@ -1,11 +1,12 @@
 open! Batteries
 open Printf
 
-open Parse
+open Metadata
 open Ull
 open Types
+open Parse
 
-exception InferError of Metadata.Span.t * string
+exception InferError of Span.t * string
 
 let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) = 
   try begin

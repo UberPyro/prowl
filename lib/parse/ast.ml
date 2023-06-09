@@ -1,4 +1,6 @@
-type expr = _expr * Metadata.Span.t * Types.dc * Types.dc
+open Metadata
+
+type expr = _expr * Span.t * Types.dc * Types.dc
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr
