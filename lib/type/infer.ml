@@ -1,4 +1,5 @@
 open! Batteries
+open Printf
 
 open Parse
 open Ull
@@ -354,6 +355,28 @@ let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) =
         try unify_dc dcr (r <: TCon (TList, dcl', dcr'))
         with UnifError msg -> raise @@ InferError (sp', msg)
       end;
+    
+    | Var k -> 
+      begin match Ouro.find_rec_opt k ctx with
+        | Some ((dcl1, dcr1), _) -> 
+          unify_dc dcl dcl1;
+          unify_dc dcr dcr1;
+        | None -> 
+          let msg = sprintf "Cannot find unbound variable [%s]" k in
+          raise @@ UnifError msg
+      end
+    
+    | Let (stmts, e) -> 
+      let ctx' = stmts_rec false ctx stmts in
+      infer ctx' e
 
     | _ -> failwith "todo"
   end with UnifError msg -> raise @@ InferError (sp, msg)
+
+and stmts_rec generalized ctx stmts = 
+  if generalized then failwith "todo"
+  else
+    let unwrap (Ast.Def (s, (_, _, l, r)), _) = s, (l, r) in
+    let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
+    List.iter (fun (Ast.Def (_, e), _) -> infer ctx' e) stmts;
+    ctx'
