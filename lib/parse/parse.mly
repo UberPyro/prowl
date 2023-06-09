@@ -48,16 +48,16 @@ sect: _sect {$1, $loc, mk_dc (), mk_dc ()}
 
 uexpr: _uexpr {$1, $loc, mk_dc (), mk_dc ()}
 %inline _uexpr: 
-  | DAG juxt {Uop ($2, Dag)}
-  | MARK juxt {Uop ($2, Mark)}
-  | PLUS juxt {Uop ($2, Plus)}
-  | STAR juxt {Uop ($2, Star)}
+  | juxt DAG {Uop ($1, Dag)}
+  | juxt MARK {Uop ($1, Mark)}
+  | juxt PLUS {Uop ($1, Plus)}
+  | juxt STAR {Uop ($1, Star)}
   | _juxt {$1}
 
 juxt: _juxt {$1, $loc, mk_dc (), mk_dc ()}
 %inline _juxt: 
-  | juxt CONTRA expr {Dop ($1, Contra, $3)}
-  | juxt expr {Dop ($1, Jux, $2)}
+  // | juxt CONTRA expr {Dop ($1, Contra, $3)}
+  // | juxt expr {Dop ($1, Jux, $2)}
   | _expr {$1}
 
 expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
@@ -68,10 +68,10 @@ expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
 
 term: _term {$1, $loc, mk_dc (), mk_dc ()}
 %inline _term: 
-  | lit {Lit $1}
-  | LPAREN sect RPAREN {Tuple4.first $2}
+  // | lit {Lit $1}
+  // | LPAREN sect RPAREN {Tuple4.first $2}
   | LPAREN RPAREN {Nop Noop}
-  | LET list(stmt) IN uexpr {Let ($2, $4)}
+  // | LET list(stmt) IN uexpr {Let ($2, $4)}
   | nop {Nop $1}
   | VAR {Var $1}
 
