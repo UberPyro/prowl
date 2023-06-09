@@ -1,5 +1,6 @@
 ; (menhir
-;  (modules parse))
+;  (modules parse)
+;  (flags --explain --strict))
 (library
  (name parse)
  (libraries batteries metadata)
