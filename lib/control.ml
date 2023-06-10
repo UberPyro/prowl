@@ -21,7 +21,7 @@ let parse_arg a =
   then Ast.String (String.sub a 1 (len - 2))
   else Ast.Int (String.to_int a)
 
-let check fname args = 
+let check debug fname args = 
   let ast = parse (File.open_in fname) in
   let ctx = Infer.top_stmts Infer.null_ctx ast in
   let (_, main_in, _main_out), _ = Ouro.find_rec_opt "main" ctx
@@ -32,5 +32,7 @@ let check fname args =
       | Ast.String _ -> acc <: TLit TString
       | Ast.Int _ -> acc <: TLit TInt
     end (no_dc ()) (List.map parse_arg args) in
-  try unify_dc main_in cs_in with
-  | Ull.UnifError msg -> raise @@ Ull.UnifError ("Error in main: " ^ msg)
+  try 
+    unify_dc main_in cs_in;
+    if debug then Infer.show_context ctx |> print_endline;
+  with Ull.UnifError msg -> raise @@ Ull.UnifError ("Error in main: " ^ msg)

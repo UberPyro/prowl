@@ -7,4 +7,4 @@ open Control
 let () = match P.parse_argv op with
   | [] -> P.usage op ()
   | fname :: args -> 
-    check fname args
+    check true fname args
