@@ -42,21 +42,21 @@ stmt: _stmt {$1, $loc}
 %inline _stmt: 
   | ASSIGN VAR expr {Def ($2, $3)}
 
-sect: _sect {$1, $loc, mk_dc (), mk_dc ()}
+sect: _sect {$1, $loc, free_dc (), free_dc ()}
 %inline _sect: 
   | bop expr {SectLeft ($1, $2)}
   | expr bop {SectRight ($1, $2)}
   | bop {Sect $1}
   | _expr {$1}
 
-expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
+expr: _expr {$1, $loc, free_dc (), free_dc ()}
 _expr: 
   | expr bop expr {Bop ($1, $2, $3)}
   | expr dop expr {Dop ($1, $2, $3)}
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
   | _hiexpr {$1}
 
-hiexpr: _hiexpr {$1, $loc, mk_dc (), mk_dc ()}
+hiexpr: _hiexpr {$1, $loc, free_dc (), free_dc ()}
 _hiexpr: 
   | hiexpr DAG {Uop ($1, Dag)}
   | hiexpr MARK {Uop ($1, Mark)}
@@ -65,14 +65,14 @@ _hiexpr:
   | term list(pair(ioption(CONTRA), term)) {
     let rec go e = function
       | (None, h) :: t -> 
-        Dop (e, Jux, (go h t, Tuple4.second h, mk_dc (), mk_dc ()))
+        Dop (e, Jux, (go h t, Tuple4.second h, free_dc (), free_dc ()))
       | (Some _, h) :: t -> 
-        Dop (e, Contra, (go h t, Tuple4.second h, mk_dc (), mk_dc ()))
+        Dop (e, Contra, (go h t, Tuple4.second h, free_dc (), free_dc ()))
       | [] -> Tuple4.first e in
     go $1 $2
   }
 
-term: _term {$1, $loc, mk_dc (), mk_dc ()}
+term: _term {$1, $loc, free_dc (), free_dc ()}
 %inline _term: 
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}

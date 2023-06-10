@@ -75,6 +75,8 @@ let no_dc () : dc =
 
 let dup_dc (dcl, dcr) : dc = dcl, dup_hd dcr
 
+let free_dc () : dc = Ull.(ufresh (), ufresh ())
+
 let rec freshen_v memo v = match uget v with
   | TLit _ -> v
   | TCon (tc, dcl, dcr) -> 
