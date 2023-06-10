@@ -402,3 +402,5 @@ let top_stmts ctx =
     infer ctx' e;
     Ouro.insert d (true, l, r) ctx
   end ctx
+
+let null_ctx = Ouro.empty
