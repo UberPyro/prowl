@@ -123,7 +123,7 @@ and pretty_ds out (l, r) =
   pretty_s out l;
   fprintf out " : ";
   pretty_s out r;
-  fprintf out ")";
+  fprintf out ") ";
 
 and pretty_c out = uget %> function
   | UCons (u, us) -> 
@@ -137,7 +137,7 @@ and pretty_dc out (l, r) =
   pretty_c out l;
   fprintf out " : ";
   pretty_c out r;
-  fprintf out ")"
+  fprintf out ") "
 
 let dc_to_string dc = 
   let out = IO.output_string () in

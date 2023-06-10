@@ -35,6 +35,6 @@ let check debug fname args =
   try
     unify_dc main_in cs_in;
     unify_c main_out_low (no_c ());
-    if debug then Infer.show_context ctx |> print_endline;
+    if debug then Infer.pretty_ctx ctx |> print_endline;
   with Ull.UnifError msg -> 
     raise @@ Infer.InferError (Span.dummy, ctx, "Error in main: " ^ msg)
