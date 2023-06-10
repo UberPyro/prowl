@@ -31,5 +31,5 @@ let check fname args =
   let cs_in = List.fold_left begin fun acc -> function[@warning "-8"]
       | Ast.String _ -> acc <: TLit TString
       | Ast.Int _ -> acc <: TLit TInt
-    end (mk_dc ()) (List.map parse_arg args) in
+    end (no_dc ()) (List.map parse_arg args) in
   unify_dc main_in cs_in
