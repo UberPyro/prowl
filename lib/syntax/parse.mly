@@ -40,7 +40,7 @@ prog: list(stmt) EOF {$1}
 
 stmt: _stmt {$1, $loc}
 %inline _stmt: 
-  | ASSIGN VAR hiexpr {Def ($2, $3)}
+  | ASSIGN VAR expr {Def ($2, $3)}
 
 sect: _sect {$1, $loc, mk_dc (), mk_dc ()}
 %inline _sect: 
