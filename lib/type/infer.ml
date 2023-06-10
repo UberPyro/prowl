@@ -6,9 +6,9 @@ open Ull
 open Types
 open Syntax
 
-exception InferError of Span.t * string
-
 type context = (string, bool * dc * dc) Ouro.t [@@deriving show]
+
+exception InferError of Span.t * context * string
 
 let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) = 
   try begin
@@ -17,12 +17,12 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       begin try
         unify_dc (no_dc ()) dcl1;
         unify_dc (no_dc () <: TLit TInt) dcr1;
-      with UnifError msg -> raise @@ InferError (sp1, msg)
+      with UnifError msg -> raise @@ InferError (sp1, ctx, msg)
       end;
       begin try
         unify_dc (no_dc ()) dcl2;
         unify_dc (no_dc () <: TLit TInt) dcr2;
-      with UnifError msg -> raise @@ InferError (sp2, msg)
+      with UnifError msg -> raise @@ InferError (sp2, ctx, msg)
       end;
       unify_dc (mk_dc ()) dcl;
       unify_dc (mk_dc () <: TLit TInt) dcr;
@@ -33,12 +33,12 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       begin try
         unify_dc (no_dc ()) dcl1;
         unify_dc (no_dc () <: TLit TInt) dcr1;
-      with UnifError msg -> raise @@ InferError (sp1, msg)
+      with UnifError msg -> raise @@ InferError (sp1, ctx, msg)
       end;
       begin try
         unify_dc (no_dc ()) dcl2;
         unify_dc (no_dc () <: TLit TInt) dcr2;
-      with UnifError msg -> raise @@ InferError (sp2, msg)
+      with UnifError msg -> raise @@ InferError (sp2, ctx, msg)
       end;
       unify_dc (mk_dc ()) dcl;
       unify_dc (dup_dc (mk_dc ())) dcr;
@@ -49,7 +49,7 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       begin try
         unify_dc (no_dc ()) dcl2;
         unify_dc (no_dc () <: TLit TInt) dcr2;
-      with UnifError msg -> raise @@ InferError (sp2, msg)
+      with UnifError msg -> raise @@ InferError (sp2, ctx, msg)
       end;
       unify_dc (mk_dc () <: TLit TInt) dcl;
       unify_dc (mk_dc () <: TLit TInt) dcr;
@@ -59,7 +59,7 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       begin try
         unify_dc (no_dc ()) dcl2;
         unify_dc (no_dc () <: TLit TInt) dcr2;
-      with UnifError msg -> raise @@ InferError (sp2, msg)
+      with UnifError msg -> raise @@ InferError (sp2, ctx, msg)
       end;
       unify_dc (mk_dc () <: TLit TInt) dcl;
       unify_dc (dup_dc (mk_dc ())) dcr;
@@ -69,7 +69,7 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       begin try
         unify_dc (no_dc ()) dcl1;
         unify_dc (no_dc () <: TLit TInt) dcr1;
-      with UnifError msg -> raise @@ InferError (sp1, msg)
+      with UnifError msg -> raise @@ InferError (sp1, ctx, msg)
       end;
       unify_dc (mk_dc () <: TLit TInt) dcl;
       unify_dc (mk_dc () <: TLit TInt) dcr;
@@ -79,7 +79,7 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       begin try
         unify_dc (no_dc ()) dcl1;
         unify_dc (no_dc () <: TLit TInt) dcr1;
-      with UnifError msg -> raise @@ InferError (sp1, msg)
+      with UnifError msg -> raise @@ InferError (sp1, ctx, msg)
       end;
       unify_dc (mk_dc () <: TLit TInt) dcl;
       unify_dc (dup_dc (mk_dc ())) dcr;
@@ -344,7 +344,7 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       es |> List.iter begin fun (_, sp', dcl', dcr' as e') -> 
         infer ctx e'; 
         try unify_dc dcr (r <: TCon (TList, dcl', dcr'))
-        with UnifError msg -> raise @@ InferError (sp', msg)
+        with UnifError msg -> raise @@ InferError (sp', ctx, msg)
       end;
     
     | Var k -> 
@@ -365,7 +365,7 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       infer ctx' e
 
     | _ -> failwith "todo"
-  end with UnifError msg -> raise @@ InferError (sp, msg)
+  end with UnifError msg -> raise @@ InferError (sp, ctx, msg)
 
 and stmts_rec generalized ctx stmts = 
   let unwrap (Ast.Def (s, (_, _, l, r)), _) = s, (false, l, r) in
