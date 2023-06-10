@@ -47,13 +47,15 @@ _hiexpr:
   | hiexpr MARK {Uop ($1, Mark)}
   | hiexpr PLUS {Uop ($1, Plus)}
   | hiexpr STAR {Uop ($1, Star)}
-  | _juxt {$1}
-
-juxt: _juxt {$1, $loc, mk_dc (), mk_dc ()}
-_juxt: 
-  | juxt CONTRA expr {Dop ($1, Contra, $3)}
-  | juxt expr {Dop ($1, Jux, $2)}
-  | _expr {$1}
+  | expr list(pair(ioption(CONTRA), expr)) {
+    let rec go e = function
+      | (None, h) :: t -> 
+        Dop (e, Jux, (go h t, Tuple4.second h, mk_dc (), mk_dc ()))
+      | (Some _, h) :: t -> 
+        Dop (e, Contra, (go h t, Tuple4.second h, mk_dc (), mk_dc ()))
+      | [] -> Tuple4.first e in
+    go $1 $2
+  }
 
 expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
 _expr: 
