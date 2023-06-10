@@ -24,9 +24,8 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
         unify_dc (no_dc () <: TLit TInt) dcr2;
       with UnifError msg -> raise @@ InferError (sp2, msg)
       end;
-      let dc3 = mk_dc () in
-      unify_dc dc3 dcl;
-      unify_dc (dc3 <: TLit TInt) dcr;
+      unify_dc (mk_dc ()) dcl;
+      unify_dc (mk_dc () <: TLit TInt) dcr;
       infer ctx e1;
       infer ctx e2;
 
@@ -41,9 +40,8 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
         unify_dc (no_dc () <: TLit TInt) dcr2;
       with UnifError msg -> raise @@ InferError (sp2, msg)
       end;
-      let dc3 = mk_dc () in
-      unify_dc dc3 dcl;
-      unify_dc (dup_dc dc3) dcr;
+      unify_dc (mk_dc ()) dcl;
+      unify_dc (dup_dc (mk_dc ())) dcr;
       infer ctx e1;
       infer ctx e2;
     
@@ -53,9 +51,8 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
         unify_dc (no_dc () <: TLit TInt) dcr2;
       with UnifError msg -> raise @@ InferError (sp2, msg)
       end;
-      let dc3 = mk_dc () <: TLit TInt in
-      unify_dc dc3 dcl;
-      unify_dc dc3 dcr;
+      unify_dc (mk_dc () <: TLit TInt) dcl;
+      unify_dc (mk_dc () <: TLit TInt) dcr;
       infer ctx e2;
     
     | SectLeft (Cop _, (_, sp2, dcl2, dcr2 as e2)) -> 
@@ -64,9 +61,8 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
         unify_dc (no_dc () <: TLit TInt) dcr2;
       with UnifError msg -> raise @@ InferError (sp2, msg)
       end;
-      let dc3 = mk_dc () in
-      unify_dc (dc3 <: TLit TInt) dcl;
-      unify_dc (dup_dc dc3) dcr;
+      unify_dc (mk_dc () <: TLit TInt) dcl;
+      unify_dc (dup_dc (mk_dc ())) dcr;
       infer ctx e2;
     
     | SectRight ((_, sp1, dcl1, dcr1 as e1), Aop _) -> 
@@ -75,9 +71,8 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
         unify_dc (no_dc () <: TLit TInt) dcr1;
       with UnifError msg -> raise @@ InferError (sp1, msg)
       end;
-      let dc3 = mk_dc () <: TLit TInt in
-      unify_dc dc3 dcl;
-      unify_dc dc3 dcr;
+      unify_dc (mk_dc () <: TLit TInt) dcl;
+      unify_dc (mk_dc () <: TLit TInt) dcr;
       infer ctx e1;
     
     | SectRight ((_, sp1, dcl1, dcr1 as e1), Cop _) -> 
@@ -86,20 +81,17 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
         unify_dc (no_dc () <: TLit TInt) dcr1;
       with UnifError msg -> raise @@ InferError (sp1, msg)
       end;
-      let dc3 = mk_dc () in
-      unify_dc (dc3 <: TLit TInt) dcl;
-      unify_dc (dup_dc dc3) dcr;
+      unify_dc (mk_dc () <: TLit TInt) dcl;
+      unify_dc (dup_dc (mk_dc ())) dcr;
       infer ctx e1;
     
     | Sect Aop _ -> 
-      let dc3 = mk_dc () <: TLit TInt in
-      unify_dc (dc3 <: TLit TInt) dcl;
-      unify_dc dc3 dcr;
+      unify_dc (mk_dc () <: TLit TInt <: TLit TInt) dcl;
+      unify_dc (mk_dc () <: TLit TInt) dcr;
     
     | Sect Cop _ -> 
-      let dc3 = mk_dc () in
-      unify_dc (dc3 <: TLit TInt <: TLit TInt) dcl;
-      unify_dc (dup_dc dc3) dcr;
+      unify_dc (mk_dc () <: TLit TInt <: TLit TInt) dcl;
+      unify_dc (dup_dc (mk_dc ())) dcr;
     
     | Uop ((_, _, dcl1, dcr1 as e1), Dag) -> 
       unify_dc dcr1 dcl;
@@ -243,47 +235,40 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       infer ctx e2;
     
     | Nop (Gen | Fab) -> 
-      let dc3 = mk_dc () in
-      unify_dc dcl dc3;
-      unify_dc dcr (dup_dc dc3);
+      unify_dc dcl (mk_dc ());
+      unify_dc dcr (dup_dc (mk_dc ()));
     
     | Nop Elim -> 
       let s1 = mk_ds () in
       let s2 = mk_ds () in
-      let dc3 = mk_dvoid () in
-      unify_dc dcl (dc3 <:: s1 <:: s2);
-      unify_dc dcr (dc3 <:: s2 <:: s1);
+      unify_dc dcl (mk_dvoid () <:: s1 <:: s2);
+      unify_dc dcr (mk_dvoid () <:: s2 <:: s1);
     
     | Nop Cmp -> 
-      let dc3 = mk_dc () in
-      unify_dc dcl (dc3 <: TLit TInt <: TLit TInt);
-      unify_dc dcr (dup_dc @@ dup_dc dc3);
+      unify_dc dcl (mk_dc () <: TLit TInt <: TLit TInt);
+      unify_dc dcr (dup_dc @@ dup_dc (mk_dc ()));
     
     | Nop Dup -> 
-      let dc3 = mk_dc () in
       let var = TMeta (unique ()) in
-      unify_dc dcl (dc3 <: var);
-      unify_dc dcr (dc3 <: var <: var);
+      unify_dc dcl (mk_dc () <: var);
+      unify_dc dcr (mk_dc () <: var <: var);
     
     | Nop Zap -> 
-      let dc3 = mk_dc () in
-      unify_dc dcl (dc3 <: TMeta (unique ()));
-      unify_dc dcr dc3
+      unify_dc dcl (mk_dc () <: TMeta (unique ()));
+      unify_dc dcr (mk_dc ())
     
     | Nop Swap -> 
-      let dc3 = mk_dc () in
       let v1 = TMeta (unique ()) in
       let v2 = TMeta (unique ()) in
-      unify_dc dcl (dc3 <: v1 <: v2);
-      unify_dc dcr (dc3 <: v2 <: v1);
+      unify_dc dcl (mk_dc () <: v1 <: v2);
+      unify_dc dcr (mk_dc () <: v2 <: v1);
     
     | Nop Cons -> 
       let r = mk_dc () in
       let s = mk_dc () in
-      let t = mk_dc () in
       let v = TMeta (unique ()) in
-      unify_dc dcl (t <: v <: TCon (TQuote, r <: v, s));
-      unify_dc dcr (t <: TCon (TQuote, r, s));
+      unify_dc dcl (mk_dc () <: v <: TCon (TQuote, r <: v, s));
+      unify_dc dcr (mk_dc () <: TCon (TQuote, r, s));
     
     | Nop Dip -> 
       let r = mk_dc () in
@@ -296,76 +281,65 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
       let r = mk_dc () in
       let s = mk_dc () in
       let t = mk_dc () in
-      let q = mk_dc () in
-      unify_dc dcl (q <: TCon (TQuote, r, s) <: TCon (TQuote, s, t));
-      unify_dc dcr (q <: TCon (TQuote, r, t));
+      unify_dc dcl (mk_dc () <: TCon (TQuote, r, s) <: TCon (TQuote, s, t));
+      unify_dc dcr (mk_dc () <: TCon (TQuote, r, t));
     
     | Nop Unit -> 
-      let r = mk_dc () in
-      let s = mk_dc () in
       let v = TMeta (unique ()) in
-      unify_dc dcl (r <: v);
-      unify_dc dcr (r <: TCon (TQuote, s, s <: v));
+      unify_dc dcl (mk_dc () <: v);
+      unify_dc dcr (mk_dc () <: TCon (TQuote, mk_dc (), mk_dc () <: v));
     
     | Nop DivMod -> 
-      let r = mk_dc () <: TLit TInt <: TLit TInt in
-      unify_dc dcl r;
-      unify_dc dcr r;
+      unify_dc dcl (mk_dc () <: TLit TInt <: TLit TInt);
+      unify_dc dcr (mk_dc () <: TLit TInt <: TLit TInt);
     
     | Nop Lin -> 
       let r = mk_dc () in
       let s = mk_dc () in
-      let t = mk_dc () in
-      unify_dc dcl (t <: TCon (TList, r, s) <: TCon (TQuote, r, s));
-      unify_dc dcr (t <: TCon (TList, r, s));
+      unify_dc dcl (mk_dc () <: TCon (TList, r, s) <: TCon (TQuote, r, s));
+      unify_dc dcr (mk_dc () <: TCon (TList, r, s));
     
     | Nop Bin -> 
       let r = mk_dc () in
       let s = mk_dc () in
-      let t = mk_dc () in
-      unify_dc dcl (t 
+      unify_dc dcl (mk_dc ()
         <: TCon (TTree, r, s)
         <: TCon (TTree, r, s)
         <: TCon (TQuote, r, s));
-      unify_dc dcr (t <: TCon (TTree, r, s));
+      unify_dc dcr (mk_dc () <: TCon (TTree, r, s));
     
     | Nop Parse -> 
-      let r = mk_dc () in
-      unify_dc dcl (r <: TLit TInt);
-      unify_dc dcr (r <: TLit TString);
+      unify_dc dcl (mk_dc () <: TLit TInt);
+      unify_dc dcr (mk_dc () <: TLit TString);
     
     | Nop Show -> 
-      let r = mk_dc () in
-      unify_dc dcl (r <: TLit TString);
-      unify_dc dcr (r <: TLit TInt);
+      unify_dc dcl (mk_dc () <: TLit TString);
+      unify_dc dcr (mk_dc () <: TLit TInt);
     
     | Nop Noop -> 
       unify_dc dcl dcr;
     
     | Nop (Id | Ab) -> 
-      let r = mk_dc () <: TMeta (unique ()) in
-      unify_dc dcl r;
-      unify_dc dcr r;
+      let v = TMeta (unique ()) in
+      unify_dc dcl (mk_dc () <: v);
+      unify_dc dcr (mk_dc () <: v);
     
     | Lit Int _ -> 
-      let r = mk_dc () in
-      unify_dc dcl r;
-      unify_dc dcr (r <: TLit TInt);
+      unify_dc dcl (mk_dc ());
+      unify_dc dcr (mk_dc () <: TLit TInt);
     
     | Lit String _ -> 
-      let r = mk_dc () in
-      unify_dc dcl r;
-      unify_dc dcr (r <: TLit TString);
+      unify_dc dcl (mk_dc ());
+      unify_dc dcr (mk_dc () <: TLit TString);
     
     | Lit Quote (_, _, dclq, dcrq as e) -> 
-      let r = mk_dc () in
-      unify_dc dcl r;
-      unify_dc dcr (r <: TCon (TQuote, dclq, dcrq));
+      unify_dc dcl (mk_dc ());
+      unify_dc dcr (mk_dc () <: TCon (TQuote, dclq, dcrq));
       infer ctx e;
     
     | Lit List es -> 
+      unify_dc dcl (mk_dc ());
       let r = mk_dc () in
-      unify_dc dcl r;
       unify_dc dcr (r <: TCon (TList, mk_dc (), mk_dc ()));
       es |> List.iter begin fun (_, sp', dcl', dcr' as e') -> 
         infer ctx e'; 

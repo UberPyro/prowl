@@ -3,5 +3,5 @@
 = par succ ++ pred
 
 = main
-  1
+  1 gen
   par

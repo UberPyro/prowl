@@ -24,7 +24,7 @@ let parse_arg a =
 let check debug fname args = 
   let ast = parse (File.open_in fname) in
   let ctx = Infer.top_stmts Infer.null_ctx ast in
-  let (_, main_in, _main_out), _ = Ouro.find_rec_opt "main" ctx
+  let (_, main_in, (main_out_low, _)), _ = Ouro.find_rec_opt "main" ctx
     |> Option.default_delayed begin fun () -> 
       failwith @@ Printf.sprintf "%s has no main function!" fname
     end in
@@ -32,7 +32,9 @@ let check debug fname args =
       | Ast.String _ -> acc <: TLit TString
       | Ast.Int _ -> acc <: TLit TInt
     end (no_dc ()) (List.map parse_arg args) in
-  try 
+  try
     unify_dc main_in cs_in;
+    unify_c main_out_low (no_c ());
     if debug then Infer.show_context ctx |> print_endline;
-  with Ull.UnifError msg -> raise @@ Ull.UnifError ("Error in main: " ^ msg)
+  with Ull.UnifError msg -> 
+    raise @@ Ull.UnifError ("Error in main: " ^ msg)
