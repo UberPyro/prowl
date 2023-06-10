@@ -20,15 +20,13 @@ let integer = '0' | sig_digits
 let string_body = ([^ '"'] | "\\\"")*
 
 rule token = parse
-  | id as s     {VAR s}
-  | "="         {ASSIGN}
-
   | "/*"        {comment 0 lexbuf}
   | eof         {EOF}
   | eol         {new_line lexbuf; token lexbuf}
   | whitespace  {token lexbuf}
   | '\t'        {token lexbuf}
 
+  | "="         {ASSIGN}
   | "let"       {LET}
   | "in"        {IN}
 
@@ -67,6 +65,8 @@ rule token = parse
   | "divmod" {DIVMOD} | "lin" {LIN} | "bin" {BIN}
   | "parse" {PARSE} | "show" {SHOW}
   | "nop" {NOP} | "id" {ID} | "ab" {AB}
+
+  | id as s     {VAR s}
 
 and comment level = parse
   | "*/" {if level = 0 then token lexbuf
