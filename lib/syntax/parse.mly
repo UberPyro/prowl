@@ -19,7 +19,7 @@
   DUP ZAP SWAP CONS DIP CAT UNIT
   DIVMOD LIN BIN PARSE SHOW
   NOP ID AB
-  COMMA EOF END
+  COMMA EOF
 
 %token<string> VAR STRING
 %token<int> INT
@@ -39,6 +39,13 @@ _sect:
   | bop hiexpr {SectLeft ($1, $2)}
   // | hiexpr bop {SectRight ($1, $2)}
   | bop {Sect $1}
+  | _expr {$1}
+
+expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
+_expr: 
+  | term bop expr {Bop ($1, $2, $3)}
+  | term dop expr {Dop ($1, $2, $3)}
+  | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
   | _hiexpr {$1}
 
 hiexpr: _hiexpr {$1, $loc, mk_dc (), mk_dc ()}
@@ -47,7 +54,7 @@ _hiexpr:
   | hiexpr MARK {Uop ($1, Mark)}
   | hiexpr PLUS {Uop ($1, Plus)}
   | hiexpr STAR {Uop ($1, Star)}
-  | expr list(pair(ioption(CONTRA), expr)) {
+  | term list(pair(ioption(CONTRA), term)) {
     let rec go e = function
       | (None, h) :: t -> 
         Dop (e, Jux, (go h t, Tuple4.second h, mk_dc (), mk_dc ()))
@@ -57,18 +64,11 @@ _hiexpr:
     go $1 $2
   }
 
-expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
-_expr: 
-  | term bop expr {Bop ($1, $2, $3)}
-  | term dop expr {Dop ($1, $2, $3)}
-  | _term {$1}
-
 term: _term {$1, $loc, mk_dc (), mk_dc ()}
 _term: 
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}
   | LPAREN RPAREN {Nop Noop}
-  | LET nonempty_list(stmt) IN hiexpr END {Let ($2, $4)}
   | nop {Nop $1}
   | VAR {Var $1}
 
