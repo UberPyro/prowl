@@ -28,8 +28,8 @@ let check fname args =
     |> Option.default_delayed begin fun () -> 
       failwith @@ Printf.sprintf "%s has no main function!" fname
     end in
-  let cs_in = Array.fold_left begin fun acc -> function[@warning "-8"]
+  let cs_in = List.fold_left begin fun acc -> function[@warning "-8"]
       | Ast.String _ -> acc <: TLit TString
       | Ast.Int _ -> acc <: TLit TInt
-    end (mk_dc ()) args in
+    end (mk_dc ()) (List.map parse_arg args) in
   unify_dc main_in cs_in
