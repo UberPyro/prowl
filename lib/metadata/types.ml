@@ -1,6 +1,7 @@
 open! Batteries
 open Uref
 open Ull
+open Printf
 
 type tlit = TInt | TString
 and tcon = TQuote | TList | TTree
@@ -33,7 +34,7 @@ and unify_v = Uref.unite ~sel: begin curry @@ function
     | v1, v2 when v1 = v2 -> v1
     | v1, v2 -> 
       let msg = 
-        Printf.sprintf
+        sprintf
           "Cannot unify distinct type literals [%s] and [%s]"
           (show_v_contents v1) (show_v_contents v2) in
       raise @@ UnifError msg
@@ -87,3 +88,58 @@ and freshen_s memo (s : s) : s = Ull.freshen memo freshen_v s
 and freshen_ds memo = Tuple2.mapn (freshen_s memo)
 and freshen_c memo c = Ull.freshen memo freshen_ds c
 and freshen_dc memo = Tuple2.mapn (freshen_c memo)
+
+let rec pretty_v out = uget %> function
+  | TLit TInt -> fprintf out "z "
+  | TLit TString -> fprintf out "S* "
+  | TMeta i -> fprintf out "'%d" i
+  | TCon (TQuote, l, r) -> 
+    fprintf out "[";
+    pretty_fn out l r;
+    fprintf out "]";
+  | TCon (TList, l, r) -> 
+    fprintf out "{";
+    pretty_fn out l r;
+    fprintf out "}";
+  | TCon (TTree, l, r) -> 
+    fprintf out "<<";
+    pretty_fn out l r;
+    fprintf out ">>";
+
+and pretty_fn out l r = 
+    pretty_dc out l;
+    fprintf out " -- ";
+    pretty_dc out r;
+
+and pretty_s out = uget %> function
+  | UCons (u, us) -> 
+    pretty_s out us;
+    pretty_v out u;
+  | USeq i -> fprintf out "%d " i
+  | UNil -> fprintf out ". "
+
+and pretty_ds out (l, r) = 
+  fprintf out "( ";
+  pretty_s out l;
+  fprintf out " : ";
+  pretty_s out r;
+  fprintf out ")";
+
+and pretty_c out = uget %> function
+  | UCons (u, us) -> 
+    pretty_c out us;
+    pretty_ds out u;
+  | USeq i -> fprintf out "%d " i
+  | UNil -> fprintf out ". "
+
+and pretty_dc out (l, r) = 
+  fprintf out "( ";
+  pretty_c out l;
+  fprintf out " : ";
+  pretty_c out r;
+  fprintf out ")"
+
+let dc_to_string dc = 
+  let out = IO.output_string () in
+  pretty_dc out dc;
+  IO.close_out out

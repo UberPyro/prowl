@@ -15,5 +15,5 @@ let () = match P.parse_argv op with
       print_endline "Type Error!";
       print_endline @@ Span.show sp;
       print_endline msg;
-      print_endline @@ Infer.show_context ctx;
+      print_endline @@ Infer.pretty_ctx ctx;
       exit 2;
