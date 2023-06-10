@@ -37,4 +37,4 @@ let check debug fname args =
     unify_c main_out_low (no_c ());
     if debug then Infer.show_context ctx |> print_endline;
   with Ull.UnifError msg -> 
-    raise @@ Ull.UnifError ("Error in main: " ^ msg)
+    raise @@ Infer.InferError (Span.dummy, ctx, "Error in main: " ^ msg)
