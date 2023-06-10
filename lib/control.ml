@@ -32,4 +32,5 @@ let check fname args =
       | Ast.String _ -> acc <: TLit TString
       | Ast.Int _ -> acc <: TLit TInt
     end (no_dc ()) (List.map parse_arg args) in
-  unify_dc main_in cs_in
+  try unify_dc main_in cs_in with
+  | Ull.UnifError msg -> raise @@ Ull.UnifError ("Error in main: " ^ msg)
