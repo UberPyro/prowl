@@ -26,6 +26,14 @@
 
 %start<stmt list> prog
 
+%nonassoc IN
+%left UNION
+%left PONDER PICK GUESS
+%left TENSOR FORK CROSS
+%left GT LT GE LE
+%left EQ NEQ
+%left ADD SUB MUL
+
 %%
 
 prog: list(stmt) EOF {$1}
@@ -35,16 +43,16 @@ stmt: _stmt {$1, $loc}
   | ASSIGN VAR hiexpr {Def ($2, $3)}
 
 sect: _sect {$1, $loc, mk_dc (), mk_dc ()}
-_sect: 
-  | bop hiexpr {SectLeft ($1, $2)}
-  // | hiexpr bop {SectRight ($1, $2)}
+%inline _sect: 
+  | bop expr {SectLeft ($1, $2)}
+  | expr bop {SectRight ($1, $2)}
   | bop {Sect $1}
   | _expr {$1}
 
 expr: _expr {$1, $loc, mk_dc (), mk_dc ()}
 _expr: 
-  | term bop expr {Bop ($1, $2, $3)}
-  | term dop expr {Dop ($1, $2, $3)}
+  | expr bop expr {Bop ($1, $2, $3)}
+  | expr dop expr {Dop ($1, $2, $3)}
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
   | _hiexpr {$1}
 
@@ -65,7 +73,7 @@ _hiexpr:
   }
 
 term: _term {$1, $loc, mk_dc (), mk_dc ()}
-_term: 
+%inline _term: 
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}
   | LPAREN RPAREN {Nop Noop}
