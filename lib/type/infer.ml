@@ -399,8 +399,9 @@ and stmts_rec generalized ctx stmts =
 
 let top_stmts ctx = 
   List.fold_left begin fun ctx' (Ast.Def (d, (_, _, l, r as e)), _) -> 
-    infer ctx' e;
-    Ouro.insert d (true, l, r) ctx'
+    let ctx'' = Ouro.insert d (true, l, r) ctx' in
+    infer ctx'' e;
+    ctx''
   end ctx
 
 let null_ctx = Ouro.empty
