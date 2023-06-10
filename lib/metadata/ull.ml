@@ -29,6 +29,7 @@ let rec uiter ?(g=ignore) f us = match uget us with
   | UNil -> ()
 
 let usome u = ucons u @@ ufresh ()
+let ujust u = ucons u @@ unil ()
 
 let map_hd f us = match uget us with
   | UCons (x, xs) -> uref @@ UCons (f x, xs)

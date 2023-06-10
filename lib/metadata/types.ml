@@ -62,7 +62,7 @@ let mk_dvoid () : dc = ufresh (), unil ()
 let (<::) ((c1, c2) : dc) (ds : ds) = c1, ucons ds c2
 
 let no_ds () : ds = Ull.(unil (), unil ())
-let no_c () : c = usome (no_ds ())
+let no_c () : c = ujust (no_ds ())
 let no_dc () : dc = no_c (), no_c ()
 
 let dup_dc (dcl, dcr) : dc = dcl, dup_hd dcr
