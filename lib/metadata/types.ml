@@ -108,7 +108,7 @@ let rec pretty_v out = uget %> function
 
 and pretty_fn out l r = 
     pretty_dc out l;
-    fprintf out " -- ";
+    fprintf out "-- ";
     pretty_dc out r;
 
 and pretty_s out = uget %> function
@@ -121,7 +121,7 @@ and pretty_s out = uget %> function
 and pretty_ds out (l, r) = 
   fprintf out "( ";
   pretty_s out l;
-  fprintf out " : ";
+  fprintf out ": ";
   pretty_s out r;
   fprintf out ") ";
 
@@ -135,7 +135,7 @@ and pretty_c out = uget %> function
 and pretty_dc out (l, r) = 
   fprintf out "( ";
   pretty_c out l;
-  fprintf out " : ";
+  fprintf out ": ";
   pretty_c out r;
   fprintf out ") "
 

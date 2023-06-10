@@ -12,7 +12,7 @@ let pretty_ctx (ctx : context) =
   let out = IO.output_string () in
   Ouro.to_list ctx |> List.iter begin fun (s, (_, l, r)) -> 
     fprintf out "%s : " s; 
-    pretty_dc out l; fprintf out " -- "; pretty_dc out r;
+    pretty_dc out l; fprintf out "-- "; pretty_dc out r;
     fprintf out "\n";
   end;
   IO.close_out out
