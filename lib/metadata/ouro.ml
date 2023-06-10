@@ -3,9 +3,10 @@ open Tuple3
 open Lazy
 
 type color = R | B
-type ('a, 'b) t = 
+and ('a, 'b) t = 
   | E
   | T of color * ('a, 'b) t * ('a * 'b * ('a, 'b) t Lazy.t) * ('a, 'b) t
+  [@@deriving show]
 
 let rec fix f x = f (fix f) x
 

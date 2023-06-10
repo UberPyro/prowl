@@ -8,7 +8,9 @@ open Syntax
 
 exception InferError of Span.t * string
 
-let rec infer ctx ((node, sp, dcl, dcr) : Ast.expr) = 
+type context = (string, bool * dc * dc) Ouro.t [@@deriving show]
+
+let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) = 
   try begin
     match node with
     | Bop ((_, sp1, dcl1, dcr1 as e1), Aop _, (_, sp2, dcl2, dcr2 as e2)) -> 
