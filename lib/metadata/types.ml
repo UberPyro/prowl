@@ -70,15 +70,55 @@ let dup_dc (dcl, dcr) : dc = dcl, dup_hd dcr
 
 let free_dc () : dc = Ull.(ufresh (), ufresh ())
 
+module IM = Hashtbl.Make(struct
+  include Hashtbl
+  include Int
+end)
+
+type memo = {
+  v : v IM.t;
+  s : s IM.t;
+  c : c IM.t;
+}
+
+let mk_memo () = {
+  v = IM.create 16;
+  s = IM.create 16;
+  c = IM.create 16;
+}
+
 let rec freshen_v memo v = match uget v with
   | TLit _ -> v
+  | TMeta i -> 
+    IM.find_option memo.v i |> Option.default_delayed @@ fun () -> 
+      let nu = uref @@ TMeta (unique ()) in
+      IM.add memo.v i nu;
+      nu
   | TCon (tc, dcl, dcr) -> 
     uref @@ TCon (tc, freshen_dc memo dcl, freshen_dc memo dcr)
-  | TMeta i -> uref @@ TMeta (Gen.freshen memo i)
 
-and freshen_s memo (s : s) : s = Ull.freshen memo freshen_v s
+and freshen_s memo ulst = match uget ulst with
+  | UCons (u, us) -> 
+    uref @@ UCons (freshen_v memo u, freshen_s memo us)
+  | UNil -> ulst
+  | USeq i -> 
+    IM.find_option memo.s i |> Option.default_delayed @@ fun () -> 
+      let nu = ufresh () in
+      IM.add memo.s i nu;
+      nu
+
 and freshen_ds memo = Tuple2.mapn (freshen_s memo)
-and freshen_c memo c = Ull.freshen memo freshen_ds c
+
+and freshen_c memo ulst = match uget ulst with
+  | UCons (u, us) -> 
+    uref @@ UCons (freshen_ds memo u, freshen_c memo us)
+  | UNil -> ulst
+  | USeq i -> 
+    IM.find_option memo.c i |> Option.default_delayed @@ fun () -> 
+      let nu = ufresh () in
+      IM.add memo.c i nu;
+      nu
+
 and freshen_dc memo = Tuple2.mapn (freshen_c memo)
 
 let rec pretty_v out = uget %> function

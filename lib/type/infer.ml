@@ -385,11 +385,11 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
     | Var k -> 
       begin match Ouro.find_rec_opt k ctx with
         | Some ((generalized, dcl1, dcr1), _) -> 
-          let cache = Gen.mk_cache () in
-          (* let transform = 
+          let cache = mk_memo () in
+          let transform = 
             if generalized then freshen_dc cache
-            else Fun.id in *)
-          let transform x = (* TEMPORARY *)
+            else Fun.id in
+          (* let transform x = 
             if generalized then 
               let out = IO.output_string () in
               pretty_dc out x; fprintf out " => ";
@@ -397,7 +397,7 @@ let rec infer (ctx : context) ((node, sp, dcl, dcr) : Ast.expr) =
               pretty_dc out y;
               print_endline (IO.close_out out);
               y
-            else x in
+            else x in *)
           unify_dc dcl (transform dcl1);
           unify_dc dcr (transform dcr1);
         | None -> 
