@@ -1,4 +1,5 @@
-= five 5
-= fivefive 5 5
+= succ (+ 1)
+= pred (- 1)
+= par succ ++ pred
 
-= main five
+= main 5 par
