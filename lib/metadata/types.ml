@@ -52,13 +52,9 @@ and occ_c i = Ull.occurs occ_ds i
 and occ_ds i (s1, s2) = List.iter (occ_s i) [s1; s2]
 and occ_s i = Ull.occurs occ_v i
 
-let mk_ds () : ds = 
-  let u = ufresh () in
-  u, u
+let mk_ds () : ds = ufresh (), ufresh ()
 let mk_c () : c = usome (mk_ds ())
-let mk_dc () : dc = 
-  let c = mk_c () in
-  c, c
+let mk_dc () : dc = mk_c (), mk_c ()
 let (<+) ((c1, c2) : dc) v : dc = 
   c1, map_hd (fun (s1, s2) -> s1, ucons v s2) c2
 let (<:) dc v_ = dc <+ uref v_
@@ -66,13 +62,9 @@ let (<:) dc v_ = dc <+ uref v_
 let mk_dvoid () : dc = ufresh (), unil ()
 let (<::) ((c1, c2) : dc) (ds : ds) = c1, ucons ds c2
 
-let no_ds () : ds = 
-  let u = Ull.unil () in
-  u, u
+let no_ds () : ds = Ull.unil (), Ull.unil ()
 let no_c () : c = ujust (no_ds ())
-let no_dc () : dc = 
-  let c = no_c () in
-  c, c
+let no_dc () : dc = no_c (), no_c ()
 
 let dup_dc (dcl, dcr) : dc = dcl, dup_hd dcr
 
