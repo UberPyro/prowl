@@ -1,7 +1,7 @@
 open Metadata
 
 (* link = relational function type *)
-type 'a link = 'a * 'a option * 'a
+type 'a link = 'a * 'a option * 'a [@@deriving show]
 
 type type_expr = _type_expr * Span.t
 and _type_expr = 
@@ -37,6 +37,7 @@ and costack_end =
   | NextCostack of string
   | Void
 and expl_wing = costack_end * impl_costack_wing
+[@@deriving show]
 
 type expr = _expr * Span.t (* Types.dc * Types.dc *)
 and _expr = 
