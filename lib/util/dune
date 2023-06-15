@@ -1,0 +1,4 @@
+(library
+ (name util)
+ (libraries batteries)
+ (preprocess (pps ppx_deriving.show)))
