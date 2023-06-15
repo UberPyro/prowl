@@ -4,5 +4,5 @@
 ;  (flags --explain --strict))
 (library
  (name syntax)
- (libraries batteries metadata)
+ (libraries batteries metadata type)
  (preprocess (pps ppx_deriving.show)))

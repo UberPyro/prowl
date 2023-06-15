@@ -1,4 +1,5 @@
 open Metadata
+open Type
 
 (* link = relational function type *)
 type 'a link = 'a * 'a option * 'a [@@deriving show]
@@ -39,7 +40,7 @@ and costack_end =
 and expl_wing = costack_end * impl_costack_wing
 [@@deriving show]
 
-type expr = _expr * Span.t (* Types.dc * Types.dc *)
+type expr = _expr * Span.t * Typedata.dlink
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr
