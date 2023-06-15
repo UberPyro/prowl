@@ -1,10 +1,10 @@
 open! Batteries
 open Uref
 
-open! Type
-open! Ast
-open! Typedata
-open! Util
+open Type
+open Ast
+open Typedata
+open Util
 
 let rec elab_expr (i : Intern.t) (e, _sp) = match e with
   | ImplStack (w1, w2) -> 
