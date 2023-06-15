@@ -2,6 +2,7 @@ open! Batteries
 
 type t
 
-val intern : string -> t -> int
-val get_int : string -> t -> int
-val get_str : int -> t -> string
+val mk_intern : unit -> t
+val intern : t -> string -> int
+val get_int : t -> string -> int
+val get_str : t -> int -> string

@@ -11,7 +11,12 @@ type t = {
   hmap : string HMap.t;
 }
 
-let intern str t = 
+let mk_intern () = {
+  hdict = HDict.create 16;
+  hmap = HMap.create 16;
+}
+
+let intern t str = 
   HDict.find_option t.hdict str
   |> Option.default_delayed @@ fun () -> 
     let nu = unique () in
@@ -19,5 +24,5 @@ let intern str t =
     HMap.add t.hmap nu str;
     nu
 
-let get_int str t = HDict.find t.hdict str
-let get_str int t = HMap.find t.hmap int
+let get_int t str = HDict.find t.hdict str
+let get_str t int = HMap.find t.hmap int

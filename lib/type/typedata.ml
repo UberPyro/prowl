@@ -31,3 +31,13 @@ and dlink = {
   low_wing : type_costack;
   res_wing : type_costack;
 } [@@deriving show]
+
+let mk_var () = uref @@ DVar (unique ())
+let mk_seq () = uref @@ Concat (uref Bottom, unique ())
+let push s x = uref @@ Push (s, x)
+let concat s str = uref @@ Concat (s, str)
+
+let mk_unit u = uref @@ Concat (uref Bottom, u)
+
+let mk_unital_costack () = 
+  uref @@ Push (uref @@ Concat (uref Bottom, unique ()), mk_seq ())

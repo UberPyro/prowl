@@ -2,13 +2,11 @@ open Metadata
 open Type
 
 (* link = relational function type *)
-type 'a link = 'a * 'a option * 'a [@@deriving show]
-
 type type_expr = _type_expr * Span.t
 and _type_expr = 
-  | ImplStack of impl_stack_wing link
-  | ImplCostack of impl_costack_wing link
-  | Expl of expl_wing link
+  | ImplStack of impl_stack_wing * impl_stack_wing
+  | ImplCostack of impl_costack_wing  * impl_costack_wing
+  | Expl of expl_wing * expl_wing * expl_wing
 
 and type_val = 
   | TLit of type_lit
