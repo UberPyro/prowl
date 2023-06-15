@@ -95,7 +95,7 @@ and dop =
 and nop = 
   | Gen | Fab | Exch | Elim | Cmp
   | Dup | Zap | Swap | Cons | Dip | Cat | Unit
-  | DivMod | Lin | Bin | Parse | Show
+  | DivMod | Lin | Parse | Show
   | Noop | Id | Ab
 
 and lit = 
@@ -107,7 +107,7 @@ and lit =
 
 and stmt = _stmt * Metadata.Span.t
 and _stmt = 
-  | Def of string * expr
+  | Def of string * type_expr option * expr
   [@@deriving show]
 
 type toplevel = stmt list [@@deriving show]
