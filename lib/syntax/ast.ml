@@ -1,44 +1,6 @@
-open Metadata
-open Type
+open! Metadata
 
-(* link = relational function type *)
-type type_expr = _type_expr * Span.t
-and _type_expr = 
-  | ImplStack of impl_stack_wing * impl_stack_wing
-  | ImplCostack of impl_costack_wing  * impl_costack_wing
-  | Expl of expl_wing * expl_wing * expl_wing
-
-and type_val = 
-  | TLit of type_lit
-  | TCon of type_con * type_expr
-  | TVar of string
-and type_lit = 
-  | TInt
-  | TString
-and type_con = 
-  | TQuote
-  | TList
-
-and stack_elem = 
-  | SVar of type_val
-  | SStack of string
-and impl_stack_wing = stack_elem list
-
-and stack_end = 
-  | NextStack of string
-  | Unit
-and costack_elem = 
-  | CStack of stack_end * impl_stack_wing
-  | CCostack of string
-and impl_costack_wing = costack_elem list
-
-and costack_end = 
-  | NextCostack of string
-  | Void
-and expl_wing = costack_end * impl_costack_wing
-[@@deriving show]
-
-type expr = _expr * Span.t * Typedata.dlink
+type expr = _expr (* * Span.t * Typedata.dlink *)
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr
@@ -107,7 +69,7 @@ and lit =
 
 and stmt = _stmt * Metadata.Span.t
 and _stmt = 
-  | Def of string * type_expr option * expr
+  | Def of string * expr
   [@@deriving show]
 
 type toplevel = stmt list [@@deriving show]

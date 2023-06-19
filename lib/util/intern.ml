@@ -1,6 +1,9 @@
 open! Batteries
 
-module HDict = Hashtbl.Make(String)
+module HDict = Hashtbl.Make(struct
+  include Hashtbl  (* not required in some versions of batteries? *)
+  include String
+end)
 module HMap = Hashtbl.Make(struct
   include Hashtbl
   include Int
