@@ -76,3 +76,24 @@ let mk_free_fn () =
         inc = [|mk_free_costack ()|];
     }|] in
   Array.map Lazy.force lazy_free_fn
+
+let append_ref_uniq x = 
+  Array.append x % Array.filter begin fun z -> 
+    Array.for_all (fun w -> z != w) x
+  end
+
+let backunite x sel' = 
+  x |> unite ~sel:begin fun x y -> {
+    dat = sel' x.dat y.dat;
+    back = append_ref_uniq x.back y.back;
+  } end
+
+let rec unify_seq unify_elem x = backunite x % curry @@ function
+  | Next _ as s, _ | _, (Next _ as s) -> s
+  | Push (us, u) as s, Push (vs, v) -> 
+    unify_elem u v;
+    unify_seq unify_elem us vs;
+    s
+  | Push _, Null | Null, Push _ -> 
+    failwith "Cannot unify differently sized sequences"
+  | Null, Null -> Null
