@@ -38,7 +38,7 @@ and con =
 
 let mk_null_fn () = 
   let rec lazy_null_fn = 
-    lazy (
+    lazy begin
       let mk_null_costack = 
         uref {
           dat = Null;
@@ -48,7 +48,7 @@ let mk_null_fn () =
         dec = [|mk_null_costack|];
         bot = mk_null_costack;
         inc = [|mk_null_costack|];
-      }) in
+      } end in
   Lazy.force lazy_null_fn
 
 let mk_free_fn () = 
