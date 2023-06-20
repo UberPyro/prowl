@@ -70,7 +70,7 @@ let mk_free_fn () =
         back = lazy_free_fn;
       } in
     (* each uref should only be constructed once *)
-    [| lazy {
+    [|lazy {
         dec = [|mk_free_costack ()|];
         bot = mk_free_costack ();
         inc = [|mk_free_costack ()|];
