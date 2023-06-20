@@ -1,6 +1,8 @@
 open! Batteries
 open Uref
 
+let pp_uref fmt x y = fmt x (uget y)
+
 type 'a bref = 'a _bref uref
 and 'a _bref = {
   dat : 'a;
@@ -35,6 +37,7 @@ and lit =
 and con = 
   | Quote
   | List
+  [@@deriving show]
 
 let mk_null_fn () = 
   let rec lazy_null_fn = 

@@ -1,6 +1,7 @@
-open! Metadata
+open Metadata
+open Typerep
 
-type expr = _expr (* * Span.t * Typedata.dlink *)
+type expr = _expr * Span.t * Data.fn
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr
