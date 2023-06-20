@@ -38,17 +38,17 @@ and con =
 
 let mk_null_fn () = 
   let rec lazy_null_fn = 
-    let mk_null_costack () = 
-      uref {
-        dat = Null;
-        back = lazy_null_fn;
-      } in
-    (* each is only computed once *)
-    lazy {
-      dec = [|mk_null_costack ()|];
-      bot = mk_null_costack ();
-      inc = [|mk_null_costack ()|];
-    } in
+    lazy (
+      let mk_null_costack = 
+        uref {
+          dat = Null;
+          back = lazy_null_fn;
+        } in
+      {
+        dec = [|mk_null_costack|];
+        bot = mk_null_costack;
+        inc = [|mk_null_costack|];
+      }) in
   Lazy.force lazy_null_fn
 
 let mk_free_fn () = 
@@ -67,6 +67,7 @@ let mk_free_fn () =
         );
         back = lazy_free_fn;
       } in
+    (* each uref should only be constructed once *)
     lazy {
       dec = [|mk_free_costack ()|];
       bot = mk_free_costack ();
