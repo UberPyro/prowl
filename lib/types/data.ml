@@ -4,7 +4,7 @@ open Uref
 type 'a bref = 'a _bref uref
 and 'a _bref = {
   dat : 'a;
-  back : fn Lazy.t
+  back : fn Lazy.t;
 }
 
 and fn = {
@@ -35,3 +35,33 @@ and lit =
 and con = 
   | Quote
   | List
+
+(* let rec mk_null_seq () = uref {
+  dat = uref Null;
+  back = 
+} *)
+
+(* let mk_free_fn () = 
+  let rec fn = 
+    let mk_unit_costack () = 
+      (* uref {
+        dat = Push (uref {dat = Next (unique ()); back = lazy fn}, uref {
+          dat = uref {dat = Next (unique ()); back = lazy fn};
+          back = lazy fn;
+        });
+        back = lazy fn;
+      }  *)
+
+      uref {
+        back = lazy fn;
+        dat = Null;
+      }
+    
+    
+    in
+    {
+      dec = [|mk_unit_costack ()|];
+      bot = mk_unit_costack ();
+      inc = [|mk_unit_costack ()|];
+    } in
+  fn *)
