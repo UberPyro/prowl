@@ -37,11 +37,11 @@ and con =
   | List
 
 let mk_null_fn () = object (self)
-  method private mk () = uref {
+  method private mk = uref {
     dat = Null;
     back = self;
   }
-  method dec = [|self#mk ()|]
-  method bot = self#mk ()
-  method inc = [|self#mk ()|]
+  method dec = [|self#mk|]
+  method bot = self#mk
+  method inc = [|self#mk|]
 end
