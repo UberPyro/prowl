@@ -1,17 +1,28 @@
 open! Batteries
 open Uref
-open Ull
 
-type 'a node = ('a * 'a delta array) uref
-and 'a delta = {
-  down: 'a node array;
-  bot: 'a node;
-  up: 'a node array;
+type 'a bref = 'a _bref uref
+and 'a _bref = {
+  dat : 'a;
+  back : fn Lazy.t
 }
 
-and costack = stack ulist
-and stack = value ulist
-and value = _value ulist
+and fn = {
+  dec : costack array;
+  bot : costack;
+  inc : costack array;
+}
+
+and 'a seq = 'a _seq bref
+and 'a _seq = 
+  | Null
+  | Push of 'a seq * 'a
+  | Next of int
+
+and costack = stack seq
+and stack = value seq
+
+and value = _value bref
 and _value = 
   | Lit of lit
   | Con of con * fn
@@ -24,5 +35,3 @@ and lit =
 and con = 
   | Quote
   | List
-
-and fn = costack delta
