@@ -97,3 +97,21 @@ let rec unify_seq unify_elem x = backunite x % curry @@ function
   | Push _, Null | Null, Push _ -> 
     failwith "Cannot unify differently sized sequences"
   | Null, Null -> Null
+
+let rec unify_value v0 = backunite v0 % curry @@ function
+  | Var _ as v, _ | _, (Var _ as v) -> v
+  | Lit l1 as v, Lit l2 when l1 = l2 -> v
+  | Con (c1, f) as v, Con (c2, g) when c1 = c2 -> 
+    unify_fn f g;
+    v
+  | _ -> failwith "Cannot unify incompatible values"
+
+and unify_stack s0 = unify_seq unify_value s0
+and unify_costack c0 = unify_seq unify_stack c0
+
+(* bisimplification: all input costacks are unified, 
+   then the backreferences of the old function and the
+   newly constructed function are unified *)
+(* and unify_fn f0 = backunite f0 @@ fun (f, g) ->  *)
+
+and unify_fn _f0 = failwith "todo"
