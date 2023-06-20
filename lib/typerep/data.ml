@@ -1,20 +1,12 @@
 open! Batteries
 open Uref
 
-module LazyList = struct
-  include LazyList
-  open struct
-    type 'a t = 'a list [@@deriving show]
-  end
-  let pp f fmt = LazyList.to_list %> pp f fmt
-end
-
 let pp_uref fmt x y = fmt x (uget y)
 
 type 'a bref = 'a _bref uref
 and 'a _bref = {
   dat : 'a;
-  back : fn LazyList.t;
+  back : fn array Lazy.t;
 }
 
 and fn = {
@@ -54,15 +46,11 @@ let mk_null_fn () =
         uref {
           dat = Null;
           back = lazy_null_fn;
-        } in
-      Cons (
-        {
+        } in [|{
           dec = [|mk_null_costack|];
           bot = mk_null_costack;
           inc = [|mk_null_costack|];
-        }, 
-        LazyList.nil
-      ) end in
+      }|] end in
   Lazy.force lazy_null_fn
 
 let mk_free_fn () = 
@@ -82,12 +70,9 @@ let mk_free_fn () =
         back = lazy_free_fn;
       } in
     (* each uref should only be constructed once *)
-    lazy begin Cons (
-      {
+    lazy [|{
         dec = [|mk_free_costack ()|];
         bot = mk_free_costack ();
         inc = [|mk_free_costack ()|];
-      }, 
-      LazyList.nil
-    ) end in
+    }|] in
   Lazy.force lazy_free_fn
