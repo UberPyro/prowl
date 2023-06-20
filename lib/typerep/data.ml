@@ -6,7 +6,7 @@ let pp_uref fmt x y = fmt x (uget y)
 type 'a bref = 'a _bref uref
 and 'a _bref = {
   dat : 'a;
-  back : fn array Lazy.t;
+  back : fn Lazy.t array;
 }
 
 and fn = {
@@ -41,17 +41,17 @@ and con =
 
 let mk_null_fn () = 
   let rec lazy_null_fn = 
-    lazy begin
+    [|lazy begin
       let mk_null_costack = 
         uref {
           dat = Null;
           back = lazy_null_fn;
-        } in [|{
+        } in {
           dec = [|mk_null_costack|];
           bot = mk_null_costack;
           inc = [|mk_null_costack|];
-      }|] end in
-  Lazy.force lazy_null_fn
+      } end|] in
+  Array.map Lazy.force lazy_null_fn
 
 let mk_free_fn () = 
   let rec lazy_free_fn = 
@@ -70,9 +70,9 @@ let mk_free_fn () =
         back = lazy_free_fn;
       } in
     (* each uref should only be constructed once *)
-    lazy [|{
+    [| lazy {
         dec = [|mk_free_costack ()|];
         bot = mk_free_costack ();
         inc = [|mk_free_costack ()|];
     }|] in
-  Lazy.force lazy_free_fn
+  Array.map Lazy.force lazy_free_fn
