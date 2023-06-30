@@ -28,7 +28,8 @@ let unite x y t =
       (fun[@warning "-8"] (Some i) -> Some (i + 1)) t.rank_map;
   }
 
-let mk xs = {
-  parent_map=xs |> List.enum |> Enum.map (fun x -> x, x) |> of_enum;
-  rank_map=xs |> List.enum |> Enum.map (fun x -> x, 0) |> of_enum;
+let empty = {parent_map=empty; rank_map=empty}
+let add x t = {
+  parent_map=Map.add x x t.parent_map;
+  rank_map=Map.add x 0 t.rank_map;
 }
