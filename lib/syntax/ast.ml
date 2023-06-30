@@ -1,8 +1,6 @@
 open Metadata
 
-type fn = unit [@@deriving show]  (* TEMP *)
-
-type expr = _expr * Span.t * fn
+type expr = _expr * Span.t * int
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr
