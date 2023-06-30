@@ -10,9 +10,10 @@ let modify k f = update k @@ function
 
 let move k1 k2 t = match find_opt k1 t with
   | None -> t
-  | s -> t |> update k2 @@ function
+  | s -> t |> begin update k2 @@ function
     | Some _ -> raise MergeError
     | None -> s
+  end |> remove k1
 
 type 'a t = int Ptmap.t * int Ptmap.t * 'a Ptmap.t
 
