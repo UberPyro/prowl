@@ -49,6 +49,41 @@ let show_term t =
   |> Maude._Term_prettyPrint
   |> function[@warning "-8"] C_string s -> s
 
+
+(* term building *)
+type symbol = Maude.c_enum_value Swig.c_obj_t
+
+let mk_symmap m = 
+  let symvec = Maude._Module_getSymbols m in
+  let[@warning "-8"] (C_int len) = Maude._SymbolVector_size symvec in
+  let syms = 
+    List.unfold 0 @@ fun i -> 
+      if i < len
+      then Some (
+        Maude._SymbolVector___getitem__ @@ C_list [symvec; C_int i], 
+        i + 1
+      ) else None in
+  List.fold_left begin fun xs x -> 
+    let[@warning "-8"] (C_string k) = Maude._Symbol_to_string x in
+    Map.add k x xs
+  end Map.empty syms
+
+let build name symmap ts = 
+  let sym = Map.find name symmap in
+  Maude._Symbol_makeTerm @@ C_list [sym; C_list ts]
+
+let break t = 
+  let ai = Maude._Term_arguments t in
+  let[@warning "-8"] (C_string s) = Maude._Term_symbol t in
+  let ts = List.unfold ai @@ fun it -> 
+    let[@warning "-8"] (C_bool b) = Maude._ArgumentIterator_valid it in
+    if b then 
+      let x = Some (Maude._ArgumentIterator_argument it, it) in
+      Maude._ArgumentIterator___next it |> ignore;
+      x
+    else None in
+  s, ts
+
 (* let rec you_are_a = function
 | Swig.C_void -> print_endline "void"
 | C_bool true -> print_endline "bool: true" 
