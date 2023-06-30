@@ -10,19 +10,19 @@ type 'a t = {
 let parent x t = find x t.parent_map
 let rank x t = find x t.rank_map
 
-let rec find_root x t = 
+let rec search x t = 
   let p = parent x t in
   if Stdlib.compare p x = 0 then x
-  else find_root p t
+  else search p t
 
-let unite x y t = 
-  let px = find_root x t in
-  let py = find_root y t in
+let merge x y t = 
+  let px = search x t in
+  let py = search y t in
   if Stdlib.compare px py = 0 then t
-  else match[@warning "-8"] Stdlib.compare (rank x t) (rank y t) with
+  else match Stdlib.compare (rank x t) (rank y t) with
   | 1 -> {t with parent_map=add py px t.parent_map}
   | -1 -> {t with parent_map=add px py t.parent_map}
-  | 0 -> {
+  | _ -> {
     parent_map = add px py t.parent_map;
     rank_map = update_stdlib py 
       (fun[@warning "-8"] (Some i) -> Some (i + 1)) t.rank_map;
