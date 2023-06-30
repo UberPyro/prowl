@@ -729,6 +729,12 @@ let _OpDeclVector_resize arg = match _OpDeclVector_resize_f ((fnhelper arg)) wit
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _OpDeclVector_to_string_f : c_obj list -> c_obj list = "_wrap_OpDeclVector_to_stringmaude" ;;
+let _OpDeclVector_to_string arg = match _OpDeclVector_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _delete_OpDeclVector_f : c_obj list -> c_obj list = "_wrap_delete_OpDeclVectormaude" ;;
 let _delete_OpDeclVector arg = match _delete_OpDeclVector_f ((fnhelper arg)) with
   [] -> C_void
@@ -791,6 +797,12 @@ let _SortVector_clear arg = match _SortVector_clear_f ((fnhelper arg)) with
 | lst -> C_list lst ;;
 external _SortVector_resize_f : c_obj list -> c_obj list = "_wrap_SortVector_resizemaude" ;;
 let _SortVector_resize arg = match _SortVector_resize_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _SortVector_to_string_f : c_obj list -> c_obj list = "_wrap_SortVector_to_stringmaude" ;;
+let _SortVector_to_string arg = match _SortVector_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -861,6 +873,12 @@ let _SymbolVector_resize arg = match _SymbolVector_resize_f ((fnhelper arg)) wit
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _SymbolVector_to_string_f : c_obj list -> c_obj list = "_wrap_SymbolVector_to_stringmaude" ;;
+let _SymbolVector_to_string arg = match _SymbolVector_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _delete_SymbolVector_f : c_obj list -> c_obj list = "_wrap_delete_SymbolVectormaude" ;;
 let _delete_SymbolVector arg = match _delete_SymbolVector_f ((fnhelper arg)) with
   [] -> C_void
@@ -923,6 +941,12 @@ let _KindVector_clear arg = match _KindVector_clear_f ((fnhelper arg)) with
 | lst -> C_list lst ;;
 external _KindVector_resize_f : c_obj list -> c_obj list = "_wrap_KindVector_resizemaude" ;;
 let _KindVector_resize arg = match _KindVector_resize_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _KindVector_to_string_f : c_obj list -> c_obj list = "_wrap_KindVector_to_stringmaude" ;;
+let _KindVector_to_string arg = match _KindVector_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -993,6 +1017,12 @@ let _SubsortVector_resize arg = match _SubsortVector_resize_f ((fnhelper arg)) w
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _SubsortVector_to_string_f : c_obj list -> c_obj list = "_wrap_SubsortVector_to_stringmaude" ;;
+let _SubsortVector_to_string arg = match _SubsortVector_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _delete_SubsortVector_f : c_obj list -> c_obj list = "_wrap_delete_SubsortVectormaude" ;;
 let _delete_SubsortVector arg = match _delete_SubsortVector_f ((fnhelper arg)) with
   [] -> C_void
@@ -1055,6 +1085,12 @@ let _EquationVector_clear arg = match _EquationVector_clear_f ((fnhelper arg)) w
 | lst -> C_list lst ;;
 external _EquationVector_resize_f : c_obj list -> c_obj list = "_wrap_EquationVector_resizemaude" ;;
 let _EquationVector_resize arg = match _EquationVector_resize_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _EquationVector_to_string_f : c_obj list -> c_obj list = "_wrap_EquationVector_to_stringmaude" ;;
+let _EquationVector_to_string arg = match _EquationVector_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -1125,6 +1161,12 @@ let _RuleVector_resize arg = match _RuleVector_resize_f ((fnhelper arg)) with
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _RuleVector_to_string_f : c_obj list -> c_obj list = "_wrap_RuleVector_to_stringmaude" ;;
+let _RuleVector_to_string arg = match _RuleVector_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _delete_RuleVector_f : c_obj list -> c_obj list = "_wrap_delete_RuleVectormaude" ;;
 let _delete_RuleVector arg = match _delete_RuleVector_f ((fnhelper arg)) with
   [] -> C_void
@@ -1187,6 +1229,12 @@ let _StratVector_clear arg = match _StratVector_clear_f ((fnhelper arg)) with
 | lst -> C_list lst ;;
 external _StratVector_resize_f : c_obj list -> c_obj list = "_wrap_StratVector_resizemaude" ;;
 let _StratVector_resize arg = match _StratVector_resize_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _StratVector_to_string_f : c_obj list -> c_obj list = "_wrap_StratVector_to_stringmaude" ;;
+let _StratVector_to_string arg = match _StratVector_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -1257,6 +1305,12 @@ let _StratDefVector_resize arg = match _StratDefVector_resize_f ((fnhelper arg))
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _StratDefVector_to_string_f : c_obj list -> c_obj list = "_wrap_StratDefVector_to_stringmaude" ;;
+let _StratDefVector_to_string arg = match _StratDefVector_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _delete_StratDefVector_f : c_obj list -> c_obj list = "_wrap_delete_StratDefVectormaude" ;;
 let _delete_StratDefVector arg = match _delete_StratDefVector_f ((fnhelper arg)) with
   [] -> C_void
@@ -1319,6 +1373,12 @@ let _Condition_clear arg = match _Condition_clear_f ((fnhelper arg)) with
 | lst -> C_list lst ;;
 external _Condition_resize_f : c_obj list -> c_obj list = "_wrap_Condition_resizemaude" ;;
 let _Condition_resize arg = match _Condition_resize_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _Condition_to_string_f : c_obj list -> c_obj list = "_wrap_Condition_to_stringmaude" ;;
+let _Condition_to_string arg = match _Condition_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -1397,6 +1457,12 @@ let _ModuleHeader_type_get arg = match _ModuleHeader_type_get_f ((fnhelper arg))
 | lst -> C_list lst ;;
 external _ModuleHeader_name_get_f : c_obj list -> c_obj list = "_wrap_ModuleHeader_name_getmaude" ;;
 let _ModuleHeader_name_get arg = match _ModuleHeader_name_get_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _ModuleHeader_to_string_f : c_obj list -> c_obj list = "_wrap_ModuleHeader_to_stringmaude" ;;
+let _ModuleHeader_to_string arg = match _ModuleHeader_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -1504,6 +1570,12 @@ let _Equation_getCondition arg = match _Equation_getCondition_f ((fnhelper arg))
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _Equation_to_string_f : c_obj list -> c_obj list = "_wrap_Equation_to_stringmaude" ;;
+let _Equation_to_string arg = match _Equation_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _Equation_getMetadata_f : c_obj list -> c_obj list = "_wrap_Equation_getMetadatamaude" ;;
 let _Equation_getMetadata arg = match _Equation_getMetadata_f ((fnhelper arg)) with
   [] -> C_void
@@ -1558,6 +1630,12 @@ let _Sort_leq arg = match _Sort_leq_f ((fnhelper arg)) with
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _Sort_to_string_f : c_obj list -> c_obj list = "_wrap_Sort_to_stringmaude" ;;
+let _Sort_to_string arg = match _Sort_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _Sort_getLineNumber_f : c_obj list -> c_obj list = "_wrap_Sort_getLineNumbermaude" ;;
 let _Sort_getLineNumber arg = match _Sort_getLineNumber_f ((fnhelper arg)) with
   [] -> C_void
@@ -1606,6 +1684,12 @@ let _Kind_errorFree arg = match _Kind_errorFree_f ((fnhelper arg)) with
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _Kind_to_string_f : c_obj list -> c_obj list = "_wrap_Kind_to_stringmaude" ;;
+let _Kind_to_string arg = match _Kind_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _Kind_hash_f : c_obj list -> c_obj list = "_wrap_Kind_hashmaude" ;;
 let _Kind_hash arg = match _Kind_hash_f ((fnhelper arg)) with
   [] -> C_void
@@ -1650,6 +1734,12 @@ let _MembershipAxiom_isNonexec arg = match _MembershipAxiom_isNonexec_f ((fnhelp
 | lst -> C_list lst ;;
 external _MembershipAxiom_getLabel_f : c_obj list -> c_obj list = "_wrap_MembershipAxiom_getLabelmaude" ;;
 let _MembershipAxiom_getLabel arg = match _MembershipAxiom_getLabel_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _MembershipAxiom_to_string_f : c_obj list -> c_obj list = "_wrap_MembershipAxiom_to_stringmaude" ;;
+let _MembershipAxiom_to_string arg = match _MembershipAxiom_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -1789,6 +1879,12 @@ let _Symbol_getIdHooks arg = match _Symbol_getIdHooks_f ((fnhelper arg)) with
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _Symbol_to_string_f : c_obj list -> c_obj list = "_wrap_Symbol_to_stringmaude" ;;
+let _Symbol_to_string arg = match _Symbol_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _Symbol_getLineNumber_f : c_obj list -> c_obj list = "_wrap_Symbol_getLineNumbermaude" ;;
 let _Symbol_getLineNumber arg = match _Symbol_getLineNumber_f ((fnhelper arg)) with
   [] -> C_void
@@ -1867,6 +1963,12 @@ let _Rule_getCondition arg = match _Rule_getCondition_f ((fnhelper arg)) with
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _Rule_to_string_f : c_obj list -> c_obj list = "_wrap_Rule_to_stringmaude" ;;
+let _Rule_to_string arg = match _Rule_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _Rule_getMetadata_f : c_obj list -> c_obj list = "_wrap_Rule_getMetadatamaude" ;;
 let _Rule_getMetadata arg = match _Rule_getMetadata_f ((fnhelper arg)) with
   [] -> C_void
@@ -1909,6 +2011,12 @@ let _StrategyExpression_equal arg = match _StrategyExpression_equal_f ((fnhelper
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _StrategyExpression_to_string_f : c_obj list -> c_obj list = "_wrap_StrategyExpression_to_stringmaude" ;;
+let _StrategyExpression_to_string arg = match _StrategyExpression_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _RewriteStrategy_getDomain_f : c_obj list -> c_obj list = "_wrap_RewriteStrategy_getDomainmaude" ;;
 let _RewriteStrategy_getDomain arg = match _RewriteStrategy_getDomain_f ((fnhelper arg)) with
   [] -> C_void
@@ -1935,6 +2043,12 @@ let _RewriteStrategy_arity arg = match _RewriteStrategy_arity_f ((fnhelper arg))
 | lst -> C_list lst ;;
 external _RewriteStrategy_getName_f : c_obj list -> c_obj list = "_wrap_RewriteStrategy_getNamemaude" ;;
 let _RewriteStrategy_getName arg = match _RewriteStrategy_getName_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _RewriteStrategy_to_string_f : c_obj list -> c_obj list = "_wrap_RewriteStrategy_to_stringmaude" ;;
+let _RewriteStrategy_to_string arg = match _RewriteStrategy_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -2011,6 +2125,12 @@ let _StrategyDefinition_getLabel arg = match _StrategyDefinition_getLabel_f ((fn
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _StrategyDefinition_to_string_f : c_obj list -> c_obj list = "_wrap_StrategyDefinition_to_stringmaude" ;;
+let _StrategyDefinition_to_string arg = match _StrategyDefinition_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _StrategyDefinition_getMetadata_f : c_obj list -> c_obj list = "_wrap_StrategyDefinition_getMetadatamaude" ;;
 let _StrategyDefinition_getMetadata arg = match _StrategyDefinition_getMetadata_f ((fnhelper arg)) with
   [] -> C_void
@@ -2053,14 +2173,20 @@ let _new_Token arg = match _new_Token_f ((fnhelper arg)) with
 | [x] -> (if true then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
-external _Token_REPR_METHOD_f : c_obj list -> c_obj list = "_wrap_Token_REPR_METHODmaude" ;;
-let _Token_REPR_METHOD arg = match _Token_REPR_METHOD_f ((fnhelper arg)) with
+external _Token_to_string_f : c_obj list -> c_obj list = "_wrap_Token_to_stringmaude" ;;
+let _Token_to_string arg = match _Token_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
 external _delete_Token_f : c_obj list -> c_obj list = "_wrap_delete_Tokenmaude" ;;
 let _delete_Token arg = match _delete_Token_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _ConditionFragment_to_string_f : c_obj list -> c_obj list = "_wrap_ConditionFragment_to_stringmaude" ;;
+let _ConditionFragment_to_string arg = match _ConditionFragment_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -2089,6 +2215,12 @@ let _EqualityCondition_getRhs arg = match _EqualityCondition_getRhs_f ((fnhelper
 | [x] -> (if true then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _EqualityCondition_to_string_f : c_obj list -> c_obj list = "_wrap_EqualityCondition_to_stringmaude" ;;
+let _EqualityCondition_to_string arg = match _EqualityCondition_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _delete_EqualityCondition_f : c_obj list -> c_obj list = "_wrap_delete_EqualityConditionmaude" ;;
 let _delete_EqualityCondition arg = match _delete_EqualityCondition_f ((fnhelper arg)) with
   [] -> C_void
@@ -2111,6 +2243,12 @@ external _AssignmentCondition_getRhs_f : c_obj list -> c_obj list = "_wrap_Assig
 let _AssignmentCondition_getRhs arg = match _AssignmentCondition_getRhs_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if true then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _AssignmentCondition_to_string_f : c_obj list -> c_obj list = "_wrap_AssignmentCondition_to_stringmaude" ;;
+let _AssignmentCondition_to_string arg = match _AssignmentCondition_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
 external _delete_AssignmentCondition_f : c_obj list -> c_obj list = "_wrap_delete_AssignmentConditionmaude" ;;
@@ -2137,6 +2275,12 @@ let _RewriteCondition_getRhs arg = match _RewriteCondition_getRhs_f ((fnhelper a
 | [x] -> (if true then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _RewriteCondition_to_string_f : c_obj list -> c_obj list = "_wrap_RewriteCondition_to_stringmaude" ;;
+let _RewriteCondition_to_string arg = match _RewriteCondition_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _delete_RewriteCondition_f : c_obj list -> c_obj list = "_wrap_delete_RewriteConditionmaude" ;;
 let _delete_RewriteCondition arg = match _delete_RewriteCondition_f ((fnhelper arg)) with
   [] -> C_void
@@ -2159,6 +2303,12 @@ external _SortTestCondition_getSort_f : c_obj list -> c_obj list = "_wrap_SortTe
 let _SortTestCondition_getSort arg = match _SortTestCondition_getSort_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if true then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _SortTestCondition_to_string_f : c_obj list -> c_obj list = "_wrap_SortTestCondition_to_stringmaude" ;;
+let _SortTestCondition_to_string arg = match _SortTestCondition_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
 external _delete_SortTestCondition_f : c_obj list -> c_obj list = "_wrap_delete_SortTestConditionmaude" ;;
@@ -2345,8 +2495,8 @@ let _StrategyGraphTransition_getStrategy arg = match _StrategyGraphTransition_ge
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
-external _StrategyGraphTransition_REPR_METHOD_f : c_obj list -> c_obj list = "_wrap_StrategyGraphTransition_REPR_METHODmaude" ;;
-let _StrategyGraphTransition_REPR_METHOD arg = match _StrategyGraphTransition_REPR_METHOD_f ((fnhelper arg)) with
+external _StrategyGraphTransition_to_string_f : c_obj list -> c_obj list = "_wrap_StrategyGraphTransition_to_stringmaude" ;;
+let _StrategyGraphTransition_to_string arg = match _StrategyGraphTransition_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -2530,6 +2680,12 @@ let _Term_prettyPrint arg = match _Term_prettyPrint_f ((fnhelper arg)) with
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _Term_to_string_f : c_obj list -> c_obj list = "_wrap_Term_to_stringmaude" ;;
+let _Term_to_string arg = match _Term_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _StrategicSearch_getRewriteCount_f : c_obj list -> c_obj list = "_wrap_StrategicSearch_getRewriteCountmaude" ;;
 let _StrategicSearch_getRewriteCount arg = match _StrategicSearch_getRewriteCount_f ((fnhelper arg)) with
   [] -> C_void
@@ -2588,6 +2744,12 @@ external _Substitution_iterator_f : c_obj list -> c_obj list = "_wrap_Substituti
 let _Substitution_iterator arg = match _Substitution_iterator_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if true then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _Substitution_to_string_f : c_obj list -> c_obj list = "_wrap_Substitution_to_stringmaude" ;;
+let _Substitution_to_string arg = match _Substitution_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
 external _delete_Substitution_f : c_obj list -> c_obj list = "_wrap_delete_Substitutionmaude" ;;
@@ -3035,6 +3197,12 @@ let _Module_variant_match arg = match _Module_variant_match_f ((fnhelper arg)) w
 | [x] -> (if true then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
 | lst -> C_list lst ;;
+external _Module_to_string_f : c_obj list -> c_obj list = "_wrap_Module_to_stringmaude" ;;
+let _Module_to_string arg = match _Module_to_string_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
 external _UnificationProblem___next_f : c_obj list -> c_obj list = "_wrap_UnificationProblem___nextmaude" ;;
 let _UnificationProblem___next arg = match _UnificationProblem___next_f ((fnhelper arg)) with
   [] -> C_void
@@ -3079,6 +3247,12 @@ let _View_getFromTheory arg = match _View_getFromTheory_f ((fnhelper arg)) with
 | lst -> C_list lst ;;
 external _View_getToModule_f : c_obj list -> c_obj list = "_wrap_View_getToModulemaude" ;;
 let _View_getToModule arg = match _View_getToModule_f ((fnhelper arg)) with
+  [] -> C_void
+| [x] -> (if false then Gc.finalise 
+  (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+| lst -> C_list lst ;;
+external _View_to_string_f : c_obj list -> c_obj list = "_wrap_View_to_stringmaude" ;;
+let _View_to_string arg = match _View_to_string_f ((fnhelper arg)) with
   [] -> C_void
 | [x] -> (if false then Gc.finalise 
   (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
@@ -4052,6 +4226,7 @@ begin
     "append", _OpDeclVector_append ;
     "clear", _OpDeclVector_clear ;
     "resize", _OpDeclVector_resize ;
+    "to_string", _OpDeclVector_to_string ;
     "~", _delete_OpDeclVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4126,6 +4301,7 @@ begin
     "append", _SortVector_append ;
     "clear", _SortVector_clear ;
     "resize", _SortVector_resize ;
+    "to_string", _SortVector_to_string ;
     "~", _delete_SortVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4200,6 +4376,7 @@ begin
     "append", _SymbolVector_append ;
     "clear", _SymbolVector_clear ;
     "resize", _SymbolVector_resize ;
+    "to_string", _SymbolVector_to_string ;
     "~", _delete_SymbolVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4274,6 +4451,7 @@ begin
     "append", _KindVector_append ;
     "clear", _KindVector_clear ;
     "resize", _KindVector_resize ;
+    "to_string", _KindVector_to_string ;
     "~", _delete_KindVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4348,6 +4526,7 @@ begin
     "append", _SubsortVector_append ;
     "clear", _SubsortVector_clear ;
     "resize", _SubsortVector_resize ;
+    "to_string", _SubsortVector_to_string ;
     "~", _delete_SubsortVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4422,6 +4601,7 @@ begin
     "append", _EquationVector_append ;
     "clear", _EquationVector_clear ;
     "resize", _EquationVector_resize ;
+    "to_string", _EquationVector_to_string ;
     "~", _delete_EquationVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4496,6 +4676,7 @@ begin
     "append", _RuleVector_append ;
     "clear", _RuleVector_clear ;
     "resize", _RuleVector_resize ;
+    "to_string", _RuleVector_to_string ;
     "~", _delete_RuleVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4570,6 +4751,7 @@ begin
     "append", _StratVector_append ;
     "clear", _StratVector_clear ;
     "resize", _StratVector_resize ;
+    "to_string", _StratVector_to_string ;
     "~", _delete_StratVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4644,6 +4826,7 @@ begin
     "append", _StratDefVector_append ;
     "clear", _StratDefVector_clear ;
     "resize", _StratDefVector_resize ;
+    "to_string", _StratDefVector_to_string ;
     "~", _delete_StratDefVector ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4718,6 +4901,7 @@ begin
     "append", _Condition_append ;
     "clear", _Condition_clear ;
     "resize", _Condition_resize ;
+    "to_string", _Condition_to_string ;
     "~", _delete_Condition ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4785,6 +4969,7 @@ begin
 	[ "nop", (fun args -> C_void) ;
 	      "[type]", (fun args -> if args = (C_list [ raw_ptr ]) then _ModuleHeader_type_get args else C_void) ;
     "[name]", (fun args -> if args = (C_list [ raw_ptr ]) then _ModuleHeader_name_get args else C_void) ;
+    "to_string", _ModuleHeader_to_string ;
     "~", _delete_ModuleHeader ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -4924,6 +5109,7 @@ begin
     "isVariant", _Equation_isVariant ;
     "hasCondition", _Equation_hasCondition ;
     "getCondition", _Equation_getCondition ;
+    "to_string", _Equation_to_string ;
     "getMetadata", _Equation_getMetadata ;
     "getLineNumber", _Equation_getLineNumber ;
     "hash", _Equation_hash ;
@@ -4999,6 +5185,7 @@ begin
     "getSubsorts", _Sort_getSubsorts ;
     "getSupersorts", _Sort_getSupersorts ;
     "leq", _Sort_leq ;
+    "to_string", _Sort_to_string ;
     "getLineNumber", _Sort_getLineNumber ;
     "hash", _Sort_hash ;
     "equal", _Sort_equal ;
@@ -5073,6 +5260,7 @@ begin
     "nrMaximalSorts", _Kind_nrMaximalSorts ;
     "sort", _Kind_sort ;
     "errorFree", _Kind_errorFree ;
+    "to_string", _Kind_to_string ;
     "hash", _Kind_hash ;
     "equal", _Kind_equal ;
     "~", _delete_Kind ;
@@ -5145,6 +5333,7 @@ begin
     "getCondition", _MembershipAxiom_getCondition ;
     "isNonexec", _MembershipAxiom_isNonexec ;
     "getLabel", _MembershipAxiom_getLabel ;
+    "to_string", _MembershipAxiom_to_string ;
     "getMetadata", _MembershipAxiom_getMetadata ;
     "getLineNumber", _MembershipAxiom_getLineNumber ;
     "hash", _MembershipAxiom_hash ;
@@ -5232,6 +5421,7 @@ begin
     "getFormat", _Symbol_getFormat ;
     "getPrec", _Symbol_getPrec ;
     "getIdHooks", _Symbol_getIdHooks ;
+    "to_string", _Symbol_to_string ;
     "getLineNumber", _Symbol_getLineNumber ;
     "~", _delete_Symbol ;
    "::ModuleItem", (fun args -> (create_class "ModuleItem") args) ;
@@ -5374,6 +5564,7 @@ begin
     "isNonexec", _Rule_isNonexec ;
     "hasCondition", _Rule_hasCondition ;
     "getCondition", _Rule_getCondition ;
+    "to_string", _Rule_to_string ;
     "getMetadata", _Rule_getMetadata ;
     "getLineNumber", _Rule_getLineNumber ;
     "hash", _Rule_hash ;
@@ -5447,6 +5638,7 @@ begin
 	[ "nop", (fun args -> C_void) ;
 	      "~", _delete_StrategyExpression ;
     "equal", _StrategyExpression_equal ;
+    "to_string", _StrategyExpression_to_string ;
  
 	 "&", (fun args -> raw_ptr) ;
        ":parents",
@@ -5516,6 +5708,7 @@ begin
     "getDefinitions", _RewriteStrategy_getDefinitions ;
     "arity", _RewriteStrategy_arity ;
     "getName", _RewriteStrategy_getName ;
+    "to_string", _RewriteStrategy_to_string ;
     "getMetadata", _RewriteStrategy_getMetadata ;
     "getLineNumber", _RewriteStrategy_getLineNumber ;
     "hash", _RewriteStrategy_hash ;
@@ -5594,6 +5787,7 @@ begin
     "hasCondition", _StrategyDefinition_hasCondition ;
     "getCondition", _StrategyDefinition_getCondition ;
     "getLabel", _StrategyDefinition_getLabel ;
+    "to_string", _StrategyDefinition_to_string ;
     "getMetadata", _StrategyDefinition_getMetadata ;
     "getLineNumber", _StrategyDefinition_getLineNumber ;
     "hash", _StrategyDefinition_hash ;
@@ -5666,7 +5860,7 @@ begin
     List.iter (fun (nm,fn) -> Hashtbl.replace h nm fn) 
 	[ "nop", (fun args -> C_void) ;
 	      "name", _Token_name ;
-    "REPR_METHOD", _Token_REPR_METHOD ;
+    "to_string", _Token_to_string ;
     "~", _delete_Token ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -5732,7 +5926,8 @@ begin
   let h = Hashtbl.create 20 in
     List.iter (fun (nm,fn) -> Hashtbl.replace h nm fn) 
 	[ "nop", (fun args -> C_void) ;
-	      "~", _delete_ConditionFragment ;
+	      "to_string", _ConditionFragment_to_string ;
+    "~", _delete_ConditionFragment ;
  
 	 "&", (fun args -> raw_ptr) ;
        ":parents",
@@ -5799,6 +5994,7 @@ begin
 	[ "nop", (fun args -> C_void) ;
 	      "getLhs", _EqualityCondition_getLhs ;
     "getRhs", _EqualityCondition_getRhs ;
+    "to_string", _EqualityCondition_to_string ;
     "~", _delete_EqualityCondition ;
    "::ConditionFragment", (fun args -> (create_class "ConditionFragment") args) ;
  
@@ -5868,6 +6064,7 @@ begin
 	[ "nop", (fun args -> C_void) ;
 	      "getLhs", _AssignmentCondition_getLhs ;
     "getRhs", _AssignmentCondition_getRhs ;
+    "to_string", _AssignmentCondition_to_string ;
     "~", _delete_AssignmentCondition ;
    "::ConditionFragment", (fun args -> (create_class "ConditionFragment") args) ;
  
@@ -5937,6 +6134,7 @@ begin
 	[ "nop", (fun args -> C_void) ;
 	      "getLhs", _RewriteCondition_getLhs ;
     "getRhs", _RewriteCondition_getRhs ;
+    "to_string", _RewriteCondition_to_string ;
     "~", _delete_RewriteCondition ;
    "::ConditionFragment", (fun args -> (create_class "ConditionFragment") args) ;
  
@@ -6006,6 +6204,7 @@ begin
 	[ "nop", (fun args -> C_void) ;
 	      "getLhs", _SortTestCondition_getLhs ;
     "getSort", _SortTestCondition_getSort ;
+    "to_string", _SortTestCondition_to_string ;
     "~", _delete_SortTestCondition ;
    "::ConditionFragment", (fun args -> (create_class "ConditionFragment") args) ;
  
@@ -6291,7 +6490,7 @@ begin
 	      "getType", _StrategyGraphTransition_getType ;
     "getRule", _StrategyGraphTransition_getRule ;
     "getStrategy", _StrategyGraphTransition_getStrategy ;
-    "REPR_METHOD", _StrategyGraphTransition_REPR_METHOD ;
+    "to_string", _StrategyGraphTransition_to_string ;
     "~", _delete_StrategyGraphTransition ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -6383,6 +6582,7 @@ begin
     "hash", _Term_hash ;
     "copy", _Term_copy ;
     "prettyPrint", _Term_prettyPrint ;
+    "to_string", _Term_to_string ;
  
 	 "&", (fun args -> raw_ptr) ;
        ":parents",
@@ -6520,6 +6720,7 @@ begin
     "find", _Substitution_find ;
     "instantiate", _Substitution_instantiate ;
     "iterator", _Substitution_iterator ;
+    "to_string", _Substitution_to_string ;
     "~", _delete_Substitution ;
  
 	 "&", (fun args -> raw_ptr) ;
@@ -7169,6 +7370,7 @@ begin
     "unify", _Module_unify ;
     "variant_unify", _Module_variant_unify ;
     "variant_match", _Module_variant_match ;
+    "to_string", _Module_to_string ;
  
 	 "&", (fun args -> raw_ptr) ;
        ":parents",
@@ -7369,6 +7571,7 @@ begin
 	[ "nop", (fun args -> C_void) ;
 	      "getFromTheory", _View_getFromTheory ;
     "getToModule", _View_getToModule ;
+    "to_string", _View_to_string ;
     "~", _delete_View ;
  
 	 "&", (fun args -> raw_ptr) ;
