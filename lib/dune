@@ -1,3 +1,3 @@
 (library
  (name prowl)
- (libraries batteries metadata syntax))
+ (libraries batteries metadata syntax maude_ocaml))

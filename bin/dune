@@ -1,4 +1,5 @@
 (executable
  (public_name prowl)
  (name main)
- (libraries prowl))
+ (libraries prowl)
+ (flags -cclib "-L/home/pyro/prowl/shared -lbind -lgmp"))
