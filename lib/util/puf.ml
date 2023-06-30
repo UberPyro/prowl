@@ -32,5 +32,10 @@ module Make(Elem : Map.OrderedType) = struct
       rank_map = update_stdlib py 
         (fun[@warning "-8"] (Some i) -> Some (i + 1)) t.rank_map;
     }
+  
+  let mk xs = {
+    parent_map=xs |> List.enum |> Enum.map (fun x -> x, x) |> ElemMap.of_enum;
+    rank_map=xs |> List.enum |> Enum.map (fun x -> x, 0) |> ElemMap.of_enum;
+  }
 
 end
