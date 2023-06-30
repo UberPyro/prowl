@@ -1,6 +1,6 @@
-type 'a t
+type t
 
-val search : 'a -> 'a t -> 'a
-val merge : 'a -> 'a -> 'a t -> 'a t
-val empty : 'a t
-val add : 'a -> 'a t -> 'a t
+val search : int -> t -> int
+val merge : int -> int -> t -> t
+val empty : t
+val add : int -> t -> t
