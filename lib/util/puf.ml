@@ -1,12 +1,11 @@
 (* http://fhur.github.io/data-structure/clojure/2016/04/01/implementing-immutable-union-find-with-clojure.html *)
 open! Batteries
+open Map
 
 type 'a t = {
   parent_map : ('a, 'a) Map.t;
   rank_map : ('a, int) Map.t;
 }
-
-open Map
 
 let parent x t = find x t.parent_map
 let rank x t = find x t.rank_map
