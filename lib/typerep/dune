@@ -1,4 +1,0 @@
-(library
- (name typerep)
- (libraries batteries metadata)
- (preprocess (pps ppx_deriving.show)))

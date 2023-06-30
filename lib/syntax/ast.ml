@@ -1,7 +1,8 @@
 open Metadata
-open Typerep
 
-type expr = _expr * Span.t * Data.fn
+type fn = unit [@@deriving show]  (* TEMP *)
+
+type expr = _expr * Span.t * fn
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr
@@ -40,6 +41,8 @@ and uop =
   | Mark
   | Plus
   | Star
+  | Apply
+  | Induce
 
 (* dataflow operators *)
 and dop = 
