@@ -1,6 +1,6 @@
 open Metadata
 
-type expr = _expr * Span.t * int
+type expr = _expr * Span.t * (int * int * int)
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr

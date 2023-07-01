@@ -49,6 +49,9 @@ let show_term t =
   |> Maude._Term_prettyPrint
   |> function[@warning "-8"] C_string s -> s
 
+let term_sort t = 
+  match[@warning "-8"] Maude._Sort_to_string @@ Maude._Term_getSort t with
+  | C_string s -> s
 
 (* term building *)
 type symbol = Maude.c_enum_value Swig.c_obj_t
