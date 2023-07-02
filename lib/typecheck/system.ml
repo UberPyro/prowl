@@ -92,8 +92,3 @@ and sub var term tyst = match term_sort term with
   | s -> 
     let msg = Printf.sprintf "System.sub : Unrecognized sort [%s]" s in
     raise @@ Invalid_argument msg
-
-
-
-(* parse & print variable names - 12 <-> C12  [done] *)
-(* terms have variables! - deconstruction *)
