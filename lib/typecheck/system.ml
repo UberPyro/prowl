@@ -32,15 +32,68 @@ let pretty_value_var = Int.to_string %> (^) "V"
 let pretty_stack_var = Int.to_string %> (^) "S"
 let pretty_costack_var = Int.to_string %> (^) "C"
 
-(* let unify_distack d1 d2 s = 
-  let* t = unify distack_mod (distack_to_term d1) (distack_to_term d2) in
-  List.fold_left begin fun s_acc (var, term) -> 
-    match term_sort term with
-    | "C" -> 
-      let distack, s_acc_2 = term_to_distack term s_acc
-      and costack_var = parse_var var in
-      Puf.get costack_var
-  end s t *)
+let rec distack_to_term d = 
+  List.fold_left begin fun t -> function
+    | Elem s -> build_op "stack" symap [t; stack_to_term s]
+    | SeqVar i -> build_var (pretty_costack_var i) "C"
+  end (build_op "void" symap []) d
+
+and stack_to_term s = 
+  List.fold_left begin fun t -> function
+    | Elem v -> build_op "value" symap [t; value_to_term v]
+    | SeqVar i -> build_var (pretty_stack_var i) "S"
+  end (build_op "empty" symap []) s
+
+and value_to_term = function
+  | Int -> build_op "int" symap []
+  | String -> build_op "str" symap []
+  | List fn -> build_op "lst" symap [fn_to_term fn]
+  | Quote fn -> build_op "quo" symap [fn_to_term fn]
+  | Var i -> build_var (pretty_value_var i) "V"
+
+and fn_to_term t = 
+  let h, j, k = Tuple3.mapn distack_to_term t in
+  build_op "fn" symap [h; j; k]
+
+let term_to_distack _ _ = failwith "todo"
+
+and term_to_stack _ _ = failwith "todo"
+
+and term_to_value _ _ = failwith "todo"
+
+let rec unify_distack d1 d2 s = 
+  let+ t = unify distack_mod (distack_to_term d1) (distack_to_term d2) in
+  sub_fold s t
+
+and unify_stack s1 s2 s = 
+  let+ t = unify distack_mod (stack_to_term s1) (stack_to_term s2) in
+  sub_fold s t
+
+and unify_value v1 v2 s = 
+  let+ t = unify distack_mod (value_to_term v1) (value_to_term v2) in
+  sub_fold s t
+
+and sub_fold tyst = 
+  List.fold_left (fun tyst_acc (var, term) -> sub var term tyst_acc) tyst
+
+and sub var term tyst = match term_sort term with
+  | "C" -> 
+    let distack, tyst_linked = term_to_distack term tyst
+    and costack_var = parse_var var in
+    Puf.set costack_var distack tyst_linked
+  | "S" -> 
+    let stack, tyst_linked = term_to_stack term tyst
+    and stack_var = parse_var var in
+    Puf.set stack_var stack tyst_linked
+  | "V" -> 
+    let value, tyst_linked = term_to_value term tyst
+    and value_var = parse_var var in
+    Puf.set value_var value tyst_linked
+  | s -> 
+    let msg = Printf.sprintf "System.sub : Unrecognized sort [%s]" s in
+    raise @@ Invalid_argument msg
+
+
 
 (* parse & print variable names - 12 <-> C12  [done] *)
 (* terms have variables! - deconstruction *)

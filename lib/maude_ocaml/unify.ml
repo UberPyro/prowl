@@ -71,11 +71,13 @@ let mk_symmap m =
     Map.add k x xs
   end Map.empty syms
 
-let build name symmap ts = 
+let build_op name symmap ts = 
   let sym = Map.find name symmap in
   Maude._Symbol_makeTerm @@ C_list [sym; C_list ts]
 
-let break t = 
+let build_var _name _sort = failwith "todo on maude side"
+
+let break_term t = 
   let ai = Maude._Term_arguments t in
   let[@warning "-8"] (C_string s) = Maude._Term_symbol t in
   let ts = List.unfold ai @@ fun it -> 
@@ -86,6 +88,14 @@ let break t =
       x
     else None in
   s, ts
+
+let break_var = 
+  Maude._Term_getVarName %> function[@warning "-8"] C_string s -> s
+
+let break t = 
+  let[@warning "-8"] (C_bool c) = Maude._Term_isVariable t in
+  if c then Either.Left (break_var t)
+  else Either.Right (break_term t)
 
 (* let rec you_are_a = function
 | Swig.C_void -> print_endline "void"

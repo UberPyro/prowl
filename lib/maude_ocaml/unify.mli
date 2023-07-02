@@ -16,5 +16,6 @@ val expose_term : term -> Maude.c_enum_value Swig.c_obj_t
 type symbol
 
 val mk_symmap : fmod -> (string, symbol) Map.t
-val build : string -> (string, symbol) Map.t -> term list -> term
-val break : term -> string * term list
+val build_op : string -> (string, symbol) Map.t -> term list -> term
+val build_var : string -> string -> term
+val break : term -> (string, string * term list) Either.t
