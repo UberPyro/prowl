@@ -96,5 +96,7 @@ and sub var term tyst = match term_sort term with
     let msg = Printf.sprintf "System.sub : Unrecognized sort [%s]" s in
     raise @@ Invalid_argument msg *)
 
-(* let rec unify_distack d1 d2 puf = 
-  Nuf.merge *)
+(* let rec unify_distack d1 d2 puf0 = 
+  Nuf.merge begin fun c1 c2 puf ->
+    subs (unify distack_mod c1 c2) puf
+  end d1 d2 puf0 *)
