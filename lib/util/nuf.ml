@@ -20,17 +20,18 @@ let rec search x t = match find x @@ fst t with
 
 let search_all x = List.map (search x)
 
-let merge sel x y t = 
-  let ix, vx = search x t
-  and iy, vy = search y t in
-  if ix = iy then [t]
-  else let+ v = sel vx vy in
-    match Stdlib.compare (find x @@ snd t) (find y @@ snd t) with
+let merge sel x y puf = 
+  let ix, vx = search x puf
+  and iy, vy = search y puf in
+  let+ v, t = sel vx vy puf in  (* relax in spec? *)
+  if ix = iy then t
+  else match Stdlib.compare (find x @@ snd t) (find y @@ snd t) with
     | 1 -> map1 (add iy (Right ix) % add ix (Left v)) t
     | -1 -> map1 (add ix (Right iy) % add iy (Left v)) t
     | _ -> map (add ix (Right iy) % add iy (Left v)) (modify iy succ) t
 
 let (<|>) = (@)
+let pure puf = [puf]
 
 let empty = empty, empty
 let add_det x v = map (add x (Left v)) (add x 0)

@@ -18,10 +18,15 @@ and value =
   | Var of int
 and fn = distack * distack * distack
 
-type tyst = (distack Puf.t * value seq Puf.t * value Puf.t) list
+type tyst = tysum Nuf.t
+and tysum = 
+  | C of distack
+  | S of value seq
+  | V of value
 
-let (let*) x f = List.map f x |> List.flatten
-let (let+) x f = List.map f x
+let[@warning "-8"] get_distack (C d) = d
+let[@warning "-8"] get_stack (S s) = s
+let[@warning "-8"] get_value (V v) = v
 
 (* note: always runs... *)
 let distack_mod = parse_mod Distack.prog "DISTACK"
@@ -56,12 +61,10 @@ and fn_to_term t =
   build_op "fn" symap [h; j; k]
 
 let term_to_distack _ _ = failwith "todo"
-
 and term_to_stack _ _ = failwith "todo"
-
 and term_to_value _ _ = failwith "todo"
 
-let rec unify_distack d1 d2 s = 
+(* let rec unify_distack d1 d2 s = 
   let+ t = unify distack_mod (distack_to_term d1) (distack_to_term d2) in
   sub_fold s t
 
@@ -91,4 +94,7 @@ and sub var term tyst = match term_sort term with
     Puf.set value_var value tyst_linked
   | s -> 
     let msg = Printf.sprintf "System.sub : Unrecognized sort [%s]" s in
-    raise @@ Invalid_argument msg
+    raise @@ Invalid_argument msg *)
+
+(* let rec unify_distack d1 d2 puf = 
+  Nuf.merge *)
