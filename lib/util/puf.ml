@@ -25,4 +25,4 @@ let merge sel x y t =
     | _ -> map (add ix (Right iy) % add iy new_rep) (modify iy succ) t
 
 let empty = empty, empty
-let add x v = map (add x v) (add x 0)
+let add x v = map (add x (Left v)) (add x 0)
