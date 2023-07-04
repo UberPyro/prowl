@@ -30,6 +30,15 @@ let merge sel x y puf =
     | -1 -> map1 (add ix (Right iy) % add iy (Left v)) t
     | _ -> map (add ix (Right iy) % add iy (Left v)) (modify iy succ) t
 
+let update_det x f puf = 
+  let i, v = search x puf in
+  map1 (add i (Left (f v))) puf
+
+let update_nondet x f puf = 
+  let i, v1 = search x puf in
+  let+ v2 = f v1 in
+  map1 (add i (Left v2)) puf
+
 let (<|>) = (@)
 let pure puf = [puf]
 

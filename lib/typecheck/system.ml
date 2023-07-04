@@ -15,7 +15,7 @@ and value =
   | Int | String
   | List of fn
   | Quote of fn
-  | Var of int
+  | Var of int  (* physical *)
 and fn = distack * distack * distack
 
 type tyst = tysum Nuf.t
