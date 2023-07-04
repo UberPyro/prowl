@@ -228,7 +228,7 @@ let comb_push i v p0 =
 let comb_costack_push i s p0 = 
   let[@warning "-8"] _, (C d) = Nuf.search i p0 in
   let nu = unique () in
-  nu, Nuf.add_det nu (C (d @ [Elem s]))
+  nu, Nuf.add_det nu (C (d @ [Elem s])) p0
 
 (* let fn_exact_1 v p0 = 
   let nu1 = unique () in
