@@ -8,7 +8,7 @@ open Nuf
 open System
 
 let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
-  | Bop ((_, _, (i1, l1, o1) as left), Aop _, (_, _, (i2, l2, o2) as right)) -> 
+  | Bop ((_, _, (i1, _, o1) as left), Aop _, (_, _, (i2, _, o2) as right)) -> 
     let input, p1 = mk_unit_comb p0 in
     let output, p2 = comb_exact_1 Int p1 in
     let poly, p3 = mk_poly_poly p2 in
@@ -20,12 +20,10 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb o1 output
     >>= unify_comb o2 output
     >>= unify_comb l0 poly
-    >>= unify_comb l1 input
-    >>= unify_comb l2 input
     >>= infer ctx left
     >>= infer ctx right
   
-  | Bop ((_, _, (i1, l1, o1) as left), Cop _, (_, _, (i2, l2, o2) as right)) -> 
+  | Bop ((_, _, (i1, _, o1) as left), Cop _, (_, _, (i2, _, o2) as right)) -> 
     let input, p1 = mk_unit_comb p0 in
     let output, p2 = comb_exact_1 Int p1 in
     let poly, p3 = mk_poly_comb p2 in
@@ -40,8 +38,6 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb o1 output
     >>= unify_comb o2 output
     >>= unify_comb l0 poly_stacked
-    >>= unify_comb l1 input
-    >>= unify_comb l2 input
     >>= infer ctx left
     >>= infer ctx right
   
