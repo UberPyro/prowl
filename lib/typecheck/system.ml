@@ -178,6 +178,15 @@ let mk_poly_comb puf =
   let nu = unique () in
   nu, Nuf.add_det nu (C [SeqVar nu; Elem []]) puf
 
+let mk_poly_poly p0 = 
+  let nu1 = unique () in
+  let nu2 = unique () in
+  let nu3 = unique () in
+  Nuf.add_det nu1 (S [SeqVar nu1]) p0
+  |> Nuf.add_det nu2 (C [SeqVar nu2])
+  |> Nuf.add_det nu3 (C [SeqVar nu2; Elem [SeqVar nu1]])
+  |> fun p1 -> nu3, p1
+
 (* let mk_polyfn p0 = 
   let d1, p1 = mk_poly_comb p0 in
   let d2, p2 = mk_poly_comb p1 in
@@ -204,14 +213,22 @@ let comb_exact_2 v1 v2 puf =
   let nu = unique () in
   nu, Nuf.add_det nu (C [Elem [Elem v1; Elem v2]]) puf
 
-(* not helpful *)
-let comb_poly_1 v puf = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (C [SeqVar nu; Elem [Elem v]]) puf
+let comb_poly_1 v p0 = 
+  let nu1 = unique () in
+  let nu2 = unique () in
+  Nuf.add_det nu1 (C [SeqVar nu1; Elem []]) p0
+  |> Nuf.add_det nu2 (C [SeqVar nu1; Elem [Elem v]])
+  |> fun p1 -> nu1, nu2, p1
 
-let comb_poly_2 v1 v2 puf = 
+let comb_push i v p0 = 
+  let[@warning "-8"] _, (C d) = Nuf.search i p0 in
   let nu = unique () in
-  nu, Nuf.add_det nu (C [SeqVar nu; Elem [Elem v1; Elem v2]]) puf
+  nu, Nuf.add_det nu (C (d @ [Elem [Elem v]])) p0
+
+let comb_costack_push i s p0 = 
+  let[@warning "-8"] _, (C d) = Nuf.search i p0 in
+  let nu = unique () in
+  nu, Nuf.add_det nu (C (d @ [Elem s]))
 
 (* let fn_exact_1 v p0 = 
   let nu1 = unique () in
