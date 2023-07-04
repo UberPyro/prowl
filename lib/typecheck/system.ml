@@ -1,4 +1,6 @@
 open! Batteries
+open Either
+open Printf
 (* open Tuple3 *)
 
 open Maude_ocaml
@@ -24,18 +26,14 @@ and tysum =
   | S of value seq
   | V of value
 
-let[@warning "-8"] get_distack (C d) = d
-let[@warning "-8"] get_stack (S s) = s
-let[@warning "-8"] get_value (V v) = v
-
 (* note: always runs... *)
 let distack_mod = parse_mod Distack.prog "DISTACK"
 let symap = mk_symmap distack_mod
 
 let parse_var s = String.sub s 1 (String.length s - 1) |> String.to_int
-let pretty_value_var = Int.to_string %> (^) "V"
-let pretty_stack_var = Int.to_string %> (^) "S"
-let pretty_costack_var = Int.to_string %> (^) "C"
+let pretty_value_var = sprintf "V%d:V"
+let pretty_stack_var = sprintf "S%d:S"
+let pretty_costack_var = sprintf "C%d:C"
 
 let rec distack_to_term d = 
   List.fold_left begin fun t -> function
@@ -60,43 +58,106 @@ and fn_to_term t =
   let h, j, k = Tuple3.mapn distack_to_term t in
   build_op "fn" symap [h; j; k]
 
-let term_to_distack _ _ = failwith "todo"
-and term_to_stack _ _ = failwith "todo"
-and term_to_value _ _ = failwith "todo"
+let create_tracker () = Hashtbl.create 16
 
-(* let rec unify_distack d1 d2 s = 
-  let+ t = unify distack_mod (distack_to_term d1) (distack_to_term d2) in
-  sub_fold s t
+let process wrap m puf k = match Hashtbl.find_option m k with
+  | Some v -> v, puf
+  | None -> 
+    let nu = unique () in
+    Hashtbl.add m k nu;
+    nu, Nuf.add_det nu (wrap nu) puf
 
-and unify_stack s1 s2 s = 
-  let+ t = unify distack_mod (stack_to_term s1) (stack_to_term s2) in
-  sub_fold s t
+let process_distack m = process (fun x -> C [SeqVar x]) m
+let process_stack m = process (fun x -> S [SeqVar x]) m
+let process_value m = process (fun x -> V (Var x)) m
 
-and unify_value v1 v2 s = 
-  let+ t = unify distack_mod (value_to_term v1) (value_to_term v2) in
-  sub_fold s t
+let rec term_to_distack tbl term tyst = match break term with
+  | Left s -> 
+    let i, puf = process_distack tbl tyst s in
+    [SeqVar i], puf
+  | Right ("stack", [s]) -> 
+    let stack, linked = term_to_stack tbl s tyst in
+    [Elem stack], linked
+  | Right ("+", [d1; d2]) -> 
+    let distack1, linked1 = term_to_distack tbl d2 tyst in
+    let distack2, linked2 = term_to_distack tbl d1 linked1 in
+    distack1 @ distack2, linked2
+  | Right (s, lst) -> 
+    sprintf "term_to_distack: Operator [%s] with %d arguments" s (List.length lst)
+    |> failwith
+and term_to_stack tbl term tyst = match break term with
+  | Left s -> 
+    let i, puf = process_stack tbl tyst s in
+    [SeqVar i], puf
+  | Right ("value", [v]) -> 
+    let value, linked = term_to_value tbl v tyst in
+    [Elem value], linked
+  | Right ("*", [s1; s2]) -> 
+    let stack1, linked1 = term_to_stack tbl s2 tyst in
+    let stack2, linked2 = term_to_stack tbl s1 linked1 in
+    stack1 @ stack2, linked2
+  | Right (s, lst) -> 
+    sprintf "term_to_stack: Operator [%s] with %d arguments" s (List.length lst)
+    |> failwith
+and term_to_value tbl term tyst = match break term with
+  | Left v -> 
+    let i, puf = process_value tbl tyst v in
+    Var i, puf
+  | Right ("int", []) -> Int, tyst
+  | Right ("str", []) -> String, tyst
+  | Right ("lst", [fn]) -> 
+    let x, puf = term_to_fn tbl fn tyst in
+    List x, puf
+  | Right ("quo", [fn]) -> 
+    let x, puf = term_to_fn tbl fn tyst in
+    Quote x, puf
+  | Right (s, lst) -> 
+    sprintf "term_to_value: Operator [%s] with %d arguments" s (List.length lst)
+    |> failwith
 
-and sub_fold tyst = 
-  List.fold_left (fun tyst_acc (var, term) -> sub var term tyst_acc) tyst
+and term_to_fn tbl term tyst = match break term with
+  | Left _ -> failwith "term_to_fn: variable"
+  | Right ("fn", [d1; d2; d3]) -> 
+    let c1, l1 = term_to_distack tbl d1 tyst in
+    let c2, l2 = term_to_distack tbl d2 l1 in
+    let c3, l3 = term_to_distack tbl d3 l2 in
+    (c1, c2, c3), l3
+  | Right (s, lst) -> 
+    sprintf "term_to_fn: Operator [%s] with %d arguments" s (List.length lst)
+    |> failwith
 
-and sub var term tyst = match term_sort term with
+let sub tbl var term tyst = match term_sort term with
   | "C" -> 
-    let distack, tyst_linked = term_to_distack term tyst
+    let distack, tyst_linked = term_to_distack tbl term tyst
     and costack_var = parse_var var in
-    Puf.set costack_var distack tyst_linked
+    Nuf.set_det costack_var (C distack) tyst_linked
   | "S" -> 
-    let stack, tyst_linked = term_to_stack term tyst
+    let stack, tyst_linked = term_to_stack tbl term tyst
     and stack_var = parse_var var in
-    Puf.set stack_var stack tyst_linked
+    Nuf.set_det stack_var (S stack) tyst_linked
   | "V" -> 
-    let value, tyst_linked = term_to_value term tyst
+    let value, tyst_linked = term_to_value tbl term tyst
     and value_var = parse_var var in
-    Puf.set value_var value tyst_linked
+    Nuf.set_det value_var (V value) tyst_linked
   | s -> 
     let msg = Printf.sprintf "System.sub : Unrecognized sort [%s]" s in
-    raise @@ Invalid_argument msg *)
+    raise @@ Invalid_argument msg
 
-(* let rec unify_distack d1 d2 puf0 = 
-  Nuf.merge begin fun c1 c2 puf ->
-    subs (unify distack_mod c1 c2) puf
-  end d1 d2 puf0 *)
+let sub_all tyst = 
+  let tbl = create_tracker () in
+  List.fold_left (fun tyst_acc (var, term) -> sub tbl var term tyst_acc) tyst
+
+let unify_distack k = Nuf.merge begin fun[@warning "-8"] (C d1 as c) (C d2) puf -> 
+  unify distack_mod (distack_to_term d1) (distack_to_term d2)
+  |> List.map (fun terms -> c, sub_all puf terms)
+end k
+
+let unify_stack k = Nuf.merge begin fun[@warning "-8"] (S s1 as s) (S s2) puf -> 
+  unify distack_mod (stack_to_term s1) (stack_to_term s2)
+  |> List.map (fun terms -> s, sub_all puf terms)
+end k
+
+let unify_value k = Nuf.merge begin fun[@warning "-8"] (V v1 as v) (V v2) puf -> 
+  unify distack_mod (value_to_term v1) (value_to_term v2)
+  |> List.map (fun terms -> v, sub_all puf terms)
+end k
