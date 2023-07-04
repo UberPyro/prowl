@@ -41,4 +41,80 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= infer ctx left
     >>= infer ctx right
   
+  | SectLeft (Aop _, (_, _, (i1, _, o1) as right)) -> 
+    let poly, p1 = mk_poly_poly p0 in
+    let base, p2 = comb_push poly Int p1 in
+    let input, p3 = mk_unit_comb p2 in
+    let output, p4 = comb_exact_1 Int p3 in
+    unify_comb i0 base p4
+    >>= unify_comb o0 base
+    >>= unify_comb i1 input
+    >>= unify_comb o1 output
+    >>= unify_comb l0 poly
+    >>= infer ctx right
+  
+  | SectLeft (Cop _, (_, _, (i1, _, o1) as right)) -> 
+    let poly, p1 = mk_poly_comb p0 in
+    let poly_stack, p2 = mk_poly_stack p1 in
+    let[@warning "-8"] _, (S poly_stack_deref) = search poly_stack p2 in
+    let poly_stacked, p3 = comb_costack_push poly poly_stack_deref p2 in
+    let poly_2stacked, p4 = comb_costack_push poly_stacked poly_stack_deref p3 in
+    let input, p5 = mk_unit_comb p4 in
+    let output, p6 = comb_exact_1 Int p5 in
+    let poly_stacked_int, p7 = comb_push poly_stacked Int p6 in
+    unify_comb i0 poly_stacked_int p7
+    >>= unify_comb o0 poly_2stacked
+    >>= unify_comb i1 input
+    >>= unify_comb o1 output
+    >>= unify_comb l0 poly_stacked
+    >>= infer ctx right
+  
+  | SectRight ((_, _, (i1, _, o1) as left), Aop _) -> 
+    let poly, p1 = mk_poly_poly p0 in
+    let base, p2 = comb_push poly Int p1 in
+    let input, p3 = mk_unit_comb p2 in
+    let output, p4 = comb_exact_1 Int p3 in
+    unify_comb i0 base p4
+    >>= unify_comb o0 base
+    >>= unify_comb i1 input
+    >>= unify_comb o1 output
+    >>= unify_comb l0 poly
+    >>= infer ctx left
+  
+  | SectRight ((_, _, (i1, _, o1) as left), Cop _) -> 
+    let poly, p1 = mk_poly_comb p0 in
+    let poly_stack, p2 = mk_poly_stack p1 in
+    let[@warning "-8"] _, (S poly_stack_deref) = search poly_stack p2 in
+    let poly_stacked, p3 = comb_costack_push poly poly_stack_deref p2 in
+    let poly_2stacked, p4 = comb_costack_push poly_stacked poly_stack_deref p3 in
+    let input, p5 = mk_unit_comb p4 in
+    let output, p6 = comb_exact_1 Int p5 in
+    let poly_stacked_int, p7 = comb_push poly_stacked Int p6 in
+    unify_comb i0 poly_stacked_int p7
+    >>= unify_comb o0 poly_2stacked
+    >>= unify_comb i1 input
+    >>= unify_comb o1 output
+    >>= unify_comb l0 poly_stacked
+    >>= infer ctx left
+  
+  | Sect Aop _ -> 
+    let poly, p1 = mk_poly_poly p0 in
+    let poly1, p2 = comb_push poly Int p1 in
+    let poly2, p3 = comb_push poly1 Int p2 in
+    unify_comb i0 poly2 p3
+    >>= unify_comb o0 poly1
+    >>= unify_comb l0 poly
+  
+  | Sect Cop _ -> 
+    let stunted, p1 = mk_poly_comb p0 in
+    let poly_stack, p2 = mk_poly_stack p1 in
+    let[@warning "-8"] _, (S poly_stack_deref) = search poly_stack p2 in
+    let stack, p3 = comb_costack_push stunted poly_stack_deref p2 in
+    let stack_double, p4 = comb_costack_push stack poly_stack_deref p3 in
+    let stack_int, p5 = comb_push stack Int p4 in
+    let stack_int_int, p6 = comb_push stack_int Int p5 in
+    unify_comb i0 stack_int_int p6
+    >>= unify_comb o0 stack_double
+    >>= unify_comb l0 stack
+  
   | _ -> failwith "todo"
