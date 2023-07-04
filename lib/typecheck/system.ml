@@ -8,7 +8,7 @@ open Unify
 
 open Util
 
-type distack = value seq seq
+type comb = value seq seq
 and 'a seq = 'a seq_t list
 and 'a seq_t = 
   | Elem of 'a
@@ -18,24 +18,24 @@ and value =
   | List of fn
   | Quote of fn
   | Var of int  (* physical *)
-and fn = distack * distack * distack
+and fn = comb * comb * comb
 
 type tyst = tysum Nuf.t
 and tysum = 
-  | C of distack
+  | C of comb
   | S of value seq
   | V of value
 
 (* note: always runs... *)
-let distack_mod = parse_mod Distack.prog "DISTACK"
-let symap = mk_symmap distack_mod
+let comb_mod = parse_mod Distack.prog "DISTACK"
+let symap = mk_symmap comb_mod
 
 let parse_var s = String.sub s 1 (String.length s - 1) |> String.to_int
 let pretty_value_var = sprintf "V%d:V"
 let pretty_stack_var = sprintf "S%d:S"
 let pretty_costack_var = sprintf "C%d:C"
 
-let rec distack_to_term d = 
+let rec comb_to_term d = 
   List.fold_left begin fun t -> function
     | Elem s -> build_op "stack" symap [t; stack_to_term s]
     | SeqVar i -> build_var (pretty_costack_var i) "C"
@@ -55,7 +55,7 @@ and value_to_term = function
   | Var i -> build_var (pretty_value_var i) "V"
 
 and fn_to_term t = 
-  let h, j, k = Tuple3.mapn distack_to_term t in
+  let h, j, k = Tuple3.mapn comb_to_term t in
   build_op "fn" symap [h; j; k]
 
 let create_tracker () = Hashtbl.create 16
@@ -67,23 +67,23 @@ let process wrap m puf k = match Hashtbl.find_option m k with
     Hashtbl.add m k nu;
     nu, Nuf.add_det nu (wrap nu) puf
 
-let process_distack m = process (fun x -> C [SeqVar x]) m
+let process_comb m = process (fun x -> C [SeqVar x]) m
 let process_stack m = process (fun x -> S [SeqVar x]) m
 let process_value m = process (fun x -> V (Var x)) m
 
-let rec term_to_distack tbl term tyst = match break term with
+let rec term_to_comb tbl term tyst = match break term with
   | Left s -> 
-    let i, puf = process_distack tbl tyst s in
+    let i, puf = process_comb tbl tyst s in
     [SeqVar i], puf
   | Right ("stack", [s]) -> 
     let stack, linked = term_to_stack tbl s tyst in
     [Elem stack], linked
   | Right ("+", [d1; d2]) -> 
-    let distack1, linked1 = term_to_distack tbl d2 tyst in
-    let distack2, linked2 = term_to_distack tbl d1 linked1 in
-    distack1 @ distack2, linked2
+    let comb1, linked1 = term_to_comb tbl d2 tyst in
+    let comb2, linked2 = term_to_comb tbl d1 linked1 in
+    comb1 @ comb2, linked2
   | Right (s, lst) -> 
-    sprintf "term_to_distack: Operator [%s] with %d arguments" s (List.length lst)
+    sprintf "term_to_comb: Operator [%s] with %d arguments" s (List.length lst)
     |> failwith
 and term_to_stack tbl term tyst = match break term with
   | Left s -> 
@@ -118,9 +118,9 @@ and term_to_value tbl term tyst = match break term with
 and term_to_fn tbl term tyst = match break term with
   | Left _ -> failwith "term_to_fn: variable"
   | Right ("fn", [d1; d2; d3]) -> 
-    let c1, l1 = term_to_distack tbl d1 tyst in
-    let c2, l2 = term_to_distack tbl d2 l1 in
-    let c3, l3 = term_to_distack tbl d3 l2 in
+    let c1, l1 = term_to_comb tbl d1 tyst in
+    let c2, l2 = term_to_comb tbl d2 l1 in
+    let c3, l3 = term_to_comb tbl d3 l2 in
     (c1, c2, c3), l3
   | Right (s, lst) -> 
     sprintf "term_to_fn: Operator [%s] with %d arguments" s (List.length lst)
@@ -128,9 +128,9 @@ and term_to_fn tbl term tyst = match break term with
 
 let sub tbl var term tyst = match term_sort term with
   | "C" -> 
-    let distack, tyst_linked = term_to_distack tbl term tyst
+    let comb, tyst_linked = term_to_comb tbl term tyst
     and costack_var = parse_var var in
-    Nuf.set_det costack_var (C distack) tyst_linked
+    Nuf.set_det costack_var (C comb) tyst_linked
   | "S" -> 
     let stack, tyst_linked = term_to_stack tbl term tyst
     and stack_var = parse_var var in
@@ -147,53 +147,72 @@ let sub_all tyst =
   let tbl = create_tracker () in
   List.fold_left (fun tyst_acc (var, term) -> sub tbl var term tyst_acc) tyst
 
-let unify_distack k = Nuf.merge begin fun[@warning "-8"] (C d1 as c) (C d2) puf -> 
-  unify distack_mod (distack_to_term d1) (distack_to_term d2)
+let unify_comb k = Nuf.merge begin fun[@warning "-8"] (C d1 as c) (C d2) puf -> 
+  unify comb_mod (comb_to_term d1) (comb_to_term d2)
   |> List.map (fun terms -> c, sub_all puf terms)
 end k
 
 let unify_stack k = Nuf.merge begin fun[@warning "-8"] (S s1 as s) (S s2) puf -> 
-  unify distack_mod (stack_to_term s1) (stack_to_term s2)
+  unify comb_mod (stack_to_term s1) (stack_to_term s2)
   |> List.map (fun terms -> s, sub_all puf terms)
 end k
 
 let unify_value k = Nuf.merge begin fun[@warning "-8"] (V v1 as v) (V v2) puf -> 
-  unify distack_mod (value_to_term v1) (value_to_term v2)
+  unify comb_mod (value_to_term v1) (value_to_term v2)
   |> List.map (fun terms -> v, sub_all puf terms)
 end k
 
 let mk_poly_value = 
   let nu = unique () in
-  let v = Var nu in
-  v, Nuf.add_det nu (V v)
+  nu, Nuf.add_det nu (V (Var nu))
 
-let mk_empty_stack puf = 
+let mk_poly_stack puf = 
   let nu = unique () in
-  let stk = [SeqVar nu] in
-  stk, Nuf.add_det nu (S stk) puf
+  nu, Nuf.add_det nu (S [SeqVar nu]) puf
 
-let mk_unit_distack puf = 
-  let stk, puf' = mk_empty_stack puf in
+let mk_unit_comb puf = 
   let nu = unique () in
-  let distk = [Elem stk] in
-  distk, Nuf.add_det nu (C distk) puf'
+  nu, Nuf.add_det nu (C [Elem []]) puf
 
-let mk_polyfn p0 = 
-  let d1, p1 = mk_unit_distack p0 in
-  let d2, p2 = mk_unit_distack p1 in
-  let d3, p3 = mk_unit_distack p2 in
+let mk_poly_comb puf = 
+  let nu = unique () in
+  nu, Nuf.add_det nu (C [SeqVar nu; Elem []]) puf
+
+(* let mk_polyfn p0 = 
+  let d1, p1 = mk_poly_comb p0 in
+  let d2, p2 = mk_poly_comb p1 in
+  let d3, p3 = mk_poly_comb p2 in
   (d1, d2, d3), p3
 
 let mk_endofn p0 = 
-  let d1, p1 = mk_unit_distack p0 in
-  let d2, p2 = mk_unit_distack p1 in
+  let d1, p1 = mk_poly_comb p0 in
+  let d2, p2 = mk_poly_comb p1 in
   (d1, d2, d1), p2
 
 let mk_no_op p0 = 
-  let d1, p1 = mk_unit_distack p0 in
-  (d1, d1, d1), p1
+  let d1, p1 = mk_poly_comb p0 in
+  (d1, d1, d1), p1 *)
 
 let wrap_stack stack p0 = 
   let nu = unique () in
-  let distk = [Elem stack] in
-  distk, Nuf.add_det nu (C distk) p0
+  nu, Nuf.add_det nu (C [Elem stack]) p0
+
+let comb_exact_1 v puf = 
+  let nu = unique () in
+  nu, Nuf.add_det nu (C [Elem [Elem v]]) puf
+let comb_exact_2 v1 v2 puf = 
+  let nu = unique () in
+  nu, Nuf.add_det nu (C [Elem [Elem v1; Elem v2]]) puf
+
+(* not helpful *)
+let comb_poly_1 v puf = 
+  let nu = unique () in
+  nu, Nuf.add_det nu (C [SeqVar nu; Elem [Elem v]]) puf
+
+let comb_poly_2 v1 v2 puf = 
+  let nu = unique () in
+  nu, Nuf.add_det nu (C [SeqVar nu; Elem [Elem v1; Elem v2]]) puf
+
+(* let fn_exact_1 v p0 = 
+  let nu1 = unique () in
+  let p1 = Nuf.add_det nu1 *)

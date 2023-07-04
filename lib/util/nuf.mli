@@ -16,3 +16,5 @@ val add_det : int -> 'a -> 'a puf -> 'a puf
 val add_nondet : int -> 'a -> 'a t -> 'a t
 val (let+) : 'a t -> ('a puf -> 'a puf) -> 'a t
 val (let*) : 'a t -> ('a puf -> 'a t) -> 'a t
+val (<&>) : 'a t -> ('a puf -> 'a puf) -> 'a t
+val (>>=) : 'a t -> ('a puf -> 'a t) -> 'a t

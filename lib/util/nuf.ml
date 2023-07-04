@@ -6,6 +6,8 @@ open Tuple2
 
 let (let+) x f = List.map f x
 let (let*) x f = List.(map f x |> flatten)
+let (<&>) = (let+)
+let (>>=) = (let*)
 
 let modify k f = update k @@ function
   | Some x -> Some (f x)
