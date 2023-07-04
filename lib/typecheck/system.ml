@@ -161,3 +161,39 @@ let unify_value k = Nuf.merge begin fun[@warning "-8"] (V v1 as v) (V v2) puf ->
   unify distack_mod (value_to_term v1) (value_to_term v2)
   |> List.map (fun terms -> v, sub_all puf terms)
 end k
+
+let mk_poly_value = 
+  let nu = unique () in
+  let v = Var nu in
+  v, Nuf.add_det nu (V v)
+
+let mk_empty_stack puf = 
+  let nu = unique () in
+  let stk = [SeqVar nu] in
+  stk, Nuf.add_det nu (S stk) puf
+
+let mk_unit_distack puf = 
+  let stk, puf' = mk_empty_stack puf in
+  let nu = unique () in
+  let distk = [Elem stk] in
+  distk, Nuf.add_det nu (C distk) puf'
+
+let mk_polyfn p0 = 
+  let d1, p1 = mk_unit_distack p0 in
+  let d2, p2 = mk_unit_distack p1 in
+  let d3, p3 = mk_unit_distack p2 in
+  (d1, d2, d3), p3
+
+let mk_endofn p0 = 
+  let d1, p1 = mk_unit_distack p0 in
+  let d2, p2 = mk_unit_distack p1 in
+  (d1, d2, d1), p2
+
+let mk_no_op p0 = 
+  let d1, p1 = mk_unit_distack p0 in
+  (d1, d1, d1), p1
+
+let wrap_stack stack p0 = 
+  let nu = unique () in
+  let distk = [Elem stack] in
+  distk, Nuf.add_det nu (C distk) p0
