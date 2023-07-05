@@ -209,7 +209,11 @@ let mk_no_op p0 =
   let d1, p1 = mk_poly_comb p0 in
   (d1, d1, d1), p1 *)
 
-let wrap_stack stack p0 = 
+let comb_register d p0 = 
+  let nu = unique () in
+  nu, Nuf.add_det nu (C d) p0
+
+let stack_reg_wrap stack p0 = 
   let nu = unique () in
   nu, Nuf.add_det nu (C [Elem stack]) p0
 
@@ -236,6 +240,18 @@ let comb_costack_push i s p0 =
   let[@warning "-8"] _, (C d) = Nuf.search i p0 in
   let nu = unique () in
   nu, Nuf.add_det nu (C (d @ [Elem s])) p0
+
+let search_comb i puf = 
+  let[@warning "-8"] _, (C d1) = Nuf.search i puf in
+  d1
+
+let search_stack i puf = 
+  let[@warning "-8"] _, (S s1) = Nuf.search i puf in
+  s1
+
+let search_value i puf = 
+  let[@warning "-8"] _, (V v1) = Nuf.search i puf in
+  v1
 
 (* let fn_exact_1 v p0 = 
   let nu1 = unique () in
