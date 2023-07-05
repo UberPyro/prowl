@@ -161,6 +161,13 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb l0 l1
     >>= infer ctx just
   
-  (* | Dop ((_, _, (i1, l1, o1) as left), Ponder, (_, _, (i2, l2, o2) as right)) ->  *)
+  | Dop ((_, _, (i1, l1, o1) as left), Ponder, (_, _, (i2, _, o2) as right)) -> 
+    let comb1, p1 = comb_register (search_comb i1 p0 @ search_comb i2 p0) p0 in
+    let comb2, p2 = comb_register (search_comb o1 p1 @ search_comb o2 p1) p1 in
+    unify_comb i0 comb1 p2
+    >>= unify_comb o0 comb2
+    >>= unify_comb l0 l1
+    >>= infer ctx left
+    >>= infer ctx right
   
   | _ -> failwith "todo"
