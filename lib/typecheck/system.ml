@@ -187,6 +187,13 @@ let mk_poly_poly p0 =
   |> Nuf.add_det nu3 (C [SeqVar nu2; Elem [SeqVar nu1]])
   |> fun p1 -> nu3, p1
 
+let mk_just_stack p0 = 
+  let nu1 = unique () in
+  let nu2 = unique () in
+  Nuf.add_det nu1 (S [SeqVar nu1]) p0
+  |> Nuf.add_det nu2 (C [Elem [SeqVar nu1]])
+  |> fun x -> nu1, nu2, x
+
 (* let mk_polyfn p0 = 
   let d1, p1 = mk_poly_comb p0 in
   let d2, p2 = mk_poly_comb p1 in
