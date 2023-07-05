@@ -145,8 +145,8 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
   | Uop ((_, _, (i1, l1, o1) as just), Apply) -> 
     let s1, c1, p1 = mk_just_stack p0 in
     let s2, c2, p2 = mk_just_stack p1 in
-    let _, c3, p3 = mk_just_stack p2 in
-    let _, c4, p4 = mk_just_stack p3 in
+    let c3, p3 = mk_poly_poly p2 in
+    let c4, p4 = mk_poly_poly p3 in
     let* p5 = 
       unify_comb i1 c1 p4
       >>= unify_comb o1 c2
