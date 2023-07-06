@@ -130,7 +130,7 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb l0 l1
     >>= infer ctx just
   
-  | Uop ((_, _, (i1, l1, o1) as just), Induce) -> 
+  (* | Uop ((_, _, (i1, l1, o1) as just), Induce) -> 
     let comb_i = search_comb i1 p0 in
     let comb_o = search_comb o1 p0 in
     let comb1, p1 = comb_register (comb_i @ comb_i) p0 in
@@ -201,6 +201,6 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb o0 comb2
     >>= unify_comb l0 l1
     >>= infer ctx left
-    >>= infer ctx right
+    >>= infer ctx right *)
   
   | _ -> failwith "todo"
