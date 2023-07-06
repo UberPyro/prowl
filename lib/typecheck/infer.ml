@@ -131,14 +131,12 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= infer ctx just
   
   | Uop ((_, _, (i1, l1, o1) as just), Induce) -> 
-    let d1 = search_comb i1 p0 in
-    let nu1 = unique () in
-    let p1 = Nuf.add_det nu1 (C (d1 @ d1)) p0 in
-    let d2 = search_comb o1 p0 in
-    let nu2 = unique () in
-    let p2 = Nuf.add_det nu2 (C (d2 @ d2)) p1 in
-    unify_comb i0 nu1 p2
-    >>= unify_comb o0 nu2
+    let comb_i = search_comb i1 p0 in
+    let comb_o = search_comb o1 p0 in
+    let comb1, p1 = comb_register (comb_i @ comb_i) p0 in
+    let comb2, p2 = comb_register (comb_o @ comb_o) p1 in
+    unify_comb i0 comb1 p2
+    >>= unify_comb o0 comb2
     >>= unify_comb l0 l1
     >>= infer ctx just
   
@@ -178,5 +176,8 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb l0 l1
     >>= infer ctx left
     >>= infer ctx right
+  
+  (* | Dop ((_, _, (i1, l1, o1) as left), Tensor, (_, _, (i2, _, o2) as right)) ->  *)
+    (* let stack1, c1, p1 = mk_just_stack p0 in *)
   
   | _ -> failwith "todo"
