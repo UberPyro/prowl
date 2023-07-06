@@ -253,10 +253,10 @@ let search_value i puf =
   let[@warning "-8"] _, (V v1) = Nuf.search i puf in
   v1
 
-let stack_extract p0 = 
+(* let stack_extract p0 = 
   let s1, c1, p1 = mk_just_stack p0 in
   let s' = search_stack s1 p1 in
-  s', c1, p1
+  s', c1, p1 *)
 
 (* let fn_exact_1 v p0 = 
   let nu1 = unique () in

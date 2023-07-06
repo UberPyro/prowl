@@ -177,7 +177,30 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= infer ctx left
     >>= infer ctx right
   
-  (* | Dop ((_, _, (i1, l1, o1) as left), Tensor, (_, _, (i2, _, o2) as right)) ->  *)
-    (* let stack1, c1, p1 = mk_just_stack p0 in *)
+  | Dop ((_, _, (i1, l1, o1) as left), Tensor, (_, _, (i2, _, o2) as right)) -> 
+    let s1i, c1i, p1 = mk_just_stack p0 in
+    let s2i, c2i, p2 = mk_just_stack p1 in
+    let s1o, c1o, p3 = mk_just_stack p2 in
+    let s2o, c2o, p4 = mk_just_stack p3 in
+    let c0i, p5 = mk_poly_poly p4 in
+    let c0o, p6 = mk_poly_poly p5 in
+    let* p7 = 
+      unify_comb i1 c1i p6
+      >>= unify_comb i2 c2i
+      >>= unify_comb o1 c1o
+      >>= unify_comb o2 c2o
+      >>= unify_comb i0 c0i
+      >>= unify_comb o0 c0o in
+    let stack_i1 = search_stack s1i p7 in
+    let stack_i2 = search_stack s2i p7 in
+    let stack_o1 = search_stack s1o p7 in
+    let stack_o2 = search_stack s2o p7 in
+    let comb1, p8 = stack_reg_wrap (stack_i1 @ stack_i2) p7 in
+    let comb2, p9 = stack_reg_wrap (stack_o1 @ stack_o2) p8 in
+    unify_comb i0 comb1 p9
+    >>= unify_comb o0 comb2
+    >>= unify_comb l0 l1
+    >>= infer ctx left
+    >>= infer ctx right
   
   | _ -> failwith "todo"
