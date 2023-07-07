@@ -130,4 +130,22 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb l0 l1
     >>= infer ctx just
   
+  (* | Dop ((_, _, (i1, _, o1) as left), Jux, (_, _, (i2, _, o2) as right)) ->  *)
+  
   | _ -> failwith "todo"
+
+and infer_jux (i1, l1, o1) (i2, l2, o2) (i0, l0, o0) p0 = 
+  let* p1 = unify_comb o1 i2 p0 >>= unify_comb i1 i0 >>= unify_comb o2 o0 in
+  begin
+    let c, p2 = mk_poly_stunted p1 in
+    let stunted_comb = search_comb c p2 in
+    let depth_comb = search_comb l1 p2 in
+    let excess_comb, p3 = comb_register (depth_comb @ stunted_comb) p2 in
+    unify_comb l1 l0 p3 >>= unify_comb l2 excess_comb
+  end <|> begin
+    let c, p2 = mk_poly_poly p1 in
+    let comb = search_comb c p2 in
+    let depth_comb = search_comb l2 p2 in
+    let excess_comb, p3 = comb_register (depth_comb @ comb) p2 in
+    unify_comb l2 l0 p3 >>= unify_comb l1 excess_comb
+  end

@@ -178,6 +178,10 @@ let mk_poly_comb puf =
   let nu = unique () in
   nu, Nuf.add_det nu (C [SeqVar nu; Elem []]) puf
 
+let mk_poly_stunted puf = 
+  let nu = unique () in
+  nu, Nuf.add_det nu (C [SeqVar nu]) puf
+
 let mk_poly_poly p0 = 
   let nu1 = unique () in
   let nu2 = unique () in
