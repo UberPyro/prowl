@@ -149,7 +149,7 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= infer ctx left
     >>= infer ctx right
 
-  (* | Dop ((_, _, f1 as left), Pick, (_, _, (i2, d2, o2) as right)) ->  *)
+  (* | Dop ((_, _, (i1, l1, o1) as left), Pick, (_, _, (i2, l2, o2) as right)) ->  *)
 
 
 
