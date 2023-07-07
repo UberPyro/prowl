@@ -130,14 +130,13 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb l0 l1
     >>= infer ctx just
 
-  (* | Uop ((_, _, (i1, d1, o1 as f1) as just), Induce) -> 
-    let i3, p1 = mk_poly_stunted p0 in
-    let l3, p2 = mk_poly_stunted p1 in
-    let o3, p3 = mk_poly_stunted p2 in
-    let interm = i3, l3, o3 in
-    infer_jux (i1, d1, d1) f1 interm p3
-    >>= infer_jux interm (d1, d1, o1) f0
-    >>= infer ctx just *)
+  | Uop ((_, _, (i1, l1, o1) as just), Induce) -> 
+    unify_comb i0 i1 p0
+    >>= unify_comb o0 o1
+    >>= unify_comb l1 i1
+    >>= unify_comb o1 l1
+    >>= unify_comb l0 l1
+    >>= infer ctx just
   
 
 
