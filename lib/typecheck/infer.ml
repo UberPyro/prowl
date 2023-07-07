@@ -7,7 +7,7 @@ open Util
 open Nuf
 open System
 
-let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
+let rec infer ctx (ast0, _sp, (i0, l0, o0 as f0)) p0 = match ast0 with
   | Bop ((_, _, (i1, _, o1) as left), Aop _, (_, _, (i2, _, o2) as right)) -> 
     let input, p1 = mk_unit_comb p0 in
     let output, p2 = comb_exact_1 Int p1 in
@@ -129,9 +129,26 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb o0 o1
     >>= unify_comb l0 l1
     >>= infer ctx just
-  
+
+
+
+  | Dop ((_, _, f1 as left), Ponder, (_, _, (i2, d2, o2) as right)) -> 
+    let i3, p1 = mk_poly_stunted p0 in
+    let l3, p2 = mk_poly_stunted p1 in
+    let o3, p3 = mk_poly_stunted p2 in
+    let interm = i3, l3, o3 in
+    infer_jux (i2, d2, d2) f1 interm p3
+    >>= infer_jux interm (d2, d2, o2) f0
+    >>= infer ctx left
+    >>= infer ctx right
+
+
+
+
+
+
   | Dop ((_, _, f1 as left), Jux, (_, _, f2 as right)) -> 
-    infer_jux f1 f2 (i0, l0, o0) p0
+    infer_jux f1 f2 f0 p0
     >>= infer ctx left
     >>= infer ctx right
   
