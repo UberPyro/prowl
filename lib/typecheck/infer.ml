@@ -130,7 +130,10 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0)) p0 = match ast0 with
     >>= unify_comb l0 l1
     >>= infer ctx just
   
-  (* | Dop ((_, _, (i1, _, o1) as left), Jux, (_, _, (i2, _, o2) as right)) ->  *)
+  | Dop ((_, _, f1 as left), Jux, (_, _, f2 as right)) -> 
+    infer_jux f1 f2 (i0, l0, o0) p0
+    >>= infer ctx left
+    >>= infer ctx right
   
   | _ -> failwith "todo"
 
