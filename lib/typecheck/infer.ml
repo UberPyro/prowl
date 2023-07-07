@@ -130,6 +130,15 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0 as f0)) p0 = match ast0 with
     >>= unify_comb l0 l1
     >>= infer ctx just
 
+  | Uop ((_, _, (i1, d1, o1 as f1) as just), Induce) -> 
+    let i3, p1 = mk_poly_stunted p0 in
+    let l3, p2 = mk_poly_stunted p1 in
+    let o3, p3 = mk_poly_stunted p2 in
+    let interm = i3, l3, o3 in
+    infer_jux (i1, d1, d1) f1 interm p3
+    >>= infer_jux interm (d1, d1, o1) f0
+    >>= infer ctx just
+  
 
 
   | Dop ((_, _, f1 as left), Ponder, (_, _, (i2, d2, o2) as right)) -> 
@@ -142,7 +151,7 @@ let rec infer ctx (ast0, _sp, (i0, l0, o0 as f0)) p0 = match ast0 with
     >>= infer ctx left
     >>= infer ctx right
 
-
+  (* | Dop ((_, _, f1 as left), Pick, (_, _, (i2, d2, o2) as right)) ->  *)
 
 
 
