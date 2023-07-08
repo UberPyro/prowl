@@ -6,6 +6,7 @@ open Maude_ocaml
 open Unify
 
 open Util
+open Nuf
 
 type comb = value seq seq
 and 'a seq = 'a seq_t list
@@ -64,7 +65,7 @@ let process wrap m puf k = match Hashtbl.find_option m k with
   | None -> 
     let nu = unique () in
     Hashtbl.add m k nu;
-    nu, Nuf.add_det nu (wrap nu) puf
+    nu, add_det nu (wrap nu) puf
 
 let process_comb m = process (fun x -> C [SeqVar x]) m
 let process_stack m = process (fun x -> S [SeqVar x]) m
@@ -128,15 +129,15 @@ let sub tbl var term tyst = match term_sort term with
   | "C" -> 
     let comb, tyst_linked = term_to_comb tbl term tyst
     and costack_var = parse_var var in
-    Nuf.set_det costack_var (C comb) tyst_linked
+    set_det costack_var (C comb) tyst_linked
   | "S" -> 
     let stack, tyst_linked = term_to_stack tbl term tyst
     and stack_var = parse_var var in
-    Nuf.set_det stack_var (S stack) tyst_linked
+    set_det stack_var (S stack) tyst_linked
   | "V" -> 
     let value, tyst_linked = term_to_value tbl term tyst
     and value_var = parse_var var in
-    Nuf.set_det value_var (V value) tyst_linked
+    set_det value_var (V value) tyst_linked
   | s -> 
     let msg = Printf.sprintf "System.sub : Unrecognized sort [%s]" s in
     raise @@ Invalid_argument msg
@@ -144,7 +145,7 @@ let sub tbl var term tyst = match term_sort term with
 let sub_all tbl tyst = 
   List.fold_left (fun tyst_acc (var, term) -> sub tbl var term tyst_acc) tyst
 
-let unify_comb k = Nuf.merge begin fun[@warning "-8"] (C d1) (C d2) puf -> 
+let unify_comb k = merge begin fun[@warning "-8"] (C d1) (C d2) puf -> 
   let tbl = create_tracker () in
   unify comb_mod (comb_to_term d1) (comb_to_term d2)
   |> List.map @@ fun (c0, terms) -> 
@@ -153,7 +154,7 @@ let unify_comb k = Nuf.merge begin fun[@warning "-8"] (C d1) (C d2) puf ->
     C c1, p1
 end k
 
-let unify_stack k = Nuf.merge begin fun[@warning "-8"] (S s1) (S s2) puf -> 
+let unify_stack k = merge begin fun[@warning "-8"] (S s1) (S s2) puf -> 
   let tbl = create_tracker () in
   unify comb_mod (stack_to_term s1) (stack_to_term s2)
   |> List.map @@ fun (s0, terms) -> 
@@ -162,7 +163,7 @@ let unify_stack k = Nuf.merge begin fun[@warning "-8"] (S s1) (S s2) puf ->
     S s1, p1
 end k
 
-let unify_value k = Nuf.merge begin fun[@warning "-8"] (V v1) (V v2) puf -> 
+let unify_value k = merge begin fun[@warning "-8"] (V v1) (V v2) puf -> 
   let tbl = create_tracker () in
   unify comb_mod (value_to_term v1) (value_to_term v2)
   |> List.map @@ fun (v0, terms) -> 
@@ -173,7 +174,7 @@ end k
 
 let add_new x p0 = 
   let nu = unique () in
-  nu, Nuf.add_det nu x p0
+  nu, add_det nu x p0
 
 let reg_comb c = add_new (C c)
 let reg_stack s = add_new (S s)
@@ -185,27 +186,30 @@ let reg_unit_as_comb = reg_comb [Elem []]
 
 let reg_poly_comb p0 = 
   let nu = unique () in
-  let p1 = Nuf.add_det nu (C [SeqVar nu]) p0 in
+  let p1 = add_det nu (C [SeqVar nu]) p0 in
   nu, p1
 
 let reg_poly_stack p0 = 
   let nu = unique () in
-  let p1 = Nuf.add_det nu (S [SeqVar nu]) p0 in
+  let p1 = add_det nu (S [SeqVar nu]) p0 in
   nu, p1
 
 let reg_poly_stack_as_comb p0 = 
   let nu = unique () in
-  let p1 = Nuf.add_det nu (S [SeqVar nu]) p0 in
+  let p1 = add_det nu (S [SeqVar nu]) p0 in
   reg_comb [Elem [SeqVar nu]] p1
 
 let shift_comb c_elem k p0 = 
-  let[@warning "-8"] _, (C c1) = Nuf.search k p0 in
+  let[@warning "-8"] _, (C c1) = search k p0 in
   reg_comb (c_elem :: c1) p0
 
 let shift_stack s_elem k p0 = 
-  let[@warning "-8"] _, (S s1) = Nuf.search k p0 in
+  let[@warning "-8"] _, (S s1) = search k p0 in
   reg_stack (s_elem :: s1) p0
 
 let shift_stack_as_comb s_elem k p0 = 
-  let[@warning "-8"] _, (S s1) = Nuf.search k p0 in
+  let[@warning "-8"] _, (S s1) = search k p0 in
   reg_comb [Elem (s_elem :: s1)] p0
+
+let unify_chain lst p0 = 
+  List.fold_left (fun p1 (c1, c2) -> p1 >>= unify_comb c1 c2) (pure p0) lst
