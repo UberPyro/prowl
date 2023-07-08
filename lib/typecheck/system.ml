@@ -18,7 +18,7 @@ and value =
   | List of fn
   | Quote of fn
   | Var of int  (* physical *)
-and fn = comb * comb * comb
+and fn = comb * comb
 
 type tyst = tysum Nuf.t
 and tysum = 
@@ -55,8 +55,8 @@ and value_to_term = function
   | Var i -> build_var (pretty_value_var i) "V"
 
 and fn_to_term t = 
-  let h, j, k = Tuple3.mapn comb_to_term t in
-  build_op "fn" symap [h; j; k]
+  let u, v = Tuple2.mapn comb_to_term t in
+  build_op "fn" symap [u; v]
 
 let create_tracker () = Hashtbl.create 16
 
@@ -117,11 +117,10 @@ and term_to_value tbl term tyst = match break term with
 
 and term_to_fn tbl term tyst = match break term with
   | Left _ -> failwith "term_to_fn: variable"
-  | Right ("fn", [d1; d2; d3]) -> 
+  | Right ("fn", [d1; d2]) -> 
     let c1, l1 = term_to_comb tbl d1 tyst in
     let c2, l2 = term_to_comb tbl d2 l1 in
-    let c3, l3 = term_to_comb tbl d3 l2 in
-    (c1, c2, c3), l3
+    (c1, c2), l2
   | Right (s, lst) -> 
     sprintf "term_to_fn: Operator [%s] with %d arguments" s (List.length lst)
     |> failwith
@@ -161,107 +160,3 @@ let unify_value k = Nuf.merge begin fun[@warning "-8"] (V v1 as v) (V v2) puf ->
   unify comb_mod (value_to_term v1) (value_to_term v2)
   |> List.map (fun terms -> v, sub_all puf terms)
 end k
-
-let mk_poly_value = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (V (Var nu))
-
-let mk_poly_stack puf = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (S [SeqVar nu]) puf
-
-let mk_unit_comb puf = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (C [Elem []]) puf
-
-let mk_poly_comb puf = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (C [SeqVar nu; Elem []]) puf
-
-let mk_poly_stunted puf = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (C [SeqVar nu]) puf
-
-let mk_poly_poly p0 = 
-  let nu1 = unique () in
-  let nu2 = unique () in
-  let nu3 = unique () in
-  Nuf.add_det nu1 (S [SeqVar nu1]) p0
-  |> Nuf.add_det nu2 (C [SeqVar nu2])
-  |> Nuf.add_det nu3 (C [SeqVar nu2; Elem [SeqVar nu1]])
-  |> fun p1 -> nu3, p1
-
-let mk_just_stack p0 = 
-  let nu1 = unique () in
-  let nu2 = unique () in
-  Nuf.add_det nu1 (S [SeqVar nu1]) p0
-  |> Nuf.add_det nu2 (C [Elem [SeqVar nu1]])
-  |> fun x -> nu1, nu2, x
-
-(* let mk_polyfn p0 = 
-  let d1, p1 = mk_poly_comb p0 in
-  let d2, p2 = mk_poly_comb p1 in
-  let d3, p3 = mk_poly_comb p2 in
-  (d1, d2, d3), p3
-
-let mk_endofn p0 = 
-  let d1, p1 = mk_poly_comb p0 in
-  let d2, p2 = mk_poly_comb p1 in
-  (d1, d2, d1), p2
-
-let mk_no_op p0 = 
-  let d1, p1 = mk_poly_comb p0 in
-  (d1, d1, d1), p1 *)
-
-let comb_register d p0 = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (C d) p0
-
-let stack_reg_wrap stack p0 = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (C [Elem stack]) p0
-
-let comb_exact_1 v puf = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (C [Elem [Elem v]]) puf
-let comb_exact_2 v1 v2 puf = 
-  let nu = unique () in
-  nu, Nuf.add_det nu (C [Elem [Elem v1; Elem v2]]) puf
-
-let comb_poly_1 v p0 = 
-  let nu1 = unique () in
-  let nu2 = unique () in
-  Nuf.add_det nu1 (C [SeqVar nu1; Elem []]) p0
-  |> Nuf.add_det nu2 (C [SeqVar nu1; Elem [Elem v]])
-  |> fun p1 -> nu1, nu2, p1
-
-let comb_push i v p0 = 
-  let[@warning "-8"] _, (C d) = Nuf.search i p0 in
-  let nu = unique () in
-  nu, Nuf.add_det nu (C (d @ [Elem [Elem v]])) p0
-
-let comb_costack_push i s p0 = 
-  let[@warning "-8"] _, (C d) = Nuf.search i p0 in
-  let nu = unique () in
-  nu, Nuf.add_det nu (C (d @ [Elem s])) p0
-
-let search_comb i puf = 
-  let[@warning "-8"] _, (C d1) = Nuf.search i puf in
-  d1
-
-let search_stack i puf = 
-  let[@warning "-8"] _, (S s1) = Nuf.search i puf in
-  s1
-
-let search_value i puf = 
-  let[@warning "-8"] _, (V v1) = Nuf.search i puf in
-  v1
-
-(* let stack_extract p0 = 
-  let s1, c1, p1 = mk_just_stack p0 in
-  let s' = search_stack s1 p1 in
-  s', c1, p1 *)
-
-(* let fn_exact_1 v p0 = 
-  let nu1 = unique () in
-  let p1 = Nuf.add_det nu1 *)
