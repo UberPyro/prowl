@@ -1,7 +1,6 @@
 open! Batteries
 open Either
 open Printf
-(* open Tuple3 *)
 
 open Maude_ocaml
 open Unify

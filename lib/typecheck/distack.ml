@@ -14,5 +14,5 @@ op stack : S -> C [ctor] .
 op void : -> C .
 op else : C C -> C [ctor assoc id:void] .
 
-op fn : C C C -> FN .
+op fn : C C -> FN .
 endfm"
