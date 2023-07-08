@@ -170,3 +170,42 @@ let unify_value k = Nuf.merge begin fun[@warning "-8"] (V v1) (V v2) puf ->
     let v1, p1 = term_to_value tbl v0 p0 in
     V v1, p1
 end k
+
+let add_new x p0 = 
+  let nu = unique () in
+  nu, Nuf.add_det nu x p0
+
+let reg_comb c = add_new (C c)
+let reg_stack s = add_new (S s)
+let reg_value v = add_new (V v)
+
+let reg_void = reg_comb []
+let reg_unit = reg_stack []
+let reg_unit_as_comb = reg_comb [Elem []]
+
+let reg_poly_comb p0 = 
+  let nu = unique () in
+  let p1 = Nuf.add_det nu (C [SeqVar nu]) p0 in
+  nu, p1
+
+let reg_poly_stack p0 = 
+  let nu = unique () in
+  let p1 = Nuf.add_det nu (S [SeqVar nu]) p0 in
+  nu, p1
+
+let reg_poly_stack_as_comb p0 = 
+  let nu = unique () in
+  let p1 = Nuf.add_det nu (S [SeqVar nu]) p0 in
+  reg_comb [Elem [SeqVar nu]] p1
+
+let shift_comb c_elem k p0 = 
+  let[@warning "-8"] _, (C c1) = Nuf.search k p0 in
+  reg_comb (c_elem :: c1) p0
+
+let shift_stack s_elem k p0 = 
+  let[@warning "-8"] _, (S s1) = Nuf.search k p0 in
+  reg_stack (s_elem :: s1) p0
+
+let shift_stack_as_comb s_elem k p0 = 
+  let[@warning "-8"] _, (S s1) = Nuf.search k p0 in
+  reg_comb [Elem (s_elem :: s1)] p0
