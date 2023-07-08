@@ -18,22 +18,22 @@ let expose_term = Fun.id
 let unify fm t1 t2 = 
   let up = Maude._Module_unify @@ C_list [
     fm;
-    let empty = Maude._new_TermPairVector @@ C_list [] in
     [|
       Maude._new_TermPair @@ C_list [
         Maude._Module_parseTerm @@ C_list [fm; t1];
         Maude._Module_parseTerm @@ C_list [fm; t2];
       ];
     |]
-    |> Maude.array_to_vector empty Fun.id
-    |> Maude._new_TermPairVector
+    |> Maude.array_to_vector (Maude._new_TermPairVector @@ C_list []) Fun.id
+    |> Maude._new_TermPairVector;
+    C_bool true;
   ] in
   List.unfold () @@ fun () -> 
     let next = Maude._UnificationProblem___next up in
     match next with
     | C_void -> None
-    | _ -> Some (
-      List.unfold (Maude._Substitution_iterator next) begin function
+    | _ -> Some ((Maude._Substitution_instantiate next, 
+      List.unfold (Maude._Substitution_iterator next) (function
         | C_void -> None
         | it -> 
           let v = Maude._Iterator_getValue it in
@@ -41,8 +41,7 @@ let unify fm t1 t2 =
           let w_pp = 
             Maude._Term_getVarName w
             |> function[@warning "-8"] C_string s -> s in
-          Some ((w_pp, v), Maude._Iterator_nextAssignment it)
-      end, ())
+          Some ((w_pp, v), Maude._Iterator_nextAssignment it))), ())
 
 let show_term t = 
   C_list [t; C_int 0]

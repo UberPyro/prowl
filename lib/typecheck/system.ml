@@ -141,21 +141,32 @@ let sub tbl var term tyst = match term_sort term with
     let msg = Printf.sprintf "System.sub : Unrecognized sort [%s]" s in
     raise @@ Invalid_argument msg
 
-let sub_all tyst = 
-  let tbl = create_tracker () in
+let sub_all tbl tyst = 
   List.fold_left (fun tyst_acc (var, term) -> sub tbl var term tyst_acc) tyst
 
-let unify_comb k = Nuf.merge begin fun[@warning "-8"] (C d1 as c) (C d2) puf -> 
+let unify_comb k = Nuf.merge begin fun[@warning "-8"] (C d1) (C d2) puf -> 
+  let tbl = create_tracker () in
   unify comb_mod (comb_to_term d1) (comb_to_term d2)
-  |> List.map (fun terms -> c, sub_all puf terms)
+  |> List.map @@ fun (c0, terms) -> 
+    let p0 = sub_all tbl puf terms in
+    let c1, p1 = term_to_comb tbl c0 p0 in
+    C c1, p1
 end k
 
-let unify_stack k = Nuf.merge begin fun[@warning "-8"] (S s1 as s) (S s2) puf -> 
+let unify_stack k = Nuf.merge begin fun[@warning "-8"] (S s1) (S s2) puf -> 
+  let tbl = create_tracker () in
   unify comb_mod (stack_to_term s1) (stack_to_term s2)
-  |> List.map (fun terms -> s, sub_all puf terms)
+  |> List.map @@ fun (s0, terms) -> 
+    let p0 = sub_all tbl puf terms in
+    let s1, p1 = term_to_stack tbl s0 p0 in
+    S s1, p1
 end k
 
-let unify_value k = Nuf.merge begin fun[@warning "-8"] (V v1 as v) (V v2) puf -> 
+let unify_value k = Nuf.merge begin fun[@warning "-8"] (V v1) (V v2) puf -> 
+  let tbl = create_tracker () in
   unify comb_mod (value_to_term v1) (value_to_term v2)
-  |> List.map (fun terms -> v, sub_all puf terms)
+  |> List.map @@ fun (v0, terms) -> 
+    let p0 = sub_all tbl puf terms in
+    let v1, p1 = term_to_value tbl v0 p0 in
+    V v1, p1
 end k
