@@ -18,11 +18,6 @@ let ucons u us = uref @@ UCons (u, us)
 let useq u = uref @@ USeq u
 let ufresh () = useq @@ unique ()
 
-let rec remap f g ulst = uref @@ match uget ulst with
-  | UCons (u, us) -> UCons (f u, remap f g us)
-  | USeq x -> USeq (g x)
-  | UNil -> UNil
-
 let rec uiter ?(g=ignore) f us = match uget us with
   | UCons (u, us) -> f u; uiter ~g f us
   | USeq u -> g u
@@ -42,6 +37,15 @@ let dup_hd us = match uget us with
 let upop us = match uget us with
   | UCons (x, xs) -> x, xs
   | UNil | USeq _ -> raise @@ Invalid_argument "upop"
+
+let rec usplit ?(acc=[]) us = match uget us with
+  | UCons (x, xs) -> usplit ~acc:(x :: acc) xs
+  | UNil -> acc, None
+  | USeq k -> acc, Some k
+
+let rec ujoin acc = function
+  | x :: xs -> ujoin (ucons x acc) xs
+  | [] -> acc
 
 let assert_exn exn x y = if x = y then raise exn
 

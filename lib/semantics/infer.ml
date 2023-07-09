@@ -97,4 +97,20 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     i1 =?= i0;
     o1 =?= o0
   
+  | Dop ((_, _, (i1, o1) as left), Ponder, (_, _, (i2, o2) as right)) -> 
+    infer ctx uctx left;
+    infer ctx uctx right;
+    let i, o = inspect i2 o2 i1 o1 in
+    i =?= i0;
+    o =?= o0
+  
   | _ -> failwith "todo"
+
+and inspect i o i_final o_final = 
+  let arg, argcos = usplit i in
+  let res, rescos = usplit o in
+  match argcos, rescos with
+  | None, _ | _, None -> failwith "Void sequence passed to dataflow"
+  | Some ka, Some kr when ka = kr -> 
+    ujoin i_final arg, ujoin o_final res
+  | _ -> failwith "Insufficiently specific data passed to dataflow"
