@@ -1,0 +1,3 @@
+(library
+ (name prowl)
+ (libraries batteries metadata syntax))
