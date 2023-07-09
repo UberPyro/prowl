@@ -13,6 +13,8 @@ and _expr =
   | Lit of lit
   | Var of string
   | Let of stmt list * expr
+  | Ex of string
+  | UVar of string
 
 and bop = 
   | Aop of aop
