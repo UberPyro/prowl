@@ -1,6 +1,4 @@
-= fib
+= main
   dup (> 2)
-    (- 1) (fib && (- 1) fib) (+)
+    (- 1) (main && (- 1)) main (+)
   elim
-
-= main fib
