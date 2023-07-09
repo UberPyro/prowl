@@ -33,8 +33,57 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     z =?= o1;
     z =?= o2;
     let s = ufresh () in
-    let p1 = s >>: ufresh () in
-    p1 =?= i1;
-    s >>: p1 =?= o1
+    let p = s >>: ufresh () in
+    p =?= i1;
+    s >>: p =?= o1
+  
+  | SectLeft (Aop _, (_, _, (i1, o1) as just)) -> 
+    infer ctx uctx just;
+    let u = mk_unital_costack () in
+    u =?= i1;
+    uref @@ System.Lit Int >: u =?= o1;
+    let p = uref @@ System.Lit Int >: mk_poly_costack () in
+    p =?= i0;
+    p =?= o0
+  
+  | SectLeft (Cop _, (_, _, (i1, o1) as just)) -> 
+    infer ctx uctx just;
+    let u = mk_unital_costack () in
+    u =?= i1;
+    uref @@ System.Lit Int >: u =?= o1;
+    let s = ufresh () in
+    let p = s >>: ufresh () in
+    uref @@ System.Lit Int >: p =?= i1;
+    s >>: p =?= o1
+  
+  | SectRight ((_, _, (i1, o1) as just), Aop _) -> 
+    infer ctx uctx just;
+    let u = mk_unital_costack () in
+    u =?= i1;
+    uref @@ System.Lit Int >: u =?= o1;
+    let p = uref @@ System.Lit Int >: mk_poly_costack () in
+    p =?= i0;
+    p =?= o0
+  
+  | SectRight ((_, _, (i1, o1) as just), Cop _) -> 
+    infer ctx uctx just;
+    let u = mk_unital_costack () in
+    u =?= i1;
+    uref @@ System.Lit Int >: u =?= o1;
+    let s = ufresh () in
+    let p = s >>: ufresh () in
+    uref @@ System.Lit Int >: p =?= i1;
+    s >>: p =?= o1
+  
+  | Sect Aop _ -> 
+    let p = uref @@ System.Lit Int >: mk_poly_costack () in
+    p =?= i0;
+    uref @@ System.Lit Int >: p =?= o0
+  
+  | Sect Cop _ -> 
+    let s = ufresh () in
+    let p = s >>: ufresh () in
+    uref @@ System.Lit Int >: (uref @@ System.Lit Int >: p) =?= i0;
+    s >>: p =?= o0
   
   | _ -> failwith "todo"
