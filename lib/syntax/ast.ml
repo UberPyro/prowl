@@ -43,8 +43,6 @@ module Make(T : sig type t[@@deriving show] end) = struct
     | Mark
     | Plus
     | Star
-    | Apply
-    | Induce
 
   (* dataflow operators *)
   and dop = 

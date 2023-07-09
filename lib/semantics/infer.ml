@@ -86,4 +86,15 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     uref @@ System.Lit Int >: (uref @@ System.Lit Int >: p) =?= i0;
     s >>: p =?= o0
   
+  | Uop ((_, _, (i1, o1) as just), Dag) -> 
+    infer ctx uctx just;
+    i1 =?= o0;
+    i0 =?= o1
+  
+  | Uop ((_, _, (i1, o1) as just), (Mark | Star | Plus)) -> 
+    infer ctx uctx just;
+    i1 =?= o1;
+    i1 =?= i0;
+    o1 =?= o0
+  
   | _ -> failwith "todo"
