@@ -49,4 +49,8 @@ and unify_fn (c1, c2) (d1, d2) =
 
 and occurs_fn k (c1, c2) = 
   occurs_costack k c1;
-  occurs_costack k c2;
+  occurs_costack k c2
+
+let mk_unital_costack () = ucons (unil ()) (ufresh ())
+let mk_poly_costack () = ucons (ufresh ()) (ufresh ())
+let (>:) v = map_hd (ucons v)
