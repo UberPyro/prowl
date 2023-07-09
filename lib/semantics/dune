@@ -1,0 +1,3 @@
+(library
+ (name semantics)
+ (libraries batteries util maude_ocaml syntax))
