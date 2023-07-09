@@ -27,11 +27,11 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     infer ctx uctx left;
     infer ctx uctx right;
     let u = mk_unital_costack () in
-    i1 =?= u;
-    i2 =?= u;
+    u =?= i1;
+    u =?= i2;
     let z = uref @@ System.Lit Int >: u in
-    o1 =?= z;
-    o2 =?= z;
+    z =?= o1;
+    z =?= o2;
     let s = ufresh () in
     let p1 = s >>: ufresh () in
     p1 =?= i1;
