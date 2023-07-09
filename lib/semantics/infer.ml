@@ -104,6 +104,14 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     i =?= i0;
     o =?= o0
   
+  | Dop ((_, _, (i1, o1) as left), Pick, (_, _, (i2, o2) as right)) -> 
+    infer ctx uctx left;
+    infer ctx uctx right;
+    let i = inspect_biased i2 o2 i1 in
+    i =?= i0;
+    o1 =?= o0;
+    o2 =?= o0
+  
   | _ -> failwith "todo"
 
 and inspect i o i_final o_final = 
@@ -114,3 +122,11 @@ and inspect i o i_final o_final =
   | Some ka, Some kr when ka = kr -> 
     ujoin i_final arg, ujoin o_final res
   | _ -> failwith "Insufficiently specific data passed to dataflow"
+
+and inspect_biased disj conj disj_final = 
+  let disj_list, disj_key = usplit disj in
+  let _, conj_key = usplit conj in
+  match disj_key, conj_key with
+  | None, _ | _, None -> failwith "Void seq passed to dataflow [biased]"
+  | Some kd, Some kc when kd = kc -> ujoin disj_final disj_list
+  | _ -> failwith "Insufficiently specific data passed to dataflow [biased]"
