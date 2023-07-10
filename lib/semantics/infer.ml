@@ -1,10 +1,12 @@
 open! Batteries
 open! Uref
+open Printf
 
 open Syntax
 module Tast = Ast.Make(struct type t = System.fn[@@deriving show] end)
 open Tast
 open System
+open Memo
 
 open Util
 open Ull
@@ -336,4 +338,31 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     o0 =?= o1;
     Dict.add uctx s (mk_var ())
   
+  | Var k -> 
+    let (generalized, i1, o1), _ = 
+      Ouro.find_rec_opt k ctx
+      |> Option.default_delayed @@ fun () -> 
+        sprintf "Cannot find unbound variable [%s]" k
+        |> failwith in
+    let cache = mk_memo () in
+    let transform = 
+      if generalized then freshen_costack cache
+      else Fun.id in
+    i0 =?= transform i1;
+    o0 =?= transform o1;
+  
+  | Let (stmts, e) -> infer (stmts_rec false ctx uctx stmts) uctx e
+  
   | _ -> failwith "todo"
+
+and stmts_rec generalized ctx uctx stmts = 
+  let unwrap (Def (s, (_, _, (i, o))), _) = s, (false, i, o) in
+  let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
+  List.iter (fun (Def (_, e), _) -> infer ctx' uctx e) stmts;
+  Ouro.vmap (fun (_, i, o) -> generalized, i, o) ctx'
+
+let top_stmts ctx uctx = 
+  List.fold_left begin fun ctx' (Def (d, (_, _, (i, o) as e)), _) -> 
+    infer (Ouro.insert d (false, i, o) ctx') uctx e;
+    Ouro.insert d (true, i, o) ctx'
+  end ctx
