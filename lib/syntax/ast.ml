@@ -15,7 +15,7 @@ module Make(T : sig type t[@@deriving show] end) = struct
     | Lit of lit
     | Var of string
     | Let of stmt list * expr
-    | Ex of string
+    | Ex of string * expr
     | UVar of string
 
   and bop = 

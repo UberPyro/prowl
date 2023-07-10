@@ -9,6 +9,15 @@ open System
 open Util
 open Ull
 
+module PP = struct
+  type 'a t = (string * 'a) list [@@deriving show]
+end
+
+module Dict = struct
+  include Hashtbl.Make(struct include Hashtbl include String end)
+  let pp h fmt = to_list %> PP.pp h fmt
+end
+
 let inspect i o i_final o_final = 
   let arg, argcos = usplit i in
   let res, rescos = usplit o in
@@ -310,5 +319,21 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     let c0 = mk_poly_costack () in
     i0 =?= c0;
     o0 =?= Lit String @> c0
+  
+  | UVar s -> 
+    let v = mk_var () in
+    let c = mk_poly_costack () in
+    i0 =?= v @@> c;
+    o0 =?= c;
+    unify v @@ begin match Dict.find_option uctx s with
+      | Some v' ->  v'
+      | None -> failwith "Unbound unification variable"
+    end
+  
+  | Ex (s, (_, _, (i1, o1) as just)) -> 
+    infer ctx uctx just;
+    i0 =?= i1;
+    o0 =?= o1;
+    Dict.add uctx s (mk_var ())
   
   | _ -> failwith "todo"
