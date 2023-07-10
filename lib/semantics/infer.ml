@@ -301,4 +301,14 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     i0 =?= c0;
     o0 =?= c0
   
+  | Lit Int _ -> 
+    let c0 = mk_poly_costack () in
+    i0 =?= c0;
+    o0 =?= Lit Int @> c0
+  
+  | Lit String _ -> 
+    let c0 = mk_poly_costack () in
+    i0 =?= c0;
+    o0 =?= Lit String @> c0
+  
   | _ -> failwith "todo"
