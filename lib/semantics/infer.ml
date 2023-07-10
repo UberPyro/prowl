@@ -326,8 +326,8 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     i0 =?= v @@> c;
     o0 =?= c;
     Dict.find_option uctx s
-    |> Option.default_delayed @@ Fun.const @@
-      failwith "Unbound unification variable"
+    |> Option.default_delayed (fun () -> 
+      failwith "Unbound unification variable")
     |> unify v
   
   | Ex (s, (_, _, (i1, o1) as just)) -> 
