@@ -1,6 +1,7 @@
 open! Batteries
 open! Uref
 open Printf
+open Pretty
 
 open Metadata
 open Syntax
@@ -232,12 +233,18 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= o1;
     i0 =?= o2
   
-  | Dop ((_, _, (i1, o1) as left), Tensor, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1) as left), Tensor, (_, sp, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let i2s, o2s = ufresh (), ufresh () in
-    i2 =?= i2s @>> unil ();
-    o2 =?= o2s @>> unil ();
+    begin try i2 =?= i2s @>> unil () with UnifError _ -> 
+        let msg = sprintf
+          "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
+        InferError (sp, ctx, uctx, msg) |> raise end;
+    begin try o2 =?= o2s @>> unil () with UnifError _ -> 
+      let msg = sprintf
+        "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
+      InferError (sp, ctx, uctx, msg) |> raise end;
     let i, o = inspect_nested i2s o2s i1 o1 in
     i0 =?= i;
     o0 =?= o
@@ -246,8 +253,14 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     infer ctx uctx left;
     infer ctx uctx right;
     let i2s, o2s = ufresh (), ufresh () in
-    i2 =?= i2s @>> unil ();
-    o2 =?= o2s @>> unil ();
+    begin try i2 =?= i2s @>> unil () with UnifError _ -> 
+      let msg = sprintf
+        "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
+      InferError (sp, ctx, uctx, msg) |> raise end;
+    begin try o2 =?= o2s @>> unil () with UnifError _ -> 
+      let msg = sprintf
+        "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
+      InferError (sp, ctx, uctx, msg) |> raise end;
     let o = inspect_nested_biased o2s i2s o1 in
     i0 =?= i1;
     i0 =?= i2;
@@ -257,8 +270,14 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     infer ctx uctx left;
     infer ctx uctx right;
     let i2s, o2s = ufresh (), ufresh () in
-    i2 =?= i2s @>> unil ();
-    o2 =?= o2s @>> unil ();
+    begin try i2 =?= i2s @>> unil () with UnifError _ -> 
+      let msg = sprintf
+        "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
+      InferError (sp, ctx, uctx, msg) |> raise end;
+    begin try o2 =?= o2s @>> unil () with UnifError _ -> 
+      let msg = sprintf
+        "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
+      InferError (sp, ctx, uctx, msg) |> raise end;
     let o = inspect_nested_biased o2s i2s o1 in
     o0 =?= i1;
     o0 =?= i2;

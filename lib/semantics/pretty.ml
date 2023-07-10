@@ -56,3 +56,19 @@ let pretty_uctx out =
     pretty_value out v;
     fprintf out "\n"
   end
+
+module Show = struct
+
+  let sh f v = 
+    let out = IO.output_string () in
+    f out v;
+    IO.close_out out
+  
+  let str_value x = sh pretty_value x
+  let str_stack x = sh pretty_stack x
+  let str_costack x = sh pretty_costack x
+  let str_fn x = sh pretty_fn x
+  let str_ctx x = sh pretty_ctx x
+  let str_uctx x = sh pretty_uctx x
+
+end
