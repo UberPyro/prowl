@@ -325,10 +325,9 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     let c = mk_poly_costack () in
     i0 =?= v @@> c;
     o0 =?= c;
-    unify v @@ begin match Dict.find_option uctx s with
-      | Some v' ->  v'
-      | None -> failwith "Unbound unification variable"
-    end
+    Dict.find_option uctx s
+    |> Option.default_delayed (fun () -> failwith "Unbound unification variable")
+    |> unify v
   
   | Ex (s, (_, _, (i1, o1) as just)) -> 
     infer ctx uctx just;
