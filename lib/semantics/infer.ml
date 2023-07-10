@@ -123,8 +123,8 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
   
   | Sect Aop _ -> 
     let p = Lit Int @> mk_poly_costack () in
-    i0 =?= p;
-    o0 =?= Lit Int @> p
+    i0 =?= Lit Int @> p;
+    o0 =?= p
   
   | Sect Cop _ -> 
     let s = ufresh () in
