@@ -2,20 +2,11 @@ open! Batteries
 open Printf
 open Uref
 
+open Metadata
 open Util
 open Ull
 
-type value = value_ uref
-and value_ = 
-  | Lit of lit
-  | Con of fn * con
-  | Var of int
-and lit = Int | String
-and con = Quote | List
-and stack = value ulist
-and costack = stack ulist
-and fn = costack * costack
-  [@@deriving show]
+include Types
 
 let rec unify v0 = v0 |> Uref.unite ~sel:begin curry @@ function
   | Var _ as v, Var _ -> v

@@ -3,8 +3,7 @@ open! Uref
 open Printf
 
 open Syntax
-module Tast = Ast.Make(struct type t = System.fn[@@deriving show] end)
-open Tast
+open Ast
 open System
 open Memo
 
