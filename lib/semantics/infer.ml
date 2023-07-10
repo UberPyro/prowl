@@ -101,25 +101,26 @@ let inspect_nested_biased disj conj disj_final =
   UnifError msg |> raise
 
 exception InferError of
-    Span.t
+  Ast.expr
+  * Span.t
   * (string, bool * costack * costack) Ouro.t
   * value Dict.t
   * string
 
-let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
+let rec infer ctx uctx (ast, sp, (i0, o0) as ast0) = try match ast with
   | Bop ((_, sp1, (i1, o1) as left), Aop _, (_, sp2, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let u = mk_init_costack () in
-    begin try
-      i1 =?= u;
-      i2 =?= u
-    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
     let z = Lit Int @> u in
     begin try
-      o1 =?= z;
+      i1 =?= u;
+      o1 =?= z
+    with UnifError msg -> InferError (ast0, sp1, ctx, uctx, msg) |> raise end;
+    begin try
+      i2 =?= u;
       o2 =?= z
-    with UnifError msg -> InferError (sp2, ctx, uctx, msg) |> raise end;
+    with UnifError msg -> InferError (ast0, sp2, ctx, uctx, msg) |> raise end;
     let p = mk_poly_costack () in
     i0 =?= p;
     o0 =?= Lit Int @> p
@@ -128,15 +129,15 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     infer ctx uctx left;
     infer ctx uctx right;
     let u = mk_init_costack () in
-    begin try
-      i1 =?= u;
-      i2 =?= u;
-    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
     let z = Lit Int @> u in
     begin try
+      i1 =?= u;
       o1 =?= z;
+    with UnifError msg -> InferError (ast0, sp1, ctx, uctx, msg) |> raise end;
+    begin try
+      i2 =?= u;
       o2 =?= z;
-    with UnifError msg -> InferError (sp2, ctx, uctx, msg) |> raise end;
+    with UnifError msg -> InferError (ast0, sp2, ctx, uctx, msg) |> raise end;
     let s = ufresh () in
     let p = s @>> ufresh () in
     i0 =?= p;
@@ -148,7 +149,7 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     begin try
       i1 =?= u;
       o1 =?= Lit Int @> u;
-    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
+    with UnifError msg -> InferError (ast0, sp1, ctx, uctx, msg) |> raise end;
     let p = Lit Int @> mk_poly_costack () in
     i0 =?= p;
     o0 =?= p
@@ -159,7 +160,7 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     begin try
       i1 =?= u;
       o1 =?= Lit Int @> u;
-    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
+    with UnifError msg -> InferError (ast0, sp1, ctx, uctx, msg) |> raise end;
     let s = ufresh () in
     let p = s @>> ufresh () in
     i0 =?= Lit Int @> p;
@@ -171,7 +172,7 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     begin try
       i1 =?= u;
       o1 =?= Lit Int @> u;
-    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
+    with UnifError msg -> InferError (ast0, sp1, ctx, uctx, msg) |> raise end;
     let p = Lit Int @> mk_poly_costack () in
     i0 =?= p;
     o0 =?= p
@@ -182,7 +183,7 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     begin try
       i1 =?= u;
       o1 =?= Lit Int @> u;
-    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
+    with UnifError msg -> InferError (ast0, sp1, ctx, uctx, msg) |> raise end;
     let s = ufresh () in
     let p = s @>> ufresh () in
     i0 =?= Lit Int @> p;
@@ -240,11 +241,11 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     begin try i2 =?= i2s @>> unil () with UnifError _ -> 
         let msg = sprintf
           "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
-        InferError (sp, ctx, uctx, msg) |> raise end;
+        InferError (ast0, sp, ctx, uctx, msg) |> raise end;
     begin try o2 =?= o2s @>> unil () with UnifError _ -> 
       let msg = sprintf
         "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
-      InferError (sp, ctx, uctx, msg) |> raise end;
+      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
     let i, o = inspect_nested i2s o2s i1 o1 in
     i0 =?= i;
     o0 =?= o
@@ -256,11 +257,11 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     begin try i2 =?= i2s @>> unil () with UnifError _ -> 
       let msg = sprintf
         "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
-      InferError (sp, ctx, uctx, msg) |> raise end;
+      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
     begin try o2 =?= o2s @>> unil () with UnifError _ -> 
       let msg = sprintf
         "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
-      InferError (sp, ctx, uctx, msg) |> raise end;
+      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
     let o = inspect_nested_biased o2s i2s o1 in
     i0 =?= i1;
     i0 =?= i2;
@@ -273,11 +274,11 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     begin try i2 =?= i2s @>> unil () with UnifError _ -> 
       let msg = sprintf
         "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
-      InferError (sp, ctx, uctx, msg) |> raise end;
+      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
     begin try o2 =?= o2s @>> unil () with UnifError _ -> 
       let msg = sprintf
         "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
-      InferError (sp, ctx, uctx, msg) |> raise end;
+      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
     let o = inspect_nested_biased o2s i2s o1 in
     o0 =?= i1;
     o0 =?= i2;
@@ -454,7 +455,7 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
   
   | Let (stmts, e) -> infer (stmts_rec false ctx uctx stmts) uctx e
 
-  with UnifError msg -> raise @@ InferError (sp, ctx, uctx, msg)
+  with UnifError msg -> raise @@ InferError (ast0, sp, ctx, uctx, msg)
   
 and stmts_rec generalized ctx uctx stmts = 
   let unwrap (Def (s, (_, _, (i, o))), _) = s, (false, i, o) in
