@@ -219,7 +219,45 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     i0 =?= Con ((c0, c1), Quote) @> v @@> c0;
     o0 =?= v @@> c1
 
-  (* | Nop Cat ->  *)
+  | Nop Cat -> 
+    let c0 = mk_poly_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    i0 =?= Con ((c2, c3), Quote) @> Con ((c1, c2), Quote) @> c0;
+    o0 =?= Con ((c1, c2), Quote) @> c0
+  
+  | Nop Unit -> 
+    let c0, c1 = mk_poly_costack (), mk_poly_costack () in
+    let v = mk_var () in
+    i0 =?= v @@> c0;
+    o0 =?= Con ((c1, v @@> c1), Quote) @> c0
+  
+  | Nop DivMod -> 
+    let c1 = Lit Int @> Lit Int @> mk_poly_costack () in
+    i0 =?= c1;
+    o0 =?= c1
+  
+  | Nop Lin -> 
+    let c1, c2 = mk_poly_costack (), mk_poly_costack () in
+    let s = ufresh () in
+    let c0 = s @>> ufresh () in
+    i0 =?= Con ((c1, c2), Quote) @> Con ((c1, c2), List) @> s @>> c0;
+    o0 =?= Con ((c1, c2), List) @> c0
+  
+  | Nop Parse -> 
+    let c0 = mk_poly_costack () in
+    i0 =?= Lit String @> c0;
+    o0 =?= Lit Int @> c0
+  
+  | Nop Show -> 
+    let c0 = mk_poly_costack () in
+    i0 =?= Lit Int @> c0;
+    o0 =?= Lit String @> c0
+  
+  | Nop Noop -> i0 =?= o0
 
+  | Nop (Id | Ab) -> 
+    let c0 = mk_var () @@> mk_poly_costack () in
+    i0 =?= c0;
+    o0 =?= c0
   
   | _ -> failwith "todo"
