@@ -25,7 +25,7 @@ let parse_arg a =
 let check fname args = 
   let ast = parse (File.open_in fname) in
   let ctx = Infer.prog ast in
-  let (_, main_in, _), _ = 
+  let (_, main_in, main_out), _ = 
     Ouro.find_rec_opt "main" ctx
     |> Option.default_delayed begin fun () -> 
       failwith @@ Printf.sprintf "%s has no main function!" fname
@@ -34,5 +34,5 @@ let check fname args =
       | Ast.String _ -> Lit String @> acc
       | Ast.Int _ -> Lit Int @> acc
     end (mk_init_costack ()) (List.map parse_arg args) in
-  try main_in =?= cs_in
+  try main_in =?= cs_in; main_out =?= mk_unital_costack ()
   with Ull.UnifError msg -> failwith @@ "Error in main: " ^ msg
