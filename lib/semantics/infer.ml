@@ -11,15 +11,6 @@ open Memo
 open Util
 open Ull
 
-module PP = struct
-  type 'a t = (string * 'a) list [@@deriving show]
-end
-
-module Dict = struct
-  include Hashtbl.Make(struct include Hashtbl include String end)
-  let pp h fmt = to_list %> PP.pp h fmt
-end
-
 let inspect i o i_final o_final = 
   let arg, argcos = usplit i in
   let res, rescos = usplit o in

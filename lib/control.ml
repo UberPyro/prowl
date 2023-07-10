@@ -22,7 +22,7 @@ let parse_arg a =
   then Ast.String (String.sub a 1 (len - 2))
   else Ast.Int (String.to_int a)
 
-let check fname args = 
+let check debug fname args = 
   let ast = parse (File.open_in fname) in
   let ctx = Infer.prog ast in
   let (_, main_in, main_out), _ = 
@@ -34,5 +34,10 @@ let check fname args =
       | Ast.String _ -> Lit String @> acc
       | Ast.Int _ -> Lit Int @> acc
     end (mk_init_costack ()) (List.map parse_arg args) in
-  try main_in =?= cs_in; main_out =?= mk_end_costack ()
-  with Ull.UnifError msg -> failwith @@ "Error in main: " ^ msg
+  begin try main_in =?= cs_in; main_out =?= mk_end_costack ()
+  with Ull.UnifError msg -> failwith @@ "Error in main: " ^ msg end;
+  if debug then begin
+    let out = IO.output_string () in
+    Pretty.pretty_ctx out ctx;
+    IO.close_out out |> print_endline
+  end
