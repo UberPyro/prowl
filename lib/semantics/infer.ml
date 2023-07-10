@@ -2,6 +2,7 @@ open! Batteries
 open! Uref
 open Printf
 
+open Metadata
 open Syntax
 open Ast
 open System
@@ -107,7 +108,13 @@ let inspect_nested_biased disj conj disj_final =
     (show_stack conj) (show_stack disj) in
   UnifError msg |> raise
 
-let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
+exception InferError of
+    Span.t
+  * (string, bool * costack * costack) Ouro.t
+  * value Dict.t
+  * string
+
+let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
   | Bop ((_, _, (i1, o1) as left), Aop _, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
@@ -420,6 +427,8 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     o0 =?= transform o1;
   
   | Let (stmts, e) -> infer (stmts_rec false ctx uctx stmts) uctx e
+
+  with UnifError msg -> raise @@ InferError (sp, ctx, uctx, msg)
   
 and stmts_rec generalized ctx uctx stmts = 
   let unwrap (Def (s, (_, _, (i, o))), _) = s, (false, i, o) in
@@ -433,5 +442,5 @@ let top_stmts ctx uctx =
     Ouro.insert d (true, i, o) ctx'
   end ctx
 
-let prog : (_stmt * Metadata.Span.t) list -> 'a = 
+let prog : (_stmt * Span.t) list -> 'a = 
   top_stmts Ouro.empty @@ Dict.create 32
