@@ -115,66 +115,82 @@ exception InferError of
   * string
 
 let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
-  | Bop ((_, _, (i1, o1) as left), Aop _, (_, _, (i2, o2) as right)) -> 
+  | Bop ((_, sp1, (i1, o1) as left), Aop _, (_, sp2, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let u = mk_init_costack () in
-    i1 =?= u;
-    i2 =?= u;
+    begin try
+      i1 =?= u;
+      i2 =?= u
+    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
     let z = Lit Int @> u in
-    o1 =?= z;
-    o2 =?= z;
+    begin try
+      o1 =?= z;
+      o2 =?= z
+    with UnifError msg -> InferError (sp2, ctx, uctx, msg) |> raise end;
     let p = mk_poly_costack () in
     i0 =?= p;
     o0 =?= Lit Int @> p
   
-  | Bop ((_, _, (i1, o1) as left), Cop _, (_, _, (i2, o2) as right)) -> 
+  | Bop ((_, sp1, (i1, o1) as left), Cop _, (_, sp2, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let u = mk_init_costack () in
-    i1 =?= u;
-    i2 =?= u;
+    begin try
+      i1 =?= u;
+      i2 =?= u;
+    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
     let z = Lit Int @> u in
-    o1 =?= z;
-    o2 =?= z;
+    begin try
+      o1 =?= z;
+      o2 =?= z;
+    with UnifError msg -> InferError (sp2, ctx, uctx, msg) |> raise end;
     let s = ufresh () in
     let p = s @>> ufresh () in
     i0 =?= p;
     o0 =?= s @>> p
   
-  | SectLeft (Aop _, (_, _, (i1, o1) as just)) -> 
+  | SectLeft (Aop _, (_, sp1, (i1, o1) as just)) -> 
     infer ctx uctx just;
     let u = mk_init_costack () in
-    i1 =?= u;
-    o1 =?= Lit Int @> u;
+    begin try
+      i1 =?= u;
+      o1 =?= Lit Int @> u;
+    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
     let p = Lit Int @> mk_poly_costack () in
     i0 =?= p;
     o0 =?= p
   
-  | SectLeft (Cop _, (_, _, (i1, o1) as just)) -> 
+  | SectLeft (Cop _, (_, sp1, (i1, o1) as just)) -> 
     infer ctx uctx just;
     let u = mk_init_costack () in
-    i1 =?= u;
-    o1 =?= Lit Int @> u;
+    begin try
+      i1 =?= u;
+      o1 =?= Lit Int @> u;
+    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
     let s = ufresh () in
     let p = s @>> ufresh () in
     i0 =?= Lit Int @> p;
     o0 =?= s @>> p
   
-  | SectRight ((_, _, (i1, o1) as just), Aop _) -> 
+  | SectRight ((_, sp1, (i1, o1) as just), Aop _) -> 
     infer ctx uctx just;
     let u = mk_init_costack () in
-    i1 =?= u;
-    o1 =?= Lit Int @> u;
+    begin try
+      i1 =?= u;
+      o1 =?= Lit Int @> u;
+    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
     let p = Lit Int @> mk_poly_costack () in
     i0 =?= p;
     o0 =?= p
   
-  | SectRight ((_, _, (i1, o1) as just), Cop _) -> 
+  | SectRight ((_, sp1, (i1, o1) as just), Cop _) -> 
     infer ctx uctx just;
     let u = mk_init_costack () in
-    i1 =?= u;
-    o1 =?= Lit Int @> u;
+    begin try
+      i1 =?= u;
+      o1 =?= Lit Int @> u;
+    with UnifError msg -> InferError (sp1, ctx, uctx, msg) |> raise end;
     let s = ufresh () in
     let p = s @>> ufresh () in
     i0 =?= Lit Int @> p;
