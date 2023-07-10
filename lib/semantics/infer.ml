@@ -322,6 +322,22 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     i0 =?= c0;
     o0 =?= Lit String @> c0
   
+  | Lit Quote (_, _, fn as just) -> 
+    infer ctx uctx just;
+    let c0 = mk_poly_costack () in
+    i0 =?= c0;
+    o0 =?= Con (fn, Quote) @> c0
+  
+  | Lit List lst -> 
+    let fn0 = mk_poly_costack (), mk_poly_costack () in
+    List.iter begin fun (_, _, fn as just) -> 
+      infer ctx uctx just;
+      unify_fn fn0 fn
+    end lst;
+    let c0 = mk_poly_costack () in
+    i0 =?= c0;
+    o0 =?= Con (fn0, List) @> c0
+  
   | UVar s -> 
     let v = mk_var () in
     let c = mk_poly_costack () in
@@ -353,8 +369,6 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
   
   | Let (stmts, e) -> infer (stmts_rec false ctx uctx stmts) uctx e
   
-  | _ -> failwith "todo"
-
 and stmts_rec generalized ctx uctx stmts = 
   let unwrap (Def (s, (_, _, (i, o))), _) = s, (false, i, o) in
   let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
