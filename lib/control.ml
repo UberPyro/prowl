@@ -25,7 +25,7 @@ let parse_arg a =
 let check fname args = 
   let ast = parse (File.open_in fname) in
   let ctx = Infer.prog ast in
-  let (_, main_in, main_out), _ = 
+  let (_, main_in, _), _ = 
     Ouro.find_rec_opt "main" ctx
     |> Option.default_delayed begin fun () -> 
       failwith @@ Printf.sprintf "%s has no main function!" fname
