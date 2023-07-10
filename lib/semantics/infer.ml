@@ -50,174 +50,174 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     infer ctx uctx left;
     infer ctx uctx right;
     let u = mk_unital_costack () in
-    u =?= i1;
-    u =?= i2;
-    let z = Lit Int >: u in
-    z =?= o1;
-    z =?= o2;
+    i1 =?= u;
+    i2 =?= u;
+    let z = Lit Int @> u in
+    o1 =?= z;
+    o2 =?= z;
     let p = mk_poly_costack () in
-    p =?= i0;
-    Lit Int >: p =?= o0
+    i0 =?= p;
+    o0 =?= Lit Int @> p
   
   | Bop ((_, _, (i1, o1) as left), Cop _, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let u = mk_unital_costack () in
-    u =?= i1;
-    u =?= i2;
-    let z = Lit Int >: u in
-    z =?= o1;
-    z =?= o2;
+    i1 =?= u;
+    i2 =?= u;
+    let z = Lit Int @> u in
+    o1 =?= z;
+    o2 =?= z;
     let s = ufresh () in
-    let p = s >>: ufresh () in
-    p =?= i1;
-    s >>: p =?= o1
+    let p = s @>> ufresh () in
+    i0 =?= p;
+    o0 =?= s @>> p
   
   | SectLeft (Aop _, (_, _, (i1, o1) as just)) -> 
     infer ctx uctx just;
     let u = mk_unital_costack () in
-    u =?= i1;
-    Lit Int >: u =?= o1;
-    let p = Lit Int >: mk_poly_costack () in
-    p =?= i0;
-    p =?= o0
+    i1 =?= u;
+    o1 =?= Lit Int @> u;
+    let p = Lit Int @> mk_poly_costack () in
+    i0 =?= p;
+    o0 =?= p
   
   | SectLeft (Cop _, (_, _, (i1, o1) as just)) -> 
     infer ctx uctx just;
     let u = mk_unital_costack () in
-    u =?= i1;
-    Lit Int >: u =?= o1;
+    i1 =?= u;
+    o1 =?= Lit Int @> u;
     let s = ufresh () in
-    let p = s >>: ufresh () in
-    Lit Int >: p =?= i1;
-    s >>: p =?= o1
+    let p = s @>> ufresh () in
+    i0 =?= Lit Int @> p;
+    o0 =?= s @>> p
   
   | SectRight ((_, _, (i1, o1) as just), Aop _) -> 
     infer ctx uctx just;
     let u = mk_unital_costack () in
-    u =?= i1;
-    Lit Int >: u =?= o1;
-    let p = Lit Int >: mk_poly_costack () in
-    p =?= i0;
-    p =?= o0
+    i1 =?= u;
+    o1 =?= Lit Int @> u;
+    let p = Lit Int @> mk_poly_costack () in
+    i0 =?= p;
+    o0 =?= p
   
   | SectRight ((_, _, (i1, o1) as just), Cop _) -> 
     infer ctx uctx just;
     let u = mk_unital_costack () in
-    u =?= i1;
-    Lit Int >: u =?= o1;
+    i1 =?= u;
+    o1 =?= Lit Int @> u;
     let s = ufresh () in
-    let p = s >>: ufresh () in
-    Lit Int >: p =?= i1;
-    s >>: p =?= o1
+    let p = s @>> ufresh () in
+    i0 =?= Lit Int @> p;
+    o0 =?= s @>> p
   
   | Sect Aop _ -> 
-    let p = Lit Int >: mk_poly_costack () in
-    p =?= i0;
-    Lit Int >: p =?= o0
+    let p = Lit Int @> mk_poly_costack () in
+    i0 =?= p;
+    o0 =?= Lit Int @> p
   
   | Sect Cop _ -> 
     let s = ufresh () in
-    let p = s >>: ufresh () in
-    Lit Int >: (Lit Int >: p) =?= i0;
-    s >>: p =?= o0
+    let p = s @>> ufresh () in
+    i0 =?= Lit Int @> Lit Int @> p;
+    o0 =?= s @>> p
   
   | Uop ((_, _, (i1, o1) as just), Dag) -> 
     infer ctx uctx just;
-    i1 =?= o0;
+    o0 =?= i1;
     i0 =?= o1
   
   | Uop ((_, _, (i1, o1) as just), (Mark | Star | Plus)) -> 
     infer ctx uctx just;
     i1 =?= o1;
-    i1 =?= i0;
-    o1 =?= o0
+    i0 =?= i1;
+    o0 =?= o1
   
   | Dop ((_, _, (i1, o1) as left), Ponder, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let i, o = inspect i2 o2 i1 o1 in
-    i =?= i0;
-    o =?= o0
+    i0 =?= i;
+    o0 =?= o
   
   | Dop ((_, _, (i1, o1) as left), Pick, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let i = inspect_biased i2 o2 i1 in
-    i =?= i0;
-    o1 =?= o0;
-    o2 =?= o0
+    i0 =?= i;
+    o0 =?= o1;
+    o0 =?= o2
   
   | Dop ((_, _, (i1, o1) as left), Tensor, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let i2s, o2s = ufresh (), ufresh () in
-    i2s >>: unil () =?= i2;
-    o2s >>: unil () =?= o2;
+    i2 =?= i2s @>> unil ();
+    o2 =?= o2s @>> unil ();
     let i, o = inspect_nested i2s o2s i1 o1 in
-    i =?= i0;
-    o =?= o0
+    i0 =?= i;
+    o0 =?= o
   
   | Dop ((_, _, (i1, o1) as left), Fork, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     let i2s, o2s = ufresh (), ufresh () in
-    i2s >>: unil () =?= i2;
-    o2s >>: unil () =?= o2;
+    i2 =?= i2s @>> unil ();
+    o2 =?= o2s @>> unil ();
     let o = inspect_nested_biased i2s o2s o1 in
-    i1 =?= i0;
-    i2 =?= i0;
-    o =?= o0
+    i0 =?= i1;
+    i0 =?= i2;
+    o0 =?= o
   
   | Nop (Gen | Fab) -> 
     let stunted, stack = ufresh (), ufresh () in
-    let costack = stack >>: stunted in
-    costack =?= i0;
-    stack >>: costack =?= o0  
+    let costack = stack @>> stunted in
+    i0 =?= costack;
+    o0 =?= stack @>> costack
   
   | Nop Exch -> 
     let stunted, s1, s2 = ufresh (), ufresh (), ufresh () in
-    s1 >>: (s2 >>: stunted) =?= i0;
-    s2 >>: (s1 >>: stunted) =?= o0
+    i0 =?= s1 @>> s2 @>> stunted;
+    o0 =?= s2 @>> s1 @>> stunted
   
   | Nop Elim -> 
     let stunted, stack = ufresh () , ufresh () in
-    let costack = stack >>: stunted in
-    stack >>: costack =?= i0;
-    costack =?= o0
+    let costack = stack @>> stunted in
+    i0 =?= stack @>> costack;
+    o0 =?= costack
   
   | Nop Cmp -> 
     let stunted, stack = ufresh () , ufresh () in
-    let costack = stack >>: stunted in
-    Lit Int >: (Lit Int >: costack) =?= i0;
-    stack >>: costack =?= o0
+    let costack = stack @>> stunted in
+    i0 =?= Lit Int @> Lit Int @> costack;
+    o0 =?= stack @>> costack
   
   | Nop Dup -> 
     let var = mk_var () in
-    let costack = var >:: mk_poly_costack () in
-    costack =?= i0;
-    var >:: costack =?= o0
+    let costack = var @@> mk_poly_costack () in
+    i0 =?= costack;
+    o0 =?= var @@> costack
   
   | Nop Zap -> 
     let costack = mk_poly_costack () in
-    mk_var () >:: costack =?= i0;
-    costack =?= o0
+    i0 =?= mk_var () @@> costack;
+    o0 =?= costack
   
   | Nop Swap -> 
     let costack, v1, v2 = mk_poly_costack (), mk_var (), mk_var () in
-    v1 >:: (v2 >:: costack) =?= i0;
-    v2 >:: (v1 >:: costack) =?= o0
+    i0 =?= v1 @@> v2 @@> costack;
+    o0 =?= v2 @@> v1 @@> costack
   
   | Nop Cons -> 
     let c0, c1, c2 = Tuple3.mapn ufresh ((), (), ()) in
     let v = mk_var () in
-    Con ((v >:: c1, c2), Quote) >: (v >:: c0) =?= i0;
-    Con ((c1, c2), Quote) >: c0 =?= o0
+    i0 =?= Con ((v @@> c1, c2), Quote) @> v @@> c0;
+    o0 =?= Con ((c1, c2), Quote) @> c0
   
   | Nop Dip -> 
     let c0, c1, v = ufresh (), ufresh (), mk_var () in
-    Con ((c0, c1), Quote) >: (v >:: c0) =?= i0;
-    v >:: c1 =?= o0
+    i0 =?= Con ((c0, c1), Quote) @> v @@> c0;
+    o0 =?= v @@> c1
 
   (* | Nop Cat ->  *)
 

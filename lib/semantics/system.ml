@@ -53,7 +53,7 @@ and occurs_fn k (c1, c2) =
 
 let mk_unital_costack () = ucons (unil ()) (ufresh ())
 let mk_poly_costack () = ucons (ufresh ()) (ufresh ())
-let (>:) v_ = map_hd (ucons (uref @@ v_))
+let (@>) v_ = map_hd (ucons (uref @@ v_))
 let mk_var () = uref @@ Var (unique ())
-let (>::) v = map_hd (ucons v)
-let (>>:) s = ucons s
+let (@@>) v = map_hd (ucons v)
+let (@>>) s = ucons s
