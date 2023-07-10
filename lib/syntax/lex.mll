@@ -62,7 +62,7 @@ rule token = parse
   | "gen" {GEN} | "fab" {FAB} | "exch" {EXCH} | "elim" {ELIM} | "cmp" {CMP}
   | "dup" {DUP} | "zap" {ZAP} | "swap" {SWAP}
   | "cons" {CONS} | "dip" {DIP} | "cat" {CAT} | "unit" {UNIT}
-  | "divmod" {DIVMOD} | "lin" {LIN} | "bin" {BIN}
+  | "divmod" {DIVMOD} | "lin" {LIN}
   | "parse" {PARSE} | "show" {SHOW}
   | "nop" {NOP} | "id" {ID} | "ab" {AB}
 

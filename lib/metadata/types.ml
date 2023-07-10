@@ -15,3 +15,5 @@ and stack = value ulist
 and costack = stack ulist
 and fn = costack * costack
   [@@deriving show]
+
+let fresh () = ufresh (), ufresh ()

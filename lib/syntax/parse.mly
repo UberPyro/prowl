@@ -1,8 +1,8 @@
 %{
   open! Batteries
   open! Metadata
-  open! Ast
   open! Types
+  open! Ast
 %}
 
 %token
@@ -17,7 +17,7 @@
   CONTRA UNION
   GEN FAB EXCH ELIM CMP
   DUP ZAP SWAP CONS DIP CAT UNIT
-  DIVMOD LIN BIN PARSE SHOW
+  DIVMOD LIN PARSE SHOW
   NOP ID AB
   COMMA EOF
 
@@ -42,21 +42,21 @@ stmt: _stmt {$1, $loc}
 %inline _stmt: 
   | ASSIGN VAR expr {Def ($2, $3)}
 
-sect: _sect {$1, $loc, free_dc (), free_dc ()}
+sect: _sect {$1, $loc, fresh ()}
 %inline _sect: 
   | bop expr {SectLeft ($1, $2)}
   | expr bop {SectRight ($1, $2)}
   | bop {Sect $1}
   | _expr {$1}
 
-expr: _expr {$1, $loc, free_dc (), free_dc ()}
+expr: _expr {$1, $loc, fresh ()}
 _expr: 
   | expr bop expr {Bop ($1, $2, $3)}
   | expr dop expr {Dop ($1, $2, $3)}
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
   | _hiexpr {$1}
 
-hiexpr: _hiexpr {$1, $loc, free_dc (), free_dc ()}
+hiexpr: _hiexpr {$1, $loc, fresh ()}
 _hiexpr: 
   | hiexpr DAG {Uop ($1, Dag)}
   | hiexpr MARK {Uop ($1, Mark)}
@@ -65,14 +65,14 @@ _hiexpr:
   | term list(pair(ioption(CONTRA), term)) {
     let rec go e = function
       | (None, h) :: t -> 
-        Dop (e, Jux, (go h t, Tuple4.second h, free_dc (), free_dc ()))
+        Dop (e, Jux, (go h t, Tuple3.second h, fresh ()))
       | (Some _, h) :: t -> 
-        Dop (e, Contra, (go h t, Tuple4.second h, free_dc (), free_dc ()))
-      | [] -> Tuple4.first e in
+        Dop (e, Contra, (go h t, Tuple3.second h, fresh ()))
+      | [] -> Tuple3.first e in
     go $1 $2
   }
 
-term: _term {$1, $loc, free_dc (), free_dc ()}
+term: _term {$1, $loc, fresh ()}
 %inline _term: 
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}
@@ -110,5 +110,5 @@ term: _term {$1, $loc, free_dc (), free_dc ()}
   | GEN {Gen} | FAB {Fab} | EXCH {Exch} | ELIM {Elim} | CMP {Cmp}
   | DUP {Dup} | ZAP {Zap} | SWAP {Swap} | CONS {Cons} | DIP {Dip}
   | CAT {Cat} | UNIT {Unit}
-  | DIVMOD {DivMod} | LIN {Lin} | BIN {Bin} | PARSE {Parse} | SHOW {Show}
+  | DIVMOD {DivMod} | LIN {Lin} | PARSE {Parse} | SHOW {Show}
   | NOP {Noop} | ID {Id} | AB {Ab}
