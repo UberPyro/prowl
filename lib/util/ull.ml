@@ -67,6 +67,5 @@ let rec unite unite_val occurs_val =
 and occurs occurs_val v = 
   let msg = 
     Printf.sprintf
-      "Cannot unify a variable [%d] with a sequence that contains it"
-      v in
+      "Cannot unify a variable with a sequence that contains it" in
   uiter ~g:(assert_exn (UnifError msg) v) (occurs_val v)

@@ -18,14 +18,16 @@ let rec unify v0 = v0 |> Uref.unite ~sel:begin curry @@ function
     unify_fn f1 f2; 
     v
   | v1, v2 -> 
-    failwith @@ sprintf 
-      "Cannot unify types [%s] and [%s]"
-      (show_value_ v1)
-      (show_value_ v2)
+    let msg = 
+      sprintf "Cannot unify distinct type literals [%s] and [%s]"
+        (show_value_ v1) (show_value_ v2) in
+    raise @@ UnifError msg
 end
 
 and occurs_val k1 = uget %> function
-  | Var k2 when k1 = k2 -> failwith "Occurs error"
+  | Var k2 when k1 = k2 -> 
+    UnifError "Cannot unify a variable with a term that contains it"
+    |> raise
   | Con (f, _) -> occurs_fn k1 f
   | _ -> ()
 
