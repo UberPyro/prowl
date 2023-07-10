@@ -59,7 +59,7 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
   | Bop ((_, _, (i1, o1) as left), Aop _, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
-    let u = mk_unital_costack () in
+    let u = mk_init_costack () in
     i1 =?= u;
     i2 =?= u;
     let z = Lit Int @> u in
@@ -72,7 +72,7 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
   | Bop ((_, _, (i1, o1) as left), Cop _, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
-    let u = mk_unital_costack () in
+    let u = mk_init_costack () in
     i1 =?= u;
     i2 =?= u;
     let z = Lit Int @> u in
@@ -85,7 +85,7 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
   
   | SectLeft (Aop _, (_, _, (i1, o1) as just)) -> 
     infer ctx uctx just;
-    let u = mk_unital_costack () in
+    let u = mk_init_costack () in
     i1 =?= u;
     o1 =?= Lit Int @> u;
     let p = Lit Int @> mk_poly_costack () in
@@ -94,7 +94,7 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
   
   | SectLeft (Cop _, (_, _, (i1, o1) as just)) -> 
     infer ctx uctx just;
-    let u = mk_unital_costack () in
+    let u = mk_init_costack () in
     i1 =?= u;
     o1 =?= Lit Int @> u;
     let s = ufresh () in
@@ -104,7 +104,7 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
   
   | SectRight ((_, _, (i1, o1) as just), Aop _) -> 
     infer ctx uctx just;
-    let u = mk_unital_costack () in
+    let u = mk_init_costack () in
     i1 =?= u;
     o1 =?= Lit Int @> u;
     let p = Lit Int @> mk_poly_costack () in
@@ -113,7 +113,7 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
   
   | SectRight ((_, _, (i1, o1) as just), Cop _) -> 
     infer ctx uctx just;
-    let u = mk_unital_costack () in
+    let u = mk_init_costack () in
     i1 =?= u;
     o1 =?= Lit Int @> u;
     let s = ufresh () in
