@@ -34,5 +34,5 @@ let check fname args =
       | Ast.String _ -> Lit String @> acc
       | Ast.Int _ -> Lit Int @> acc
     end (mk_init_costack ()) (List.map parse_arg args) in
-  try main_in =?= cs_in; main_out =?= mk_unital_costack ()
+  try main_in =?= cs_in
   with Ull.UnifError msg -> failwith @@ "Error in main: " ^ msg
