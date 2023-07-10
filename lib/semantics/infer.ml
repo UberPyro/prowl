@@ -148,6 +148,14 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     o0 =?= o1;
     o0 =?= o2
   
+  | Dop ((_, _, (i1, o1) as left), Guess, (_, _, (i2, o2) as right)) -> 
+    infer ctx uctx left;
+    infer ctx uctx right;
+    let i = inspect_biased i2 o2 i1 in
+    o0 =?= i;
+    i0 =?= o1;
+    i0 =?= o2
+  
   | Dop ((_, _, (i1, o1) as left), Tensor, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
@@ -168,6 +176,39 @@ let rec infer ctx uctx (ast, _sp, (i0, o0)) = match ast with
     i0 =?= i1;
     i0 =?= i2;
     o0 =?= o
+  
+  | Dop ((_, _, (i1, o1) as left), Cross, (_, _, (i2, o2) as right)) -> 
+    infer ctx uctx left;
+    infer ctx uctx right;
+    let i2s, o2s = ufresh (), ufresh () in
+    i2 =?= i2s @>> unil ();
+    o2 =?= o2s @>> unil ();
+    let o = inspect_nested_biased i2s o2s o1 in
+    o0 =?= i1;
+    o0 =?= i2;
+    i0 =?= o
+  
+  | Dop ((_, _, (i1, o1) as left), Jux, (_, _, (i2, o2) as right)) -> 
+    infer ctx uctx left;
+    infer ctx uctx right;
+    i0 =?= i1;
+    o1 =?= i2;
+    o0 =?= o2
+  
+  | Dop ((_, _, (i1, o1) as left), Contra, (_, _, (i2, o2) as right)) -> 
+    infer ctx uctx left;
+    infer ctx uctx right;
+    i0 =?= i2;
+    o2 =?= i1;
+    o1 =?= o0
+  
+  | Dop ((_, _, (i1, o1) as left), Union, (_, _, (i2, o2) as right)) -> 
+    infer ctx uctx left;
+    infer ctx uctx right;
+    i0 =?= i1;
+    i0 =?= i2;
+    o0 =?= o1;
+    o0 =?= o2
   
   | Nop (Gen | Fab) -> 
     let stunted, stack = ufresh (), ufresh () in
