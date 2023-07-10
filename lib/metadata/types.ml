@@ -13,7 +13,6 @@ and lit = Int | String
 and con = Quote | List
 and stack = value ulist
 and costack = stack ulist
-and fn = costack * costack
-  [@@deriving show]
+and fn = costack * costack [@@deriving show]
 
 let fresh () = ufresh (), ufresh ()

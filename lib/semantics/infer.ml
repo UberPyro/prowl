@@ -379,3 +379,6 @@ let top_stmts ctx uctx =
     infer (Ouro.insert d (false, i, o) ctx') uctx e;
     Ouro.insert d (true, i, o) ctx'
   end ctx
+
+let prog : (_stmt * Metadata.Span.t) list -> 'a = 
+  top_stmts Ouro.empty @@ Dict.create 32

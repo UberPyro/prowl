@@ -1,8 +1,10 @@
 open! Batteries
 
-(* open Metadata
 open Syntax
 open Semantics
+open Util
+
+open System
 
 let parse ch = 
   let lexbuf = Lexing.from_channel ch in
@@ -20,22 +22,17 @@ let parse_arg a =
   then Ast.String (String.sub a 1 (len - 2))
   else Ast.Int (String.to_int a)
 
-let check debug fname args = 
+let check fname args = 
   let ast = parse (File.open_in fname) in
-  let ctx = Infer.top_stmts Infer.null_ctx ast in
-  let (_, main_in, (main_out_low, main_out_high)), _ = 
+  let ctx = Infer.prog ast in
+  let (_, main_in, _), _ = 
     Ouro.find_rec_opt "main" ctx
     |> Option.default_delayed begin fun () -> 
       failwith @@ Printf.sprintf "%s has no main function!" fname
     end in
   let cs_in = List.fold_left begin fun acc -> function[@warning "-8"]
-      | Ast.String _ -> acc <: TLit TString
-      | Ast.Int _ -> acc <: TLit TInt
-    end (no_dc ()) (List.map parse_arg args) in
-  try
-    unify_dc main_in cs_in;
-    unify_c main_out_low (no_c ());
-    unify_c main_out_high Ull.(usome (unil (), Ull.ufresh ()));
-    if debug then Infer.pretty_ctx ctx |> print_endline;
-  with Ull.UnifError msg -> 
-    raise @@ Infer.InferError (Span.dummy, ctx, "Error in main: " ^ msg) *)
+      | Ast.String _ -> Lit String @> acc
+      | Ast.Int _ -> Lit Int @> acc
+    end (mk_init_costack ()) (List.map parse_arg args) in
+  try main_in =?= cs_in
+  with Ull.UnifError msg -> failwith @@ "Error in main: " ^ msg

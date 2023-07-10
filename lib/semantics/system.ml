@@ -42,6 +42,7 @@ and occurs_fn k (c1, c2) =
   occurs_costack k c1;
   occurs_costack k c2
 
+let mk_init_costack () = ucons (unil ()) (unil ())
 let mk_unital_costack () = ucons (unil ()) (ufresh ())
 let mk_poly_costack () = ucons (ufresh ()) (ufresh ())
 let (@>) v_ = map_hd (ucons (uref @@ v_))
