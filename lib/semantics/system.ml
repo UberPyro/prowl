@@ -17,7 +17,6 @@ let rec unify v0 = v0 |> Uref.unite ~sel:begin curry @@ function
   | Con (f1, c1) as v, Con (f2, c2) when c1 = c2 -> 
     unify_fn f1 f2; 
     v
-  | AnnotVar s1 as v, AnnotVar s2 when s1 = s2 -> v
   | v1, v2 -> 
     let msg = 
       sprintf "Cannot unify distinct type literals [%s] and [%s]"

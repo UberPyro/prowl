@@ -18,7 +18,7 @@ let rec pretty_value out = uget %> function
     fprintf out "{";
     pretty_fn out fn;
     fprintf out "}"
-  | Var k | AnnotVar k -> fprintf out "V%d" k
+  | Var k -> fprintf out "V%d" k
 
 and pretty_stack out = uget %> function
   | UCons (u, us) -> 
