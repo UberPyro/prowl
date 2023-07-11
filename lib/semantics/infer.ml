@@ -358,9 +358,13 @@ and stmts_rec generalized ctx uctx stmts =
   Ouro.vmap (fun (_, i, o) -> generalized, i, o) ctx'
 
 let top_stmts ctx uctx = 
-  List.fold_left begin fun ctx' (Def (d, _, (_, _, (i, o) as e)), _) -> 
-    infer (Ouro.insert d (false, i, o) ctx') uctx e;
-    Ouro.insert d (true, i, o) ctx'
+  List.fold_left begin fun ctx' -> function
+    | Def (d, None, (_, _, (i, o) as e)), _ -> 
+      infer (Ouro.insert d (false, i, o) ctx') uctx e;
+      Ouro.insert d (true, i, o) ctx'
+    (* | Def (d, Some ty, (_, _, (i, o) as e)), _ ->  *)
+    | _ -> 
+      failwith "todo"
   end ctx
 
 let prog : (_stmt * Span.t) list -> 'a = 
