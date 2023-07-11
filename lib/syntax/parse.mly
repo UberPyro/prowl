@@ -77,7 +77,8 @@ _expr:
   | expr bop expr {Bop ($1, $2, $3)}
   | expr dop expr {Dop ($1, $2, $3)}
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
-  | EXISTS CAP IN expr {Ex ($2, $4)}
+  | EXISTS nonempty_list(CAP) IN expr
+    {List.fold_right (fun a b -> Ex (a, b), $loc, fresh ()) $2 $4 |> Tuple3.first}
   | hiexpr list(pair(ioption(CONTRA), hiexpr)) {
     let rec go e = function
       | (None, h) :: t -> 
