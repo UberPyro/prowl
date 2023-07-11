@@ -352,13 +352,13 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
   with UnifError msg -> raise @@ InferError (sp, ctx, uctx, msg)
   
 and stmts_rec generalized ctx uctx stmts = 
-  let unwrap (Def (s, (_, _, (i, o))), _) = s, (false, i, o) in
+  let unwrap (Def (s, _, (_, _, (i, o))), _) = s, (false, i, o) in
   let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
-  List.iter (fun (Def (_, e), _) -> infer ctx' uctx e) stmts;
+  List.iter (fun (Def (_, _, e), _) -> infer ctx' uctx e) stmts;
   Ouro.vmap (fun (_, i, o) -> generalized, i, o) ctx'
 
 let top_stmts ctx uctx = 
-  List.fold_left begin fun ctx' (Def (d, (_, _, (i, o) as e)), _) -> 
+  List.fold_left begin fun ctx' (Def (d, _, (_, _, (i, o) as e)), _) -> 
     infer (Ouro.insert d (false, i, o) ctx') uctx e;
     Ouro.insert d (true, i, o) ctx'
   end ctx

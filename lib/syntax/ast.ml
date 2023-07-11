@@ -5,9 +5,15 @@ type ty_expr =
   | Explicit of costack_expr * costack_expr
   | ImplicitCostack of stack_expr list * stack_expr list
   | ImplicitStack of value_expr list * value_expr list
-and costack_expr = string * stack_expr list
-and stack_expr = string * value_expr list
-and value_expr = TyInt | TyString | TyVar of string
+and costack_expr = string option * stack_expr list
+and stack_expr = string option * value_expr list
+and value_expr = 
+  | TyInt
+  | TyString
+  | TyQuote of ty_expr
+  | TyList of ty_expr
+  | TyVar of string
+  [@@deriving show]
 
 type expr = _expr * Span.t * Types.fn
 and _expr = 
@@ -81,7 +87,7 @@ and lit =
 
 and stmt = _stmt * Metadata.Span.t
 and _stmt = 
-  | Def of string * expr
+  | Def of string * ty_expr option * expr
   [@@deriving show]
 
 type toplevel = stmt list [@@deriving show]

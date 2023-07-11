@@ -27,6 +27,10 @@ rule token = parse
   | '\t'        {token lexbuf}
 
   | "="         {ASSIGN}
+  | ":"         {SPECIFY}
+  | "--"        {BAR}
+  | "."         {DOT}
+  | "$"         {DOLLAR}
   | "let"       {LET}
   | "in"        {IN}
 
@@ -68,6 +72,7 @@ rule token = parse
   | "nop" {NOP} | "id" {ID} | "ab" {AB}
 
   | id as s     {VAR s}
+  | cap_id as s {CAP s}
 
 and comment level = parse
   | "*/" {if level = 0 then token lexbuf

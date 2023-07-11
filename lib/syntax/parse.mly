@@ -9,7 +9,7 @@
   LPAREN RPAREN
   LBRACK RBRACK
   LBRACE RBRACE
-  LET ASSIGN IN
+  LET ASSIGN BAR DOT DOLLAR SPECIFY IN
   ADD SUB MUL
   EQ NEQ GT LT GE LE
   DAG MARK PLUS STAR LOOP
@@ -21,7 +21,7 @@
   NOP ID AB
   COMMA EOF
 
-%token<string> VAR STRING
+%token<string> VAR CAP STRING
 %token<int> INT
 
 %start<stmt list> prog
@@ -38,9 +38,32 @@
 
 prog: list(stmt) EOF {$1}
 
+ty_expr: 
+  | costack_ty BAR costack_ty {Explicit ($1, $3)}
+  | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) {ImplicitCostack ($1, $3)}
+  | nonempty_list(value_ty) BAR nonempty_list(value_ty) {ImplicitStack ($1, $3)}
+costack_ty: 
+  | VAR PLUS separated_list(UNION, stack_ty) {Some $1, $3}
+  | DOLLAR PLUS separated_list(UNION, stack_ty) {None, $3}
+stack_ty: 
+  | VAR MUL list(value_ty) {Some $1, $3}
+  | DOT MUL list(value_ty) {None, $3}
+%inline value_ty: 
+  | CAP {
+    match $1 with
+    | "z" -> TyInt
+    | "str" -> TyString
+    | _ -> failwith @@ Printf.sprintf "Unrecognized type [%s]" $1
+  }
+
 stmt: _stmt {$1, $loc}
 %inline _stmt: 
-  | ASSIGN VAR expr {Def ($2, $3)}
+  | ASSIGN VAR expr {Def ($2, None, $3)}
+  | SPECIFY VAR ty_expr ASSIGN VAR expr {
+    if $2 <> $5 then failwith @@ Printf.sprintf
+      "Mismatched names: definition [%s] and annotation [%s]" $2 $5
+    else Def ($5, Some $3, $6)
+  }
 
 sect: _sect {$1, $loc, fresh ()}
 %inline _sect: 
