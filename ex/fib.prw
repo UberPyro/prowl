@@ -1,4 +1,4 @@
 = main
-  dup (> 2)
+  dup (> 1)
     (- 1) (main && (- 1)) main (+)
   elim

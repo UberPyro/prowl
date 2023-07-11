@@ -2,7 +2,7 @@
 
 = fib
   dup (> 1)
-    pred (fib && pred) fib (+)
+    pred dup fib swap pred fib (+)
   elim
 
 = main 5 fib

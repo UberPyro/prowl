@@ -51,6 +51,9 @@ let (@>) v_ = map_hd (ucons (uref v_))
 let mk_var () = uref @@ Var (unique ())
 let (@@>) v = map_hd (ucons v)
 let (@>>) s = ucons s
-let (-?-) c0 c1 = match uget c0, uget c1 with
+let (-?-) c0 c1 = 
+  c0 =?= mk_poly_costack ();
+  c1 =?= mk_poly_costack ();
+  match uget c0, uget c1 with
   | UCons (u, _), UCons (v, _) -> unify_stack u v
   | _ -> Invalid_argument "-?-" |> raise
