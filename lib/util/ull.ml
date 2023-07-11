@@ -23,6 +23,11 @@ let rec uiter ?(g=ignore) f us = match uget us with
   | USeq u -> g u
   | UNil -> ()
 
+let rec copy copy_elem us = match uget us with
+  | UCons (u, us) -> ucons (copy_elem u) (copy copy_elem us)
+  | USeq k -> useq k
+  | UNil -> us
+
 let usome u = ucons u @@ ufresh ()
 let ujust u = ucons u @@ unil ()
 

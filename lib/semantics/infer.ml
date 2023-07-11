@@ -374,12 +374,12 @@ let top_stmts ctx uctx =
       unify_fn fn elab_ty;
       let annotctx = Ouro.insert d (true, i, o) ctx' in
       infer annotctx uctx e;
-      let p = Pretty.Show.str_fn fn in  (* this is on happy path *)
-      begin try unify_fn fn nulled with
+      begin try unify_fn (Copy.fn fn) nulled with
         UnifError _ -> 
           let msg = sprintf
             "Annotation [%s] is more general than inferred type [%s]"
-            (Pretty.Show.str_fn (Elab.ty_expr ty)) p in
+            (Pretty.Show.str_fn (Elab.ty_expr ty))
+            (Pretty.Show.str_fn fn) in
           InferError (sp, ctx, uctx, msg) |> raise
       end;
       annotctx
