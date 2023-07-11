@@ -234,6 +234,12 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= costack;
     o0 =?= var @@> costack
   
+  | Nop Surf -> 
+    let c0 = ufresh () in
+    let s1, s2, s3 = Tuple3.mapn ufresh ((), (), ()) in
+    i0 =?= s1 @>> s2 @>> s3 @>> c0;
+    o0 =?= s3 @>> s1 @>> s2 @>> c0
+  
   | Nop Zap -> 
     let costack = mk_poly_costack () in
     i0 =?= mk_var () @@> costack;
@@ -266,6 +272,12 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     let v = mk_var () in
     i0 =?= v @@> c0;
     o0 =?= Con ((c1, v @@> c1), Quote) @> c0
+  
+  | Nop Dig -> 
+    let c0 = mk_poly_costack () in
+    let v1, v2, v3 = Tuple3.mapn mk_var ((), (), ()) in
+    i0 =?= v1 @@> v2 @@> v3 @@> c0;
+    o0 =?= v3 @@> v1 @@> v2 @@> c0
   
   | Nop DivMod -> 
     let c1 = Lit Int @> Lit Int @> mk_poly_costack () in
