@@ -23,7 +23,7 @@ let rec freshen_value ((vm, _, _) as memo) v : value = match uget v with
   | Lit _ -> v
   | Con ((i, o), con) -> 
     uref @@ Con (Tuple2.mapn (freshen_costack memo) (i, o), con)
-  | Var k -> 
+  | Var k | AnnotVar k -> 
     IM.find_option vm k |> Option.default_delayed @@ fun () -> 
       let nu = mk_var () in
       IM.add vm k nu;

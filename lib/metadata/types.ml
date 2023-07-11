@@ -9,6 +9,7 @@ and value_ =
   | Lit of lit
   | Con of fn * con
   | Var of int
+  | AnnotVar of int
 and lit = Int | String
 and con = Quote | List
 and stack = value ulist
