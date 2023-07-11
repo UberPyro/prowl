@@ -15,8 +15,8 @@
   DAG MARK PLUS STAR LOOP
   TENSOR PONDER FORK PICK CROSS GUESS
   CONTRA UNION
-  GEN FAB EXCH ELIM CMP
-  DUP ZAP SWAP CONS DIP CAT UNIT
+  GEN FAB EXCH ELIM CMP SURF
+  DUP ZAP SWAP CONS DIP CAT UNIT DIG
   DIVMOD LIN PARSE SHOW
   NOP ID AB
   COMMA EOF
@@ -77,16 +77,7 @@ _expr:
   | expr bop expr {Bop ($1, $2, $3)}
   | expr dop expr {Dop ($1, $2, $3)}
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
-  | _hiexpr {$1}
-
-hiexpr: _hiexpr {$1, $loc, fresh ()}
-_hiexpr: 
-  | hiexpr DAG {Uop ($1, Dag)}
-  | hiexpr MARK {Uop ($1, Mark)}
-  | hiexpr PLUS {Uop ($1, Plus)}
-  | hiexpr STAR {Uop ($1, Star)}
-  | hiexpr LOOP {Uop ($1, Star)}
-  | term list(pair(ioption(CONTRA), term)) {
+  | hiexpr list(pair(ioption(CONTRA), hiexpr)) {
     let rec go e = function
       | (None, h) :: t -> 
         Dop (e, Jux, (go h t, Tuple3.second h, fresh ()))
@@ -96,7 +87,16 @@ _hiexpr:
     go $1 $2
   }
 
-term: _term {$1, $loc, fresh ()}
+hiexpr: _hiexpr {$1, $loc, fresh ()}
+_hiexpr: 
+  | hiexpr DAG {Uop ($1, Dag)}
+  | hiexpr MARK {Uop ($1, Mark)}
+  | hiexpr PLUS {Uop ($1, Plus)}
+  | hiexpr STAR {Uop ($1, Star)}
+  | hiexpr LOOP {Uop ($1, Star)}
+  | _term {$1}
+
+// term: _term {$1, $loc, fresh ()}
 %inline _term: 
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}
@@ -131,8 +131,8 @@ term: _term {$1, $loc, fresh ()}
   | UNION {Union}
 
 %inline nop: 
-  | GEN {Gen} | FAB {Fab} | EXCH {Exch} | ELIM {Elim} | CMP {Cmp}
+  | GEN {Gen} | FAB {Fab} | EXCH {Exch} | ELIM {Elim} | CMP {Cmp} | SURF {Surf}
   | DUP {Dup} | ZAP {Zap} | SWAP {Swap} | CONS {Cons} | DIP {Dip}
-  | CAT {Cat} | UNIT {Unit}
+  | CAT {Cat} | UNIT {Unit} | DIG {Dig}
   | DIVMOD {DivMod} | LIN {Lin} | PARSE {Parse} | SHOW {Show}
   | NOP {Noop} | ID {Id} | AB {Ab}
