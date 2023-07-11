@@ -22,7 +22,7 @@ let link_var m s =
     Dict.add m s nu;
     nu
 
-let rec ty_expr m = function
+let rec fn_expr m = function
   | Explicit (c1, c2) -> costack_expr m c1, costack_expr m c2
   | ImplicitCostack (z1, z2) -> 
     let c0 = ufresh () in
@@ -50,6 +50,8 @@ and stack_expr m (opt, w) =
 and value_expr m = function
   | TyInt -> uref @@ Lit Int
   | TyString -> uref @@ Lit String
-  | TyQuote ty -> uref @@ Con (ty_expr m ty, Quote)
-  | TyList ty -> uref @@ Con (ty_expr m ty, List)
+  | TyQuote ty -> uref @@ Con (fn_expr m ty, Quote)
+  | TyList ty -> uref @@ Con (fn_expr m ty, List)
   | TyVal s -> link_var (third m) s
+
+let ty_expr = fn_expr Dict.(create 16, create 16, create 16)

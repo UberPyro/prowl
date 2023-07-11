@@ -7,6 +7,7 @@ open Syntax
 open Ast
 open System
 open Memo
+open Nullify
 
 open Util
 open Ull
@@ -356,15 +357,28 @@ and stmts_rec generalized ctx uctx stmts =
   let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
   List.iter (fun (Def (_, _, e), _) -> infer ctx' uctx e) stmts;
   Ouro.vmap (fun (_, i, o) -> generalized, i, o) ctx'
+  (* todo: support annotations *)
 
 let top_stmts ctx uctx = 
   List.fold_left begin fun ctx' -> function
     | Def (d, None, (_, _, (i, o) as e)), _ -> 
       infer (Ouro.insert d (false, i, o) ctx') uctx e;
       Ouro.insert d (true, i, o) ctx'
-    (* | Def (d, Some ty, (_, _, (i, o) as e)), _ ->  *)
-    | _ -> 
-      failwith "todo"
+    | Def (d, Some ty, (_, sp, (i, o as fn) as e)), _ -> 
+      let elab_ty = Elab.ty_expr ty in
+      let nulled = nullify_fn elab_ty in
+      unify_fn fn elab_ty;
+      let annotctx = Ouro.insert d (true, i, o) ctx' in
+      infer annotctx uctx e;
+      let p = Pretty.Show.str_fn fn in  (* this is on happy path *)
+      begin try unify_fn fn nulled with
+        UnifError _ -> 
+          let msg = sprintf
+            "Annotation [%s] is more general than inferred type [%s]"
+            (Pretty.Show.str_fn (Elab.ty_expr ty)) p in
+          InferError (sp, ctx, uctx, msg) |> raise
+      end;
+      annotctx
   end ctx
 
 let prog : (_stmt * Span.t) list -> 'a = 
