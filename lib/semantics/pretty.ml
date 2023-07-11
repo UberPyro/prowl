@@ -10,6 +10,7 @@ open Ull
 let rec pretty_value out = uget %> function
   | Lit Int -> fprintf out "z"
   | Lit String -> fprintf out "str"
+  | Lit Void -> fprintf out "void"
   | Con (fn, Quote) -> 
     fprintf out "[";
     pretty_fn out fn;
