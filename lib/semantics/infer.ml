@@ -158,8 +158,10 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     o1 =?= mk_poly_costack ();
     i2 =?= mk_end_costack ();
     o2 =?= mk_end_costack ();
-    i0 -?- map_hd (upop i1 |> fst |> rebase) i2;
-    o0 -?- map_hd (upop o1 |> fst |> rebase) o2;
+    let s0, c0 = upop i1 in
+    i0 =?= rebase s0 (upop i2 |> fst) @>> c0;
+    let s1, c1 = upop o1 in
+    o0 =?= rebase s1 (upop o2 |> fst) @>> c1
   
   | Dop ((_, _, (i1, o1) as left), Fork, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
@@ -168,14 +170,16 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     o2 =?= mk_end_costack ();
     i0 =?= i1;
     i0 =?= i2;
-    o0 -?- map_hd (upop o1 |> fst |> rebase) o2;
+    let s0, c0 = upop o1 in
+    o0 =?= rebase s0 (upop o2 |> fst) @>> c0
   
   | Dop ((_, _, (i1, o1) as left), Cross, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
     i1 =?= mk_poly_costack ();
     i2 =?= mk_end_costack ();
-    i0 -?- map_hd (upop i1 |> fst |> rebase) o2;
+    let s0, c0 = upop i1 in
+    i0 =?= rebase s0 (upop i2 |> fst) @>> c0;
     o0 =?= o1;
     o0 =?= o2
   
