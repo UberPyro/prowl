@@ -1,6 +1,11 @@
 open Metadata
 [@@@warning "-32"]
 
+type ty_expr = costack_expr * costack_expr
+and costack_expr = string * stack_expr list
+and stack_expr = string * value_expr list
+and value_expr = TyInt | TyString | TyVar of string
+
 type expr = _expr * Span.t * Types.fn
 and _expr = 
   | Bop of expr * bop * expr
