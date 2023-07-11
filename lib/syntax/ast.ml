@@ -42,6 +42,7 @@ and uop =
   | Mark
   | Plus
   | Star
+  | Loop
 
 (* dataflow operators *)
 and dop = 

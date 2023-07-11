@@ -122,6 +122,15 @@ let rec infer ctx uctx (ast, sp, (i0, o0) as ast0) = try match ast with
     i0 =?= i1;
     o0 =?= o1
   
+  | Uop ((_, _, (i1, o1) as just), Loop) -> 
+    infer ctx uctx just;
+    let c0, c1 = ufresh (), ufresh () in
+    let s0, s1 = ufresh (),ufresh () in
+    i1 =?= s0 @>> c1;
+    o1 =?= s0 @>> s1 @>> c1;
+    i0 =?= s0 @>> c0;
+    o0 =?= s1 @>> c0
+  
   | Dop ((_, _, (i1, o1) as left), Ponder, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;

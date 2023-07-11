@@ -12,7 +12,7 @@
   LET ASSIGN IN
   ADD SUB MUL
   EQ NEQ GT LT GE LE
-  DAG MARK PLUS STAR
+  DAG MARK PLUS STAR LOOP
   TENSOR PONDER FORK PICK CROSS GUESS
   CONTRA UNION
   GEN FAB EXCH ELIM CMP
@@ -62,6 +62,7 @@ _hiexpr:
   | hiexpr MARK {Uop ($1, Mark)}
   | hiexpr PLUS {Uop ($1, Plus)}
   | hiexpr STAR {Uop ($1, Star)}
+  | hiexpr LOOP {Uop ($1, Star)}
   | term list(pair(ioption(CONTRA), term)) {
     let rec go e = function
       | (None, h) :: t -> 
