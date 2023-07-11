@@ -167,7 +167,7 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     infer ctx uctx left;
     infer ctx uctx right;
     o1 =?= mk_poly_costack ();
-    o2 =?= mk_end_costack ();
+    o2 =?= mk_poly_costack ();
     i0 =?= i1;
     i0 =?= i2;
     let s0, c0 = upop o1 in
