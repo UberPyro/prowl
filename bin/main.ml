@@ -13,7 +13,7 @@ let () = match P.parse_argv op with
   | [] -> P.usage op ()
   | fname :: args -> 
     try check debug fname args
-    with Infer.InferError (_ast, sp, ctx, uctx, msg) -> 
+    with Infer.InferError (sp, ctx, uctx, msg) -> 
       let out = IO.output_string () in
       Span.print_span out sp;
       IO.write_line out msg;
@@ -21,6 +21,5 @@ let () = match P.parse_argv op with
         Pretty.pretty_ctx out ctx;
         Pretty.pretty_uctx out uctx
       end;
-      (* Printf.fprintf out "Ast:\n%s\n" (Syntax.Ast.show_expr _ast); *)
       IO.close_out out |> print_endline;
       exit 2
