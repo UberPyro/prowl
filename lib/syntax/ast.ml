@@ -1,7 +1,10 @@
 open Metadata
 [@@@warning "-32"]
 
-type ty_expr = costack_expr * costack_expr
+type ty_expr = 
+  | Explicit of costack_expr * costack_expr
+  | ImplicitCostack of stack_expr list * stack_expr list
+  | ImplicitStack of value_expr list * value_expr list
 and costack_expr = string * stack_expr list
 and stack_expr = string * value_expr list
 and value_expr = TyInt | TyString | TyVar of string
