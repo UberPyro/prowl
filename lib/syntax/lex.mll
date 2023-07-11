@@ -33,6 +33,7 @@ rule token = parse
   | "$"         {DOLLAR}
   | "let"       {LET}
   | "in"        {IN}
+  | "ex"        {EXISTS}
 
   | "("         {LPAREN}
   | ")"         {RPAREN}

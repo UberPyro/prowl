@@ -9,7 +9,7 @@
   LPAREN RPAREN
   LBRACK RBRACK
   LBRACE RBRACE
-  LET ASSIGN BAR DOT DOLLAR SPECIFY IN
+  LET ASSIGN BAR DOT DOLLAR SPECIFY IN EXISTS
   ADD SUB MUL
   EQ NEQ GT LT GE LE
   DAG MARK PLUS STAR LOOP
@@ -77,6 +77,7 @@ _expr:
   | expr bop expr {Bop ($1, $2, $3)}
   | expr dop expr {Dop ($1, $2, $3)}
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
+  | EXISTS CAP IN expr {Ex ($2, $4)}
   | hiexpr list(pair(ioption(CONTRA), hiexpr)) {
     let rec go e = function
       | (None, h) :: t -> 
@@ -103,6 +104,7 @@ _hiexpr:
   | LPAREN RPAREN {Nop Noop}
   | nop {Nop $1}
   | VAR {Var $1}
+  | CAP {UVar $1}
 
 %inline lit: 
   | INT {Int $1}
