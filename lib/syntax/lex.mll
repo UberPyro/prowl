@@ -71,6 +71,9 @@ rule token = parse
   | "parse" {PARSE} | "show" {SHOW}
   | "nop" {NOP} | "id" {ID} | "ab" {AB}
 
+  | "z"         {TYINT}
+  | "str"       {TYSTRING}
+
   | id as s     {VAR s}
   | cap_id as s {CAP s}
 

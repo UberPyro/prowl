@@ -20,6 +20,7 @@
   DIVMOD LIN PARSE SHOW
   NOP ID AB
   COMMA EOF
+  TYINT TYSTRING
 
 %token<string> VAR CAP STRING
 %token<int> INT
@@ -43,18 +44,17 @@ ty_expr:
   | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) {ImplicitCostack ($1, $3)}
   | nonempty_list(value_ty) BAR nonempty_list(value_ty) {ImplicitStack ($1, $3)}
 costack_ty: 
-  | VAR PLUS separated_list(UNION, stack_ty) {Some $1, $3}
-  | DOLLAR PLUS separated_list(UNION, stack_ty) {None, $3}
+  | VAR ADD separated_list(UNION, stack_ty) {Some $1, $3}
+  | DOLLAR separated_list(UNION, stack_ty) {None, $2}
 stack_ty: 
   | VAR MUL list(value_ty) {Some $1, $3}
-  | DOT MUL list(value_ty) {None, $3}
+  | DOT list(value_ty) {None, $2}
 %inline value_ty: 
-  | CAP {
-    match $1 with
-    | "z" -> TyInt
-    | "str" -> TyString
-    | _ -> failwith @@ Printf.sprintf "Unrecognized type [%s]" $1
-  }
+  | TYINT {TyInt}
+  | TYSTRING {TyString}
+  | LBRACK ty_expr RBRACK {TyQuote $2}
+  | LBRACE ty_expr RBRACE {TyList $2}
+  | CAP {TyVal $1}
 
 stmt: _stmt {$1, $loc}
 %inline _stmt: 

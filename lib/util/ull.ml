@@ -79,5 +79,4 @@ let rec extend unifier ulst vs = match uget ulst with
 
 let rec rebase base vs = match uget vs with
   | UCons (u, us) -> rebase base us |> ucons u
-  | UNil -> unil ()
-  | USeq _ -> base
+  | USeq _ | UNil -> base
