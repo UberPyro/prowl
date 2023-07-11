@@ -97,7 +97,6 @@ _hiexpr:
   | hiexpr LOOP {Uop ($1, Star)}
   | _term {$1}
 
-// term: _term {$1, $loc, fresh ()}
 %inline _term: 
   | lit {Lit $1}
   | LPAREN _sect RPAREN {$2}
