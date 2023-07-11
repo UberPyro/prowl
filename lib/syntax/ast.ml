@@ -12,7 +12,7 @@ and value_expr =
   | TyString
   | TyQuote of ty_expr
   | TyList of ty_expr
-  | TyVar of string
+  | TyVal of string
   [@@deriving show]
 
 type expr = _expr * Span.t * Types.fn
