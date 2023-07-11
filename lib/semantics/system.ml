@@ -31,9 +31,9 @@ and occurs_val k1 = uget %> function
   | Con (f, _) -> occurs_fn k1 f
   | _ -> ()
 
-and (-?-) s0 = Ull.unite unify occurs_val s0
+and unify_stack s0 = Ull.unite unify occurs_val s0
 and occurs_stack k = Ull.occurs occurs_val k
-and (=?=) c0 = Ull.unite (-?-) occurs_stack c0
+and (=?=) c0 = Ull.unite unify_stack occurs_stack c0
 and occurs_costack k = Ull.occurs occurs_stack k
 
 and unify_fn (c1, c2) (d1, d2) = 
@@ -51,3 +51,6 @@ let (@>) v_ = map_hd (ucons (uref v_))
 let mk_var () = uref @@ Var (unique ())
 let (@@>) v = map_hd (ucons v)
 let (@>>) s = ucons s
+let (-?-) c0 c1 = match uget c0, uget c1 with
+  | UCons (u, _), UCons (v, _) -> unify_stack u v
+  | _ -> Invalid_argument "-?-" |> raise

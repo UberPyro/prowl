@@ -1,7 +1,6 @@
 open! Batteries
 open! Uref
 open Printf
-open Pretty
 
 open Metadata
 open Syntax
@@ -11,94 +10,6 @@ open Memo
 
 open Util
 open Ull
-
-let inspect i o i_final o_final = 
-  let arg, argcos = usplit i in
-  let res, rescos = usplit o in
-  match argcos, rescos with
-  | None, _ -> 
-    let msg = sprintf
-      "Unexpected terminating sequence [%s] in right dataflow input"
-      (show_costack i) in
-    UnifError msg |> raise
-  | _, None -> 
-    let msg = sprintf
-      "Unexpected terminating sequence [%s] in right dataflow output"
-      (show_costack o) in
-    UnifError msg |> raise
-  | Some ka, Some kr when ka = kr -> 
-    ujoin i_final arg, ujoin o_final res
-  | _ -> 
-    let msg = sprintf
-      "Insufficiently specific right dataflow argument (%s -- %s)"
-      (show_costack i) (show_costack o) in
-    UnifError msg |> raise
-
-let inspect_biased disj conj disj_final = 
-  let disj_list, disj_key = usplit disj in
-  let _, conj_key = usplit conj in
-  match disj_key, conj_key with
-  | None, _ -> 
-    let msg = sprintf
-      "Unexpected terminating sequence [%s] in right dataflow input"
-      (show_costack disj) in
-    UnifError msg |> raise
-  | _, None -> 
-    let msg = sprintf
-      "Unexpected terminating sequence [%s] in right dataflow output"
-      (show_costack conj) in
-    UnifError msg |> raise
-  | Some kd, Some kc when kd = kc -> ujoin disj_final disj_list
-  | _ -> 
-    let msg = sprintf
-    "Insufficiently specific right dataflow argument (%s -- %s)"
-    (show_costack disj) (show_costack conj) in
-  UnifError msg |> raise
-
-let inspect_nested i o i_final o_final = 
-  let arg, argcos = usplit i in
-  let res, rescos = usplit o in
-  match argcos, rescos with
-  | None, _ -> 
-    let msg = sprintf
-      "Unexpected terminating sequence [%s] in right dataflow input"
-      (show_stack i) in
-    UnifError msg |> raise
-  | _, None -> 
-    let msg = sprintf
-      "Unexpected terminating sequence [%s] in right dataflow output"
-      (show_stack o) in
-    UnifError msg |> raise
-  | Some ka, Some kr when ka = kr -> 
-    map_hd (fun x -> ujoin x arg) i_final, 
-    map_hd (fun x -> ujoin x res) o_final
-  | _ -> 
-    let msg = sprintf
-    "Insufficiently specific right dataflow argument (%s -- %s)"
-    (show_stack i) (show_stack o) in
-  UnifError msg |> raise
-
-let inspect_nested_biased disj conj disj_final = 
-  let disj_list, disj_key = usplit disj in
-  let _, conj_key = usplit conj in
-  match disj_key, conj_key with
-  | None, _ -> 
-    let msg = sprintf
-      "Unexpected terminating sequence [%s] in right dataflow input"
-      (show_stack disj) in
-    UnifError msg |> raise
-  | _, None -> 
-    let msg = sprintf
-      "Unexpected terminating sequence [%s] in right dataflow output"
-      (show_stack conj) in
-    UnifError msg |> raise
-  | Some kd, Some kc when kd = kc -> 
-    map_hd (fun x -> ujoin x disj_list) disj_final
-  | _ -> 
-    let msg = sprintf
-    "Insufficiently specific right dataflow argument (%s -- %s)"
-    (show_stack conj) (show_stack disj) in
-  UnifError msg |> raise
 
 exception InferError of
   Ast.expr
@@ -214,75 +125,50 @@ let rec infer ctx uctx (ast, sp, (i0, o0) as ast0) = try match ast with
   | Dop ((_, _, (i1, o1) as left), Ponder, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
-    let i, o = inspect i2 o2 i1 o1 in
-    i0 =?= i;
-    o0 =?= o
+    i0 =?= rebase i1 i2;
+    o0 =?= rebase o1 o2
   
   | Dop ((_, _, (i1, o1) as left), Pick, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
-    let i = inspect_biased i2 o2 i1 in
-    i0 =?= i;
+    i0 =?= rebase i1 i2;
     o0 =?= o1;
     o0 =?= o2
   
   | Dop ((_, _, (i1, o1) as left), Guess, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
-    let i = inspect_biased i2 o2 i1 in
-    o0 =?= i;
-    i0 =?= o1;
-    i0 =?= o2
+    i0 =?= i1;
+    i0 =?= i2;
+    o0 =?= rebase o1 o2
   
-  | Dop ((_, _, (i1, o1) as left), Tensor, (_, sp, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1) as left), Tensor, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
-    let i2s, o2s = ufresh (), ufresh () in
-    begin try i2 =?= i2s @>> unil () with UnifError _ -> 
-        let msg = sprintf
-          "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
-        InferError (ast0, sp, ctx, uctx, msg) |> raise end;
-    begin try o2 =?= o2s @>> unil () with UnifError _ -> 
-      let msg = sprintf
-        "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
-      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
-    let i, o = inspect_nested i2s o2s i1 o1 in
-    i0 =?= i;
-    o0 =?= o
+    i1 =?= mk_poly_costack ();
+    o1 =?= mk_poly_costack ();
+    i2 =?= mk_end_costack ();
+    o2 =?= mk_end_costack ();
+    i0 -?- map_hd (upop i1 |> fst |> rebase) i2;
+    o0 -?- map_hd (upop o1 |> fst |> rebase) o2;
   
   | Dop ((_, _, (i1, o1) as left), Fork, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
-    let i2s, o2s = ufresh (), ufresh () in
-    begin try i2 =?= i2s @>> unil () with UnifError _ -> 
-      let msg = sprintf
-        "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
-      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
-    begin try o2 =?= o2s @>> unil () with UnifError _ -> 
-      let msg = sprintf
-        "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
-      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
-    let o = inspect_nested_biased o2s i2s o1 in
+    o1 =?= mk_poly_costack ();
+    o2 =?= mk_end_costack ();
     i0 =?= i1;
     i0 =?= i2;
-    o0 =?= o
+    o0 -?- map_hd (upop o1 |> fst |> rebase) o2;
   
   | Dop ((_, _, (i1, o1) as left), Cross, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
-    let i2s, o2s = ufresh (), ufresh () in
-    begin try i2 =?= i2s @>> unil () with UnifError _ -> 
-      let msg = sprintf
-        "Unexpected non-costack-flat input %s" (Show.str_costack i2) in
-      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
-    begin try o2 =?= o2s @>> unil () with UnifError _ -> 
-      let msg = sprintf
-        "Unexpected non-costack-flat output %s" (Show.str_costack i2) in
-      InferError (ast0, sp, ctx, uctx, msg) |> raise end;
-    let o = inspect_nested_biased o2s i2s o1 in
-    o0 =?= i1;
-    o0 =?= i2;
-    i0 =?= o
+    i1 =?= mk_poly_costack ();
+    i2 =?= mk_end_costack ();
+    i0 -?- map_hd (upop i1 |> fst |> rebase) o2;
+    o0 =?= o1;
+    o0 =?= o2
   
   | Dop ((_, _, (i1, o1) as left), Jux, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
