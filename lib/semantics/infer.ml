@@ -219,11 +219,15 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     o0 =?= o1;
     o0 =?= o2
   
-  | Nop (Gen | Fab) -> 
+  | Nop Gen -> 
     let stunted, stack = ufresh (), ufresh () in
-    let costack = stack @>> stunted in
-    i0 =?= costack;
-    o0 =?= stack @>> costack
+    i0 =?= stack @>> stunted;
+    o0 =?= stack @>> ufresh () @>> stunted
+  
+  | Nop Fab -> 
+    let stunted, stack = ufresh (), ufresh () in
+    i0 =?= stack @>> stunted;
+    o0 =?= ufresh () @>> stack @>> stunted
   
   | Nop Exch -> 
     let stunted, s1, s2 = ufresh (), ufresh (), ufresh () in
