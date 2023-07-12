@@ -57,7 +57,6 @@ and uop =
   | Mark
   | Plus
   | Star
-  | Loop
   | Apply
   | Induce
 

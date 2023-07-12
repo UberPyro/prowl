@@ -12,7 +12,7 @@
   LET ASSIGN SPECIFY IN EXISTS
   ADD SUB MUL
   EQ NEQ GT LT GE LE
-  DAG MARK PLUS STAR LOOP APPLY INDUCE
+  DAG MARK PLUS STAR APPLY INDUCE
   TENSOR PONDER FORK PICK CROSS GUESS
   CONTRA UNION
   GEN FAB EXCH ELIM CMP SURF
@@ -101,7 +101,6 @@ _hiexpr:
   | hiexpr MARK {Uop ($1, Mark)}
   | hiexpr PLUS {Uop ($1, Plus)}
   | hiexpr STAR {Uop ($1, Star)}
-  | hiexpr LOOP {Uop ($1, Loop)}
   | hiexpr APPLY {Uop ($1, Apply)}
   | hiexpr INDUCE {Uop ($1, Induce)}
   | _term {$1}

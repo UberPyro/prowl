@@ -44,7 +44,6 @@ rule token = parse
   | "^*"        {STAR}
   | "^+"        {PLUS}
   | "~"         {DAG}
-  | "@"         {LOOP}
 
   | "||"        {PICK}
   | "++"        {PONDER}
