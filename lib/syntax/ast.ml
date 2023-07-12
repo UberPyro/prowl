@@ -58,6 +58,8 @@ and uop =
   | Plus
   | Star
   | Loop
+  | Apply
+  | Induce
 
 (* dataflow operators *)
 and dop = 

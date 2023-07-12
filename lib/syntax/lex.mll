@@ -52,6 +52,8 @@ rule token = parse
   | "**"        {TENSOR}
   | "---"       {GUESS}
   | "==="       {CROSS}
+  | "!!"        {APPLY}
+  | "??"        {INDUCE}
 
   | ","         {COMMA}
 

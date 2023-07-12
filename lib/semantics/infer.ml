@@ -131,6 +131,20 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= s0 @>> c0;
     o0 =?= s1 @>> c0
   
+  | Uop ((_, _, (i1, o1) as just), Induce) -> 
+    infer ctx uctx just;
+    i0 =?= rebase i1 i1;
+    o0 =?= rebase o1 o1
+  
+  | Uop ((_, _, (i1, o1) as just), Apply) -> 
+    infer ctx uctx just;
+    i1 =?= mk_poly_costack ();
+    o1 =?= mk_poly_costack ();
+    let s0, c0 = upop i1 in
+    i0 =?= rebase s0 s0 @>> c0;
+    let s1, c1 = upop o1 in
+    o0 =?= rebase s1 s1 @>> c1
+  
   | Dop ((_, _, (i1, o1) as left), Ponder, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
@@ -335,9 +349,6 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     o0 =?= Con (fn0, List) @> c0
   
   | UVar s -> 
-    let fail () = 
-      let msg = sprintf "Cannot find unbound unification variable [%s]" s in
-      UnifError msg |> raise in
     begin match Dict.find_option uctx s with
     | Some v' -> 
       let v = mk_var () in
@@ -346,11 +357,17 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
       o0 =?= v @@> c;
       unify v v'
     | None -> 
-      let (_, i1, o1), _ = 
-        Ouro.find_rec_opt s ctx
-        |> Option.default_delayed fail in
-      i0 =?= i1;
-      o0 =?= o1
+      begin match Ouro.find_rec_opt s ctx with
+      | None -> 
+        let v = mk_var () in
+        Dict.add uctx s v;
+        let c = mk_poly_costack () in
+        i0 =?= c;
+        o0 =?= v @@> c;
+      | Some ((_, i1, o1), _) -> 
+        i0 =?= i1;
+        o0 =?= o1
+      end
     end
   
   | Ex (s, (_, _, (i1, o1) as just)) -> 
