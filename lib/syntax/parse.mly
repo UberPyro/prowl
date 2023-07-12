@@ -9,7 +9,7 @@
   LPAREN RPAREN
   LBRACK RBRACK
   LBRACE RBRACE
-  LET ASSIGN BAR DOT DOLLAR SPECIFY IN EXISTS
+  LET ASSIGN SPECIFY IN EXISTS
   ADD SUB MUL
   EQ NEQ GT LT GE LE
   DAG MARK PLUS STAR LOOP
@@ -20,9 +20,9 @@
   DIVMOD LIN PARSE SHOW
   NOP ID AB
   COMMA EOF
-  TYINT TYSTRING
+  PIPE BAR DOT DOLLAR
 
-%token<string> VAR CAP STRING
+%token<string> VAR CAP STRING COSTACK_VAR STACK_VAR
 %token<int> INT
 
 %start<stmt list> prog
@@ -44,14 +44,17 @@ ty_expr:
   | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) {ImplicitCostack ($1, $3)}
   | nonempty_list(value_ty) BAR nonempty_list(value_ty) {ImplicitStack ($1, $3)}
 costack_ty: 
-  | VAR ADD separated_list(UNION, stack_ty) {Some $1, $3}
-  | DOLLAR separated_list(UNION, stack_ty) {None, $2}
+  | COSTACK_VAR separated_list(PIPE, stack_ty) {Some $1, $2}
+  | DOLLAR separated_list(PIPE, stack_ty) {None, $2}
 stack_ty: 
-  | VAR MUL list(value_ty) {Some $1, $3}
+  | STACK_VAR list(value_ty) {Some $1, $2}
   | DOT list(value_ty) {None, $2}
 %inline value_ty: 
-  | TYINT {TyInt}
-  | TYSTRING {TyString}
+  | VAR {match $1 with
+    | "z" -> TyInt
+    | "str" -> TyString
+    | _ -> failwith @@ Printf.sprintf "Unrecognized type %s" $1
+  }
   | LBRACK ty_expr RBRACK {TyQuote $2}
   | LBRACE ty_expr RBRACE {TyList $2}
   | CAP {TyVal $1}

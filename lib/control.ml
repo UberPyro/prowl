@@ -6,9 +6,21 @@ open Util
 
 open System
 
+let (>|<) (predicate1, lexer1) (predicate2, lexer2) = 
+  let st = ref true in
+  fun lexbuf -> 
+    let p, l =
+      if !st then predicate1, lexer1
+      else predicate2, lexer2 in
+    let tok = l lexbuf in
+    if p tok then st := not !st;
+    tok
+
+let lex = ((=) Parse.SPECIFY, Lex.token) >|< ((=) Parse.ASSIGN, Lex_type.token)
+
 let parse ch = 
   let lexbuf = Lexing.from_channel ch in
-  try Parse.prog Lex.token lexbuf with
+  try Parse.prog lex lexbuf with
   | _ ->
     let p = lexbuf.lex_curr_p in
     Printf.sprintf

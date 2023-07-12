@@ -28,9 +28,6 @@ rule token = parse
 
   | "="         {ASSIGN}
   | ":"         {SPECIFY}
-  | "--"        {BAR}
-  | "."         {DOT}
-  | "$"         {DOLLAR}
   | "let"       {LET}
   | "in"        {IN}
   | "ex"        {EXISTS}
@@ -72,9 +69,6 @@ rule token = parse
   | "divmod" {DIVMOD} | "lin" {LIN}
   | "parse" {PARSE} | "show" {SHOW}
   | "nop" {NOP} | "id" {ID} | "ab" {AB}
-
-  | "z"         {TYINT}
-  | "str"       {TYSTRING}
 
   | id as s     {VAR s}
   | cap_id as s {CAP s}
