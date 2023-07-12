@@ -42,7 +42,7 @@ prog: list(stmt) EOF {$1}
 ty_expr: 
   | costack_ty BAR costack_ty {Explicit ($1, $3)}
   | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) {ImplicitCostack ($1, $3)}
-  | nonempty_list(value_ty) BAR nonempty_list(value_ty) {ImplicitStack ($1, $3)}
+  | list(value_ty) BAR list(value_ty) {ImplicitStack ($1, $3)}
 costack_ty: 
   | COSTACK_VAR separated_list(PIPE, stack_ty) {Some $1, $2}
   | DOLLAR separated_list(PIPE, stack_ty) {None, $2}
