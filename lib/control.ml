@@ -6,12 +6,12 @@ open Util
 
 open System
 
-let (>|<) (predicate1, lexer1) (predicate2, lexer2) = 
+let (>|<) pred_lex1 pred_lex2 = 
   let st = ref true in
   fun lexbuf -> 
     let p, l =
-      if !st then predicate1, lexer1
-      else predicate2, lexer2 in
+      if !st then pred_lex1
+      else pred_lex2 in
     let tok = l lexbuf in
     if p tok then st := not !st;
     tok
