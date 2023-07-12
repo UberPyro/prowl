@@ -337,8 +337,8 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
   | UVar s -> 
     let v = mk_var () in
     let c = mk_poly_costack () in
-    i0 =?= v @@> c;
-    o0 =?= c;
+    i0 =?= c;
+    o0 =?= v @@> c;
     Dict.find_option uctx s
     |> Option.default_delayed (fun () -> 
       let msg = sprintf "Cannot find unbound unification variable [%s]" s in
@@ -346,10 +346,10 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     |> unify v
   
   | Ex (s, (_, _, (i1, o1) as just)) -> 
+    Dict.add uctx s (mk_var ());
     infer ctx uctx just;
     i0 =?= i1;
-    o0 =?= o1;
-    Dict.add uctx s (mk_var ())
+    o0 =?= o1
   
   | Var k -> 
     let (generalized, i1, o1), _ = 
