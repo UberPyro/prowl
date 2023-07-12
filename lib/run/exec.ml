@@ -1,7 +1,7 @@
 open! Batteries
 
 open Syntax
-open Ast
+(* open Ast *)
 open Util
 
 type fn = costack -> costack Enum.t [@@deriving show]
@@ -10,8 +10,8 @@ and costack = int * stack
 and stack = int list
 
 type value = 
-  | VInt
-  | VString
+  | VInt of int
+  | VString of string
   | VQuote of callable
   | VList of callable
   | VVar
@@ -25,6 +25,6 @@ and context = (string, fn) Ouro.t * value Nuf.t
 
 
 (* let exec ctx nuf (e0, _, (_, _)) i0 = match e0 with
-  | Bop (e1, op, e2) -> 
+  | Bop (e1, op, e2) -> (* execute es on unital costacks *)
 
   | _ -> failwith "todo" *)
