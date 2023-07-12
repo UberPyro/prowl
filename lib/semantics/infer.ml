@@ -367,13 +367,29 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
   | Let (stmts, e) -> infer (stmts_rec ctx uctx stmts) uctx e
 
   with UnifError msg -> raise @@ InferError (sp, ctx, uctx, msg)
-  
+
 and stmts_rec ctx uctx stmts = 
-  let unwrap (Def (s, _, (_, _, (i, o))), _) = s, (false, i, o) in
-  let ctx' = Ouro.insert_many (List.map unwrap stmts) ctx in
-  List.iter (fun (Def (_, _, e), _) -> infer ctx' uctx e) stmts;
-  Ouro.vmap (fun (_, i, o) -> false, i, o) ctx'
-  (* todo: support annotations *)
+  let ctx' = Ouro.insert_many begin stmts |> List.map @@ function
+    | Def (s, None, (_, _, (i, o))), _ -> s, (false, i, o)
+    | Def (d, Some ty, (_, _, (i, o as fn))), _ -> 
+      unify_fn fn (Elab.ty_expr ty);
+      d, (true, i, o)
+  end ctx in
+  List.iter begin function
+    | Def (_, None, e), _ -> infer ctx' uctx e
+    | Def (_, Some ty, (_, sp, fn as e)), _ -> 
+      infer ctx' uctx e;
+      let elab_ty = Elab.ty_expr ty in
+      begin try unify_fn (Copy.fn fn) (nullify_fn elab_ty) with
+        UnifError _ -> 
+          let msg = sprintf
+            "Annotation [%s] is more general than inferred type [%s]"
+            (Pretty.Show.str_fn elab_ty)
+            (Pretty.Show.str_fn fn) in
+          InferError (sp, ctx, uctx, msg) |> raise
+      end
+  end stmts;
+  ctx'
 
 let top_stmts ctx uctx = 
   List.fold_left begin fun ctx' -> function
