@@ -335,19 +335,35 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     o0 =?= Con (fn0, List) @> c0
   
   | UVar s -> 
-    let v = mk_var () in
-    let c = mk_poly_costack () in
-    i0 =?= c;
-    o0 =?= v @@> c;
-    Dict.find_option uctx s
-    |> Option.default_delayed (fun () -> 
+    let fail () = 
       let msg = sprintf "Cannot find unbound unification variable [%s]" s in
-      UnifError msg |> raise)
-    |> unify v
+      UnifError msg |> raise in
+    begin match Dict.find_option uctx s with
+    | Some v' -> 
+      let v = mk_var () in
+      let c = mk_poly_costack () in
+      i0 =?= c;
+      o0 =?= v @@> c;
+      unify v v'
+    | None -> 
+      let (_, i1, o1), _ = 
+        Ouro.find_rec_opt s ctx
+        |> Option.default_delayed fail in
+      i0 =?= i1;
+      o0 =?= o1
+    end
   
   | Ex (s, (_, _, (i1, o1) as just)) -> 
     Dict.add uctx s (mk_var ());
     infer ctx uctx just;
+    i0 =?= i1;
+    o0 =?= o1
+  
+  | TypedEx (lst, (_, _, (i1, o1) as just)) -> 
+    lst |> List.iter begin fun (s, ty) -> 
+      let i, o = Elab.ty_expr ty in
+      infer (Ouro.insert s (false, i, o) ctx) uctx just
+    end;
     i0 =?= i1;
     o0 =?= o1
   

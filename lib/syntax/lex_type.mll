@@ -21,6 +21,7 @@ rule token = parse
   | '\t'        {token lexbuf}
 
   | "="         {ASSIGN}
+  | "in"        {IN}
   | ":"         {SPECIFY}
   | "--"        {BAR}
   | "."         {DOT}

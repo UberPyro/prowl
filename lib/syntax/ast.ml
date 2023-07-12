@@ -29,6 +29,7 @@ and _expr =
   | Var of string
   | Let of stmt list * expr
   | Ex of string * expr
+  | TypedEx of (string * ty_expr) list * expr
   | UVar of string
 
 and bop = 

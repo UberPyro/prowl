@@ -1,5 +1,7 @@
-= rot
-  ex X Y Z in
-  (X Y Z)~ Y Z X
+= bigswap
+  ex
+    : X A B C D -- C D A B
+  in
+  X
 
 = main main

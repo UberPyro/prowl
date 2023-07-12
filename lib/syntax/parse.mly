@@ -82,6 +82,7 @@ _expr:
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
   | EXISTS nonempty_list(CAP) IN expr
     {List.fold_right (fun a b -> Ex (a, b), $loc, fresh ()) $2 $4 |> Tuple3.first}
+  | EXISTS nonempty_list(typed_ex) IN expr {TypedEx ($2, $4)}
   | hiexpr list(pair(ioption(CONTRA), hiexpr)) {
     let rec go e = function
       | (None, h) :: t -> 
@@ -91,6 +92,8 @@ _expr:
       | [] -> Tuple3.first e in
     go $1 $2
   }
+
+%inline typed_ex: SPECIFY CAP ty_expr {$2, $3}
 
 hiexpr: _hiexpr {$1, $loc, fresh ()}
 _hiexpr: 

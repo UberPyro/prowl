@@ -16,7 +16,9 @@ let (>|<) pred_lex1 pred_lex2 =
     if p tok then st := not !st;
     tok
 
-let lex = ((=) Parse.SPECIFY, Lex.token) >|< ((=) Parse.ASSIGN, Lex_type.token)
+let lex = 
+  ((=) Parse.SPECIFY, Lex.token)
+  >|< ((fun x -> x = Parse.ASSIGN || x = Parse.IN), Lex_type.token)
 
 let parse ch = 
   let lexbuf = Lexing.from_channel ch in
