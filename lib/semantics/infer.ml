@@ -225,9 +225,9 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     o0 =?= stack @>> ufresh () @>> stunted
   
   | Nop Fab -> 
-    let stunted, stack = ufresh (), ufresh () in
-    i0 =?= stack @>> stunted;
-    o0 =?= ufresh () @>> stack @>> stunted
+    let costack = mk_poly_costack () in
+    i0 =?= costack;
+    o0 =?= ufresh () @>> costack
   
   | Nop Exch -> 
     let stunted, s1, s2 = ufresh (), ufresh (), ufresh () in
