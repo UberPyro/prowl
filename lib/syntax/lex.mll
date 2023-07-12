@@ -70,6 +70,7 @@ rule token = parse
   | "divmod" {DIVMOD} | "lin" {LIN}
   | "parse" {PARSE} | "show" {SHOW}
   | "nop" {NOP} | "id" {ID} | "ab" {AB}
+  | "ap" {AP} | "apl" {APL} | "apr" {APR}
 
   | id as s     {VAR s}
   | cap_id as s {CAP s}

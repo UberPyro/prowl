@@ -79,6 +79,7 @@ and nop =
   | Dup | Zap | Swap | Cons | Dip | Cat | Unit | Dig
   | DivMod | Lin | Parse | Show
   | Noop | Id | Ab
+  | Ap | ApL | ApR
 
 and lit = 
   | Int of int

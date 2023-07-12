@@ -18,7 +18,7 @@
   GEN FAB EXCH ELIM CMP SURF
   DUP ZAP SWAP CONS DIP CAT UNIT DIG
   DIVMOD LIN PARSE SHOW
-  NOP ID AB
+  NOP ID AB AP APL APR
   COMMA EOF
   PIPE BAR DOT DOLLAR
 
@@ -145,3 +145,4 @@ _hiexpr:
   | CAT {Cat} | UNIT {Unit} | DIG {Dig}
   | DIVMOD {DivMod} | LIN {Lin} | PARSE {Parse} | SHOW {Show}
   | NOP {Noop} | ID {Id} | AB {Ab}
+  | AP {Ap} | APL {ApL} | APR {ApR}

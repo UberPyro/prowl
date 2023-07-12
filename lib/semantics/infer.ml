@@ -317,6 +317,30 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= c0;
     o0 =?= c0
   
+  | Nop Ap -> 
+    let c0 = mk_poly_costack () in
+    let c1 = mk_poly_costack () in
+    let c2 = mk_poly_costack () in
+    let c3 = mk_poly_costack () in
+    i0 =?= Con ((c2, c3), List) @> Con ((c1, c2), List) @> c0;
+    o0 =?= Con ((c1, c3), List) @> c0
+  
+  | Nop ApL -> 
+    let c0 = mk_poly_costack () in
+    let c1 = mk_poly_costack () in
+    let c2 = mk_poly_costack () in
+    let c3 = mk_poly_costack () in
+    i0 =?= Con ((c2, c3), Quote) @> Con ((c1, c2), List) @> c0;
+    o0 =?= Con ((c1, c3), List) @> c0
+  
+  | Nop ApR -> 
+    let c0 = mk_poly_costack () in
+    let c1 = mk_poly_costack () in
+    let c2 = mk_poly_costack () in
+    let c3 = mk_poly_costack () in
+    i0 =?= Con ((c2, c3), List) @> Con ((c1, c2), Quote) @> c0;
+    o0 =?= Con ((c1, c3), List) @> c0
+  
   | Lit Int _ -> 
     let c0 = mk_poly_costack () in
     i0 =?= c0;
