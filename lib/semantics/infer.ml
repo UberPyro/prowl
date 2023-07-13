@@ -337,14 +337,22 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
       let msg = 
         sprintf "Cannot find unbound unification variable [%s]" s in
       UnifError msg |> raise
-    | Some ((true, i1, o1), _) -> 
-      let cache = mk_memo () in
-      i0 =?= freshen_costack cache i1;
-      o0 =?= freshen_costack cache o1
-    | Some ((false, _, o1), _) -> 
+    | Some ((_, _, o1), _) -> 
       let c = mk_poly_costack () in
       i0 =?= c;
       o0 =?= (upop o1 |> fst |> upop |> fst) @@> c
+    end
+  
+  | StackVar s -> 
+    begin match Ouro.find_rec_opt s ctx with
+    | None -> 
+      let msg = 
+        sprintf "Cannot find unbound stack variable [%s]" s in
+      UnifError msg |> raise
+    | Some ((_, _, o1), _) -> 
+      let c = ufresh () in
+      i0 =?= c;
+      o0 =?= (upop o1 |> fst) @>> c
     end
   
   | Ex (s, (_, _, (i1, o1) as just), b) ->
@@ -359,9 +367,9 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let z = ufresh () in
     let c = mk_poly_costack () in
     infer (Ouro.insert s (false, c, z @>> c) ctx) just;
-    if b then i0 =?= z @>> i1
-    else i0 =?= i1;
-    o0 =?= o1
+    i0 =?= i1;
+    if b then o0 =?= z @>> o1
+    else o0 =?= o1
   
   | Var k -> 
     let (generalized, i1, o1), _ = 

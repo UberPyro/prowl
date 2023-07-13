@@ -106,6 +106,7 @@ _hiexpr:
   | nop {Nop $1}
   | VAR {Var $1}
   | CAP {UVar $1}
+  | STACK_VAR {StackVar $1}
 
 %inline lit: 
   | INT {Int $1}
