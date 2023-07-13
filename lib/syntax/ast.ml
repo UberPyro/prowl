@@ -70,7 +70,6 @@ and dop =
   | Guess
   
   | Jux
-  | Contra
   | Union
 
 (* nullary/stack operators *)

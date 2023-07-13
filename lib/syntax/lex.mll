@@ -62,7 +62,6 @@ rule token = parse
   | "+" {ADD} | "-" {SUB} | "*" {MUL}
   | "==" {EQ} | "!="{NEQ}
   | ">" {GT} | "<" "LT" | ">=" {GE} | "<=" {LE}
-  | "<>" {CONTRA}
   | "gen" {GEN} | "fab" {FAB} | "exch" {EXCH} | "elim" {ELIM}
   | "cmp" {CMP}
   | "dup" {DUP} | "zap" {ZAP} | "swap" {SWAP}

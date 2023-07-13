@@ -13,8 +13,7 @@
   ADD SUB MUL
   EQ NEQ GT LT GE LE
   DAG MARK PLUS STAR APPLY INDUCE
-  TENSOR PONDER FORK PICK CROSS GUESS
-  CONTRA UNION
+  TENSOR PONDER FORK PICK CROSS GUESS UNION
   GEN FAB EXCH ELIM CMP
   DUP ZAP SWAP CONS DIP CAT UNIT
   DIVMOD LIN PARSE SHOW
@@ -83,12 +82,10 @@ _expr:
   | EXISTS nonempty_list(CAP) IN expr
     {List.fold_right (fun a b -> Ex (a, b), $loc, fresh ()) $2 $4 |> Tuple3.first}
   | EXISTS nonempty_list(typed_ex) IN expr {TypedEx ($2, $4)}
-  | hiexpr list(pair(ioption(CONTRA), hiexpr)) {
+  | hiexpr list(hiexpr) {
     let rec go e = function
-      | (None, h) :: t -> 
+      | h :: t -> 
         Dop (e, Jux, (go h t, Tuple3.second h, fresh ()))
-      | (Some _, h) :: t -> 
-        Dop (e, Contra, (go h t, Tuple3.second h, fresh ()))
       | [] -> Tuple3.first e in
     go $1 $2
   }

@@ -195,13 +195,6 @@ let rec infer ctx uctx (ast, sp, (i0, o0)) = try match ast with
     o1 =?= i2;
     o0 =?= o2
   
-  | Dop ((_, _, (i1, o1) as left), Contra, (_, _, (i2, o2) as right)) -> 
-    infer ctx uctx left;
-    infer ctx uctx right;
-    i0 =?= i2;
-    o2 =?= i1;
-    o1 =?= o0
-  
   | Dop ((_, _, (i1, o1) as left), Union, (_, _, (i2, o2) as right)) -> 
     infer ctx uctx left;
     infer ctx uctx right;
