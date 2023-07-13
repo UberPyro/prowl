@@ -94,12 +94,7 @@ _expr:
 
 hiexpr: _hiexpr {$1, $loc, fresh ()}
 _hiexpr: 
-  | hiexpr DAG {Uop ($1, Dag)}
-  | hiexpr MARK {Uop ($1, Mark)}
-  | hiexpr PLUS {Uop ($1, Plus)}
-  | hiexpr STAR {Uop ($1, Star)}
-  | hiexpr APPLY {Uop ($1, Apply)}
-  | hiexpr INDUCE {Uop ($1, Induce)}
+  | hiexpr uop {Uop ($1, $2)}
   | _term {$1}
 
 %inline _term: 
@@ -135,6 +130,14 @@ _hiexpr:
   | GUESS {Guess}
   | CROSS {Cross}
   | UNION {Union}
+
+%inline uop: 
+  | DAG {Dag}
+  | MARK {Mark}
+  | PLUS {Plus}
+  | STAR {Star}
+  | APPLY {Apply}
+  | INDUCE {Induce}
 
 %inline nop: 
   | GEN {Gen} | FAB {Fab} | EXCH {Exch} | ELIM {Elim} | CMP {Cmp}
