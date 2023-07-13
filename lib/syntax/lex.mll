@@ -59,7 +59,7 @@ rule token = parse
   | ","         {COMMA}
 
   | (integer as i) {INT (int_of_string i)}
-  | '"' (string_body as s) '"' {STRING s}
+  | '`' (string_body as s) '`' {STRING s}
 
   | "+" {ADD} | "-" {SUB} | "*" {MUL}
   | "==" {EQ} | "!="{NEQ}
@@ -74,6 +74,7 @@ rule token = parse
 
   | id as s     {VAR s}
   | cap_id as s {CAP s}
+  | "'" (id as s) {STACK_VAR s}
 
 and comment level = parse
   | "*/" {if level = 0 then token lexbuf

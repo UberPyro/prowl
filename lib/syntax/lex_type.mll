@@ -36,8 +36,8 @@ rule token = parse
 
   | "|"         {PIPE}
 
-  | (id as s) '+' {COSTACK_VAR s}
-  | (id as s) '*' {STACK_VAR s}
+  | '"' (id as s) {COSTACK_VAR s}
+  | "'" (id as s) {STACK_VAR s}
   | id as s     {VAR s}
   | cap_id as s {CAP s}
 

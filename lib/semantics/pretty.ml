@@ -26,7 +26,7 @@ and pretty_stack out = uget %> function
     pretty_stack out us;
     fprintf out " ";
     pretty_value out u
-  | USeq k -> fprintf out "%d*" k
+  | USeq k -> fprintf out "'%d" k
   | UNil -> fprintf out "."
 
 and pretty_costack out = uget %> function
@@ -34,7 +34,7 @@ and pretty_costack out = uget %> function
     pretty_costack out us;
     fprintf out " | ";
     pretty_stack out u
-  | USeq k -> fprintf out "%d+" k
+  | USeq k -> fprintf out "\"%d" k
   | UNil -> fprintf out "$"
 
 and pretty_fn out (i, o) = 
