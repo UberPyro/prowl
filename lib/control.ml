@@ -27,7 +27,9 @@ let lex =
 let parse ch = 
   let lexbuf = Lexing.from_channel ch in
   let tok = ref None in
-  let lex2 buf = let t = lex buf in tok := Some t; t in
+  let lex2 buf = 
+    let t = lex buf in
+    tok := Some t; t in
   try Parse.prog lex2 lexbuf with
   | _ ->
     let p = lexbuf.lex_curr_p in

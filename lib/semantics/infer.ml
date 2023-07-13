@@ -337,9 +337,14 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
       let msg = 
         sprintf "Cannot find unbound unification variable [%s]" s in
       UnifError msg |> raise
-    | Some ((_, i1, o1), _) -> 
-      i0 =?= i1;
-      o0 =?= o1
+    | Some ((true, i1, o1), _) -> 
+      let cache = mk_memo () in
+      i0 =?= freshen_costack cache i1;
+      o0 =?= freshen_costack cache o1
+    | Some ((false, _, o1), _) -> 
+      let c = mk_poly_costack () in
+      i0 =?= c;
+      o0 =?= (upop o1 |> fst |> upop |> fst) @@> c
     end
   
   | Ex (s, (_, _, (i1, o1) as just), b) ->
@@ -350,12 +355,12 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     else i0 =?= i1;
     o0 =?= o1
   
-  | TypedEx (lst, (_, _, (i1, o1) as just)) -> 
-    lst |> List.iter begin fun (s, ty) -> 
-      let i, o = Elab.ty_expr ty in
-      infer (Ouro.insert s (false, i, o) ctx) just
-    end;
-    i0 =?= i1;
+  | Each ((_, _, (i1, o1) as just), s, b) ->
+    let z = ufresh () in
+    let c = mk_poly_costack () in
+    infer (Ouro.insert s (false, c, z @>> c) ctx) just;
+    if b then i0 =?= z @>> i1
+    else i0 =?= i1;
     o0 =?= o1
   
   | Var k -> 
@@ -369,7 +374,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
       if generalized then freshen_costack cache
       else Fun.id in
     i0 =?= transform i1;
-    o0 =?= transform o1;
+    o0 =?= transform o1
   
   | Let (stmts, e) -> infer (stmts_rec ctx stmts) e
 

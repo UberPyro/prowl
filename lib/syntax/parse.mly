@@ -9,7 +9,8 @@
   LPAREN RPAREN
   LBRACK RBRACK
   LBRACE RBRACE
-  LET ASSIGN SPECIFY IN EXISTS WITHIN ARROW
+  LET ASSIGN SPECIFY IN
+  EXISTS EACH WITHIN ARROW
   ADD SUB MUL
   EQ NEQ GT LT GE LE
   DAG MARK PLUS STAR APPLY INDUCE
@@ -43,7 +44,7 @@ ty_expr:
   | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) {ImplicitCostack ($1, $3)}
   | list(value_ty) BAR list(value_ty) {ImplicitStack ($1, $3)}
 costack_ty: 
-  | COSTACK_VAR separated_list(PIPE, stack_ty) {Some $1, $2}
+  | COSTACK_VAR list(preceded(PIPE, stack_ty)) {Some $1, $2}
   | DOLLAR separated_list(PIPE, stack_ty) {None, $2}
 stack_ty: 
   | STACK_VAR list(value_ty) {Some $1, $2}
@@ -80,8 +81,9 @@ _expr:
   | expr dop expr {Dop ($1, $2, $3)}
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
   | EXISTS nonempty_list(CAP) ex_binder expr
-    {List.fold_right (fun a b -> Ex (a, b, $3), $loc, fresh ()) $2 $4 |> Tuple3.first}
-  | EXISTS nonempty_list(typed_ex) WITHIN expr {TypedEx ($2, $4)}
+    {List.fold_left (fun b a -> Ex (a, b, $3), $loc, fresh ()) $4 $2 |> Tuple3.first}
+  | expr ex_binder nonempty_list(STACK_VAR) EACH
+    {List.fold_left (fun b a -> Each (b, a, $2), $loc, fresh ()) $1 $3 |> Tuple3.first}
   | hiexpr list(hiexpr) {
     let rec go e = function
       | h :: t -> 
@@ -90,7 +92,6 @@ _expr:
     go $1 $2
   }
 
-%inline typed_ex: SPECIFY CAP ty_expr {$2, $3}
 %inline ex_binder : WITHIN {false} | ARROW {true}
 
 hiexpr: _hiexpr {$1, $loc, fresh ()}

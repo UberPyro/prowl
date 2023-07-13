@@ -54,4 +54,4 @@ and value_expr m = function
   | TyList ty -> uref @@ Con (fn_expr m ty, List)
   | TyVal s -> link_var (third m) s
 
-let ty_expr = fn_expr Dict.(create 16, create 16, create 16)
+let ty_expr x = fn_expr Dict.(create 16, create 16, create 16) x
