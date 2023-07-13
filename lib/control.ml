@@ -18,7 +18,11 @@ let (>|<) pred_lex1 pred_lex2 =
 
 let lex = 
   ((=) Parse.SPECIFY, Lex.token)
-  >|< ((fun x -> x = Parse.ASSIGN || x = Parse.IN || x = Parse.WITHIN), Lex_type.token)
+  >|< ((fun x -> 
+    x = Parse.ASSIGN
+    || x = Parse.IN
+    || x = Parse.WITHIN
+    || x = Parse.ARROW), Lex_type.token)
 
 let parse ch = 
   let lexbuf = Lexing.from_channel ch in

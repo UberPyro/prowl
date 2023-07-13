@@ -23,6 +23,7 @@ rule token = parse
   | "="         {ASSIGN}
   | "in"        {IN}
   | "::"        {WITHIN}
+  | "->"        {ARROW}
   | ":"         {SPECIFY}
   | "--"        {BAR}
   | "."         {DOT}

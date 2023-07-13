@@ -342,11 +342,12 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
       o0 =?= o1
     end
   
-  | Ex (s, (_, _, (i1, o1) as just)) ->
+  | Ex (s, (_, _, (i1, o1) as just), b) ->
     let v = mk_var () in
     let c = mk_poly_costack () in
     infer (Ouro.insert s (false, c, v @@> c) ctx) just;
-    i0 =?= i1;
+    if b then i0 =?= v @@> i1
+    else i0 =?= i1;
     o0 =?= o1
   
   | TypedEx (lst, (_, _, (i1, o1) as just)) -> 

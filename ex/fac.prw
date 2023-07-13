@@ -1,5 +1,5 @@
 : fac z -- z
-= fac ex N :: N~
+= fac ex N -> 
   (N > 1) (
        0
     || N * (N - 1) fac

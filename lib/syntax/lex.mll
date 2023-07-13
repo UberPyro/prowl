@@ -32,6 +32,7 @@ rule token = parse
   | "in"        {IN}
   | "ex"        {EXISTS}
   | "::"        {WITHIN}
+  | "->"        {ARROW}
 
   | "("         {LPAREN}
   | ")"         {RPAREN}
