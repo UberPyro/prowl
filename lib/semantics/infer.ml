@@ -227,7 +227,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let stunted, stack = ufresh () , ufresh () in
     let costack = stack @>> stunted in
     i0 =?= Lit Int @> Lit Int @> costack;
-    o0 =?= stack @>> costack
+    o0 =?= stack @>> stack @>> costack
   
   | Nop Dup -> 
     let var = mk_var () in
