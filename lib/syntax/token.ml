@@ -1,8 +1,8 @@
-type token = Parse.token = 
+type token = 
 | ZAP
 | WITHIN
 | VAR of (
-# 25 "lib/syntax/parse.mly"
+# 31 "lib/syntax/parse.mly"
   (string)
 # 17 "lib/syntax/parse.ml"
 )
@@ -12,21 +12,23 @@ type token = Parse.token =
 | SWAP
 | SUB
 | STRING of (
-# 25 "lib/syntax/parse.mly"
+# 31 "lib/syntax/parse.mly"
   (string)
 # 27 "lib/syntax/parse.ml"
 )
 | STAR
 | STACK_VAR of (
-# 25 "lib/syntax/parse.mly"
+# 31 "lib/syntax/parse.mly"
   (string)
 # 33 "lib/syntax/parse.ml"
 )
 | SPECIFY
 | SHOW
 | RPAREN
+| RL
 | RBRACK
 | RBRACE
+| PT
 | PONDER
 | PLUS
 | PIPE
@@ -35,6 +37,7 @@ type token = Parse.token =
 | NOP
 | NEQ
 | MUL
+| MT
 | MARK
 | LT
 | LPAREN
@@ -44,9 +47,9 @@ type token = Parse.token =
 | LBRACK
 | LBRACE
 | INT of (
-# 26 "lib/syntax/parse.mly"
+# 32 "lib/syntax/parse.mly"
   (int)
-# 59 "lib/syntax/parse.ml"
+# 62 "lib/syntax/parse.ml"
 )
 | INDUCE
 | IN
@@ -56,6 +59,7 @@ type token = Parse.token =
 | GEN
 | GE
 | FORK
+| FN
 | FAB
 | EXISTS
 | EXCH
@@ -71,18 +75,18 @@ type token = Parse.token =
 | DAG
 | CROSS
 | COSTACK_VAR of (
-# 25 "lib/syntax/parse.mly"
+# 31 "lib/syntax/parse.mly"
   (string)
-# 86 "lib/syntax/parse.ml"
+# 90 "lib/syntax/parse.ml"
 )
 | CONS
 | COMMA
 | CMP
 | CAT
 | CAP of (
-# 25 "lib/syntax/parse.mly"
+# 31 "lib/syntax/parse.mly"
   (string)
-# 95 "lib/syntax/parse.ml"
+# 99 "lib/syntax/parse.ml"
 )
 | BAR
 | ASSIGN
