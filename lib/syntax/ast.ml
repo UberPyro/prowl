@@ -1,10 +1,17 @@
 open Metadata
 [@@@warning "-32"]
 
+type mode = {
+  null : bool;
+  mult : bool;
+  conull : bool;
+  comult : bool;
+} [@@deriving show]
+
 type ty_expr = 
-  | Explicit of costack_expr * costack_expr
-  | ImplicitCostack of stack_expr list * stack_expr list
-  | ImplicitStack of value_expr list * value_expr list
+  | Explicit of costack_expr * costack_expr * mode
+  | ImplicitCostack of stack_expr list * stack_expr list * mode
+  | ImplicitStack of value_expr list * value_expr list * mode
 and costack_expr = string option * stack_expr list
 and stack_expr = string option * value_expr list
 and value_expr = 
