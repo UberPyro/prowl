@@ -9,7 +9,7 @@
   LPAREN RPAREN
   LBRACK RBRACK
   LBRACE RBRACE
-  LET ASSIGN SPECIFY IN EXISTS
+  LET ASSIGN SPECIFY IN EXISTS WITHIN
   ADD SUB MUL
   EQ NEQ GT LT GE LE
   DAG MARK PLUS STAR APPLY INDUCE
@@ -26,7 +26,7 @@
 
 %start<stmt list> prog
 
-%nonassoc IN
+%nonassoc IN WITHIN
 %left UNION
 %left PONDER PICK GUESS
 %left TENSOR FORK CROSS
@@ -79,9 +79,9 @@ _expr:
   | expr bop expr {Bop ($1, $2, $3)}
   | expr dop expr {Dop ($1, $2, $3)}
   | LET nonempty_list(stmt) IN expr {Let ($2, $4)}
-  | EXISTS nonempty_list(CAP) IN expr
+  | EXISTS nonempty_list(CAP) WITHIN expr
     {List.fold_right (fun a b -> Ex (a, b), $loc, fresh ()) $2 $4 |> Tuple3.first}
-  | EXISTS nonempty_list(typed_ex) IN expr {TypedEx ($2, $4)}
+  | EXISTS nonempty_list(typed_ex) WITHIN expr {TypedEx ($2, $4)}
   | hiexpr list(hiexpr) {
     let rec go e = function
       | h :: t -> 

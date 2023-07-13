@@ -18,15 +18,18 @@ let (>|<) pred_lex1 pred_lex2 =
 
 let lex = 
   ((=) Parse.SPECIFY, Lex.token)
-  >|< ((fun x -> x = Parse.ASSIGN || x = Parse.IN), Lex_type.token)
+  >|< ((fun x -> x = Parse.ASSIGN || x = Parse.IN || x = Parse.WITHIN), Lex_type.token)
 
 let parse ch = 
   let lexbuf = Lexing.from_channel ch in
-  try Parse.prog lex lexbuf with
+  let tok = ref None in
+  let lex2 buf = let t = lex buf in tok := Some t; t in
+  try Parse.prog lex2 lexbuf with
   | _ ->
     let p = lexbuf.lex_curr_p in
     Printf.sprintf
-      "Unexpected Token at [%d,%d]"
+      "Unexpected Token %s at [%d,%d]"
+      (Option.default "" (Option.map Token.show_token !tok))
       p.pos_lnum (p.pos_cnum - p.pos_bol)
     |> failwith
 

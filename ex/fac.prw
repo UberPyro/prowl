@@ -1,5 +1,8 @@
-= pred (- 1)
-= succ (+ 1)
+: fac z -- z
+= fac ex N :: N~
+  (N > 1) (
+       0
+    || N * (N - 1) fac
+  )
 
-= fac 
-  dup (== 0) (dup pred fac (*) || succ)
+= main 5 fac
