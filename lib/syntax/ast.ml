@@ -75,11 +75,10 @@ and dop =
 
 (* nullary/stack operators *)
 and nop = 
-  | Gen | Fab | Exch | Elim | Cmp | Surf
-  | Dup | Zap | Swap | Cons | Dip | Cat | Unit | Dig
+  | Gen | Fab | Exch | Elim | Cmp
+  | Dup | Zap | Swap | Cons | Dip | Cat | Unit
   | DivMod | Lin | Parse | Show
-  | Noop | Id | Ab
-  | Ap | ApL | ApR
+  | Noop | Id | Ab | Ap
 
 and lit = 
   | Int of int

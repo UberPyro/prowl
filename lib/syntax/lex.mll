@@ -64,13 +64,12 @@ rule token = parse
   | ">" {GT} | "<" "LT" | ">=" {GE} | "<=" {LE}
   | "<>" {CONTRA}
   | "gen" {GEN} | "fab" {FAB} | "exch" {EXCH} | "elim" {ELIM}
-  | "cmp" {CMP} | "dig" {DIG}
+  | "cmp" {CMP}
   | "dup" {DUP} | "zap" {ZAP} | "swap" {SWAP}
-  | "cons" {CONS} | "dip" {DIP} | "cat" {CAT} | "unit" {UNIT} | "surf" {SURF}
+  | "cons" {CONS} | "dip" {DIP} | "cat" {CAT} | "unit" {UNIT}
   | "divmod" {DIVMOD} | "lin" {LIN}
   | "parse" {PARSE} | "show" {SHOW}
-  | "nop" {NOP} | "id" {ID} | "ab" {AB}
-  | "ap" {AP} | "apl" {APL} | "apr" {APR}
+  | "nop" {NOP} | "id" {ID} | "ab" {AB} | "ap" {AP}
 
   | id as s     {VAR s}
   | cap_id as s {CAP s}
