@@ -57,6 +57,9 @@ and cop =
 and lop = 
   | Cat
   | Ap
+  | Append
+  | Alt
+  | Join
 
 (* unary operators *)
 and uop = 

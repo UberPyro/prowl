@@ -57,6 +57,9 @@ rule token = parse
 
   | ">>"        {CAT}
   | "@>"        {AP}
+  | "@"         {APPEND}
+  | "<>"        {ALT}
+  | "<@>"       {JOIN}
 
   | ","         {COMMA}
 

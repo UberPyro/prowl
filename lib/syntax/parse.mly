@@ -18,7 +18,7 @@
   GEN FAB EXCH ELIM CMP
   DUP ZAP SWAP CONS DIP CAT UNIT
   DIVMOD LIN PARSE SHOW
-  NOP ID AB AP PURE
+  NOP ID AB AP PURE APPEND ALT JOIN
   COMMA EOF
   PIPE BAR DOT DOLLAR
 
@@ -31,6 +31,7 @@
 %left UNION
 %left PONDER PICK GUESS
 %left TENSOR FORK CROSS
+%left APPEND ALT JOIN
 %left CAT AP
 %left GT LT GE LE
 %left EQ NEQ
@@ -127,6 +128,9 @@ _hiexpr:
   | GE {Cop Ge}
   | CAT {Lop Cat}
   | AP {Lop Ap}
+  | APPEND {Lop Append}
+  | ALT {Lop Alt}
+  | JOIN {Lop Join}
 
 %inline dop: 
   | PONDER {Ponder}
