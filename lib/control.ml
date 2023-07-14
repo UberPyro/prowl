@@ -35,7 +35,8 @@ let parse ch =
     let p = lexbuf.lex_curr_p in
     Printf.sprintf
       "Unexpected Token %s at [%d,%d]"
-      (Option.default "" (Option.map Token.show_token !tok))
+      (* (Option.default "" (Option.map Token.show_token !tok)) *)
+      "<disabled>"
       p.pos_lnum (p.pos_cnum - p.pos_bol)
     |> failwith
 

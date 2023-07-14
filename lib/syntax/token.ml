@@ -1,4 +1,4 @@
-type token = Parse.token = 
+(* type token = Parse.token = 
 | ZAP
 | WITHIN
 | VAR of (
@@ -89,4 +89,4 @@ type token = Parse.token =
 | AP
 | ADD
 | AB
-[@@deriving show]
+[@@deriving show] *)
