@@ -121,20 +121,6 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= i1;
     o0 =?= o1
   
-  | Uop ((_, _, (i1, o1) as just), Induce) -> 
-    infer ctx just;
-    i0 =?= rebase i1 i1;
-    o0 =?= rebase o1 o1
-  
-  | Uop ((_, _, (i1, o1) as just), Apply) -> 
-    infer ctx just;
-    i1 =?= mk_poly_costack ();
-    o1 =?= mk_poly_costack ();
-    let s0, c0 = upop i1 in
-    i0 =?= rebase s0 s0 @>> c0;
-    let s1, c1 = upop o1 in
-    o0 =?= rebase s1 s1 @>> c1
-  
   | Dop ((_, _, (i1, o1) as left), Ponder, (_, _, (i2, o2) as right)) -> 
     infer ctx left;
     infer ctx right;

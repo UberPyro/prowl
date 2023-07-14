@@ -48,7 +48,6 @@ type token = Parse.token =
   (int)
 # 59 "lib/syntax/parse.ml"
 )
-| INDUCE
 | IN
 | ID
 | GUESS
@@ -87,7 +86,6 @@ type token = Parse.token =
 | BAR
 | ASSIGN
 | ARROW
-| APPLY
 | AP
 | ADD
 | AB

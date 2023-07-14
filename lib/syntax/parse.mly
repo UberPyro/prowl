@@ -13,7 +13,7 @@
   EXISTS EACH WITHIN ARROW
   ADD SUB MUL
   EQ NEQ GT LT GE LE
-  DAG MARK PLUS STAR APPLY INDUCE
+  DAG MARK PLUS STAR
   TENSOR PONDER FORK PICK CROSS GUESS UNION
   GEN FAB EXCH ELIM CMP
   DUP ZAP SWAP CONS DIP CAT UNIT
@@ -139,8 +139,6 @@ _hiexpr:
   | MARK {Mark}
   | PLUS {Plus}
   | STAR {Star}
-  | APPLY {Apply}
-  | INDUCE {Induce}
 
 %inline nop: 
   | GEN {Gen} | FAB {Fab} | EXCH {Exch} | ELIM {Elim} | CMP {Cmp}
