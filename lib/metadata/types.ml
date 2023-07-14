@@ -3,7 +3,6 @@ open Uref
 
 open Util
 open Ull
-
 open Boolean
 
 type mode = ((bool * bool) * (bool * bool)) boolean [@@deriving show]

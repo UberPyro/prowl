@@ -1,3 +1,5 @@
+(* Heavily modified from https://github.com/Superstar64/boolean_unification *)
+
 open Batteries
 open Set
 
