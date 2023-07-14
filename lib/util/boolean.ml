@@ -1,4 +1,7 @@
-(* Heavily modified from https://github.com/Superstar64/boolean_unification *)
+(* Copyright 2023 (C) Freddy A Cubas "Superstar64" *)
+(* Adaptation of https://github.com/Superstar64/boolean_unification, 
+   Under Boost license.
+   Heavily modified by "UberPyro". *)
 
 open Batteries
 open Set
