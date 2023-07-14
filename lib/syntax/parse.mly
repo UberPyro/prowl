@@ -21,11 +21,15 @@
   NOP ID AB AP PURE APPEND ALT JOIN
   COMMA EOF
   PIPE BAR DOT DOLLAR
+  FN PT MT RL AND XOR SEMI
 
 %token<string> VAR CAP STRING COSTACK_VAR STACK_VAR
 %token<int> INT
 
 %start<stmt list> prog
+
+%left XOR
+%left AND
 
 %nonassoc IN WITHIN ARROW
 %left UNION
@@ -41,10 +45,22 @@
 
 prog: list(stmt) EOF {$1}
 
+det: FN {Fn} | PT {Pt} | MT {Mt} | RL {Rl}
+
+%inline mode: option(mode_) {$1}
+mode_: 
+  | det {BLit (Rl, $1)}
+  | det det {BLit ($1, $2)}
+  | mode AND mode {BAnd ($1, $3)}
+  | mode XOR mode {BXor ($1, $3)}
+  | CAP {BVar $1}
+
 ty_expr: 
-  | costack_ty BAR costack_ty {Explicit ($1, $3)}
-  | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) {ImplicitCostack ($1, $3)}
-  | list(value_ty) BAR list(value_ty) {ImplicitStack ($1, $3)}
+  | costack_ty BAR costack_ty SEMI mode {Explicit ($1, $3, $5)}
+  | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) SEMI mode
+    {ImplicitCostack ($1, $3, $5)}
+  | list(value_ty) BAR list(value_ty) SEMI mode
+    {ImplicitStack ($1, $3, $5)}
 costack_ty: 
   | COSTACK_VAR list(preceded(PIPE, stack_ty)) {Some $1, $2}
   | DOLLAR separated_list(PIPE, stack_ty) {None, $2}

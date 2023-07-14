@@ -1,10 +1,19 @@
 open Metadata
 [@@@warning "-32"]
 
+type det = Fn | Pt | Mt | Rl
+and mode = mode_ option
+and mode_ = 
+  | BLit of det * det
+  | BAnd of mode * mode
+  | BXor of mode * mode
+  | BVar of string
+  [@@deriving show]
+
 type ty_expr = 
-  | Explicit of costack_expr * costack_expr
-  | ImplicitCostack of stack_expr list * stack_expr list
-  | ImplicitStack of value_expr list * value_expr list
+  | Explicit of costack_expr * costack_expr * mode
+  | ImplicitCostack of stack_expr list * stack_expr list * mode
+  | ImplicitStack of value_expr list * value_expr list * mode
 and costack_expr = string option * stack_expr list
 and stack_expr = string option * value_expr list
 and value_expr = 

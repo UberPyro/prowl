@@ -1,6 +1,20 @@
 open Batteries
 open Set
 
+type 'a variable = 
+  | Flexible of int
+  | Constant of 'a
+  [@@deriving show]
+
+type 'a t = 'a variable Set.t Set.t
+and 'a boolean = 'a t
+
+module PP = struct
+  type 'a t = 'a variable list list [@@deriving show]
+end
+
+let pp_boolean fmt g = to_list %> List.map to_list %> PP.pp fmt g
+
 open struct
   let (let*) x f = List.map f x |> List.flatten
   let (let+) x f = List.map f x
@@ -27,12 +41,9 @@ let factor x e =
   map (remove x) @@ filter (mem x) e, 
   filter (Fun.negate @@ mem x) e
 
-type 'a variable = 
-  | Flexible of int
-  | Constant of 'a
-
 let variable x = singleton @@ singleton @@ Flexible x
 let constant x = singleton @@ singleton @@ Constant x
+let bfresh () = variable (unique ())
 
 let substitute (x, ex) e = 
   let apply = function
@@ -78,7 +89,7 @@ and solve_all xs problem =
 let rec rename_answers = function
   | [] -> []
   | (x, e) :: th -> 
-    (x, substitute (x, variable (unique ())) e) :: rename_answers th
+    (x, substitute (x, bfresh ()) e) :: rename_answers th
 
 let rec back_substitute = function
   | [] -> []

@@ -36,6 +36,14 @@ rule token = parse
 
   | "|"         {PIPE}
 
+  | "fn"        {FN}
+  | "pt"        {PT}
+  | "mt"        {MT}
+  | "rl"        {RL}
+  | "*"         {AND}
+  | "+"         {XOR}
+  | ";"         {SEMI}
+
   | '"' (id as s) {COSTACK_VAR s}
   | "'" (id as s) {STACK_VAR s}
   | id as s     {VAR s}
