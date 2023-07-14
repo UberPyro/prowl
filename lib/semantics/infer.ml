@@ -52,7 +52,41 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let p = s @>> ufresh () in
     i0 =?= p;
     o0 =?= s @>> p
-  
+
+  | Bop ((_, sp1, (i1, o1) as left), Lop Cat, (_, sp2, (i2, o2) as right)) -> 
+    infer ctx left;
+    infer ctx right;
+    let u = mk_init_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    begin try
+      i1 =?= u;
+      o1 =?= Con ((c1, c2), Quote) @> u;
+    with UnifError msg -> InferError (sp1, ctx, msg) |> raise end;
+    begin try
+      i2 =?= u;
+      o2 =?= Con ((c2, c3), Quote) @> u;
+    with UnifError msg -> InferError (sp2, ctx, msg) |> raise end;
+    let p = mk_poly_costack () in
+    i0 =?= p;
+    o0 =?= Con ((c1, c3), Quote) @> p
+    
+  | Bop ((_, sp1, (i1, o1) as left), Lop Ap, (_, sp2, (i2, o2) as right)) -> 
+    infer ctx left;
+    infer ctx right;
+    let u = mk_init_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    begin try
+      i1 =?= u;
+      o1 =?= Con ((c1, c2), List) @> u;
+    with UnifError msg -> InferError (sp1, ctx, msg) |> raise end;
+    begin try
+      i2 =?= u;
+      o2 =?= Con ((c2, c3), List) @> u;
+    with UnifError msg -> InferError (sp2, ctx, msg) |> raise end;
+    let p = mk_poly_costack () in
+    i0 =?= p;
+    o0 =?= Con ((c1, c3), List) @> p
+    
   | SectLeft (Aop _, (_, sp1, (i1, o1) as just)) -> 
     infer ctx just;
     let u = mk_init_costack () in
@@ -75,6 +109,30 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let p = s @>> ufresh () in
     i0 =?= Lit Int @> p;
     o0 =?= s @>> p
+  
+  | SectLeft (Lop Cat, (_, sp1, (i1, o1) as just)) -> 
+    infer ctx just;
+    let u = mk_init_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    begin try
+      i1 =?= u;
+      o1 =?= Con ((c2, c3), Quote) @> u;
+    with UnifError msg -> InferError (sp1, ctx, msg) |> raise end;
+    let p = mk_poly_costack () in
+    i0 =?= Con ((c1, c2), Quote) @> p;
+    o0 =?= Con ((c1, c3), Quote) @> p
+  
+  | SectLeft (Lop Ap, (_, sp1, (i1, o1) as just)) -> 
+    infer ctx just;
+    let u = mk_init_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    begin try
+      i1 =?= u;
+      o1 =?= Con ((c2, c3), List) @> u;
+    with UnifError msg -> InferError (sp1, ctx, msg) |> raise end;
+    let p = mk_poly_costack () in
+    i0 =?= Con ((c1, c2), List) @> p;
+    o0 =?= Con ((c1, c3), List) @> p
   
   | SectRight ((_, sp1, (i1, o1) as just), Aop _) -> 
     infer ctx just;
@@ -99,6 +157,30 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= Lit Int @> p;
     o0 =?= s @>> p
   
+  | SectRight ((_, sp1, (i1, o1) as just), Lop Cat) -> 
+    infer ctx just;
+    let u = mk_init_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    begin try
+      i1 =?= u;
+      o1 =?= Con ((c1, c2), Quote) @> u;
+    with UnifError msg -> InferError (sp1, ctx, msg) |> raise end;
+    let p = mk_poly_costack () in
+    i0 =?= Con ((c2, c3), Quote) @> p;
+    o0 =?= Con ((c1, c3), Quote) @> p
+  
+  | SectRight ((_, sp1, (i1, o1) as just), Lop Ap) -> 
+    infer ctx just;
+    let u = mk_init_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    begin try
+      i1 =?= u;
+      o1 =?= Con ((c1, c2), List) @> u;
+    with UnifError msg -> InferError (sp1, ctx, msg) |> raise end;
+    let p = mk_poly_costack () in
+    i0 =?= Con ((c2, c3), List) @> p;
+    o0 =?= Con ((c1, c3), List) @> p
+  
   | Sect Aop _ -> 
     let p = Lit Int @> mk_poly_costack () in
     i0 =?= Lit Int @> p;
@@ -109,6 +191,18 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let p = s @>> ufresh () in
     i0 =?= Lit Int @> Lit Int @> p;
     o0 =?= s @>> p
+  
+  | Sect (Lop Cat) -> 
+    let c0 = mk_poly_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    i0 =?= Con ((c2, c3), Quote) @> Con ((c1, c2), Quote) @> c0;
+    o0 =?= Con ((c1, c2), Quote) @> c0
+  
+  | Sect (Lop Ap) -> 
+    let c0 = mk_poly_costack () in
+    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
+    i0 =?= Con ((c2, c3), List) @> Con ((c1, c2), List) @> c0;
+    o0 =?= Con ((c1, c2), List) @> c0
   
   | Uop ((_, _, (i1, o1) as just), Dag) -> 
     infer ctx just;
@@ -242,17 +336,17 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= Con ((c0, c1), Quote) @> v @@> c0;
     o0 =?= v @@> c1
 
-  | Nop Cat -> 
-    let c0 = mk_poly_costack () in
-    let c1, c2, c3 = Tuple3.mapn ufresh ((), (), ()) in
-    i0 =?= Con ((c2, c3), Quote) @> Con ((c1, c2), Quote) @> c0;
-    o0 =?= Con ((c1, c2), Quote) @> c0
-  
   | Nop Unit -> 
     let c0, c1 = mk_poly_costack (), mk_poly_costack () in
     let v = mk_var () in
     i0 =?= v @@> c0;
     o0 =?= Con ((c1, v @@> c1), Quote) @> c0
+  
+  | Nop Pure -> 
+    let c0, c1 = mk_poly_costack (), mk_poly_costack () in
+    let v = mk_var () in
+    i0 =?= v @@> c0;
+    o0 =?= Con ((c1, v @@> c1), List) @> c0
   
   | Nop DivMod -> 
     let c1 = Lit Int @> Lit Int @> mk_poly_costack () in
@@ -282,14 +376,6 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let c0 = mk_var () @@> mk_poly_costack () in
     i0 =?= c0;
     o0 =?= c0
-  
-  | Nop Ap -> 
-    let c0 = mk_poly_costack () in
-    let c1 = mk_poly_costack () in
-    let c2 = mk_poly_costack () in
-    let c3 = mk_poly_costack () in
-    i0 =?= Con ((c2, c3), List) @> Con ((c1, c2), List) @> c0;
-    o0 =?= Con ((c1, c3), List) @> c0
   
   | Lit Int _ -> 
     let c0 = mk_poly_costack () in

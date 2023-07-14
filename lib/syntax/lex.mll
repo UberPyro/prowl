@@ -55,6 +55,9 @@ rule token = parse
   | "---"       {GUESS}
   | "==="       {CROSS}
 
+  | ">>"        {CAT}
+  | "@>"        {AP}
+
   | ","         {COMMA}
 
   | (integer as i) {INT (int_of_string i)}
@@ -66,10 +69,10 @@ rule token = parse
   | "gen" {GEN} | "fab" {FAB} | "exch" {EXCH} | "elim" {ELIM}
   | "cmp" {CMP}
   | "dup" {DUP} | "zap" {ZAP} | "swap" {SWAP}
-  | "cons" {CONS} | "dip" {DIP} | "cat" {CAT} | "unit" {UNIT}
+  | "cons" {CONS} | "dip" {DIP} | "unit" {UNIT}
   | "divmod" {DIVMOD} | "lin" {LIN}
   | "parse" {PARSE} | "show" {SHOW}
-  | "nop" {NOP} | "id" {ID} | "ab" {AB} | "ap" {AP}
+  | "nop" {NOP} | "id" {ID} | "ab" {AB} | "pure" {PURE}
 
   | id as s     {VAR s}
   | cap_id as s {CAP s}

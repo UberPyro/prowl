@@ -36,6 +36,7 @@ and _expr =
 and bop = 
   | Aop of aop
   | Cop of cop
+  | Lop of lop
 
 (* arithmetic operators *)
 and aop = 
@@ -51,6 +52,11 @@ and cop =
   | Lt
   | Ge
   | Le
+
+(* lifted operators *)
+and lop = 
+  | Cat
+  | Ap
 
 (* unary operators *)
 and uop = 
@@ -74,9 +80,9 @@ and dop =
 (* nullary/stack operators *)
 and nop = 
   | Gen | Fab | Exch | Elim | Cmp
-  | Dup | Zap | Swap | Cons | Dip | Cat | Unit
+  | Dup | Zap | Swap | Cons | Dip | Unit
   | DivMod | Lin | Parse | Show
-  | Noop | Id | Ab | Ap
+  | Noop | Id | Ab | Pure
 
 and lit = 
   | Int of int

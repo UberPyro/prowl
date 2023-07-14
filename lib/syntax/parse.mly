@@ -18,7 +18,7 @@
   GEN FAB EXCH ELIM CMP
   DUP ZAP SWAP CONS DIP CAT UNIT
   DIVMOD LIN PARSE SHOW
-  NOP ID AB AP
+  NOP ID AB AP PURE
   COMMA EOF
   PIPE BAR DOT DOLLAR
 
@@ -31,6 +31,7 @@
 %left UNION
 %left PONDER PICK GUESS
 %left TENSOR FORK CROSS
+%left CAT AP
 %left GT LT GE LE
 %left EQ NEQ
 %left ADD SUB MUL
@@ -124,6 +125,8 @@ _hiexpr:
   | LE {Cop Le}
   | GT {Cop Gt}
   | GE {Cop Ge}
+  | CAT {Lop Cat}
+  | AP {Lop Ap}
 
 %inline dop: 
   | PONDER {Ponder}
@@ -142,7 +145,6 @@ _hiexpr:
 
 %inline nop: 
   | GEN {Gen} | FAB {Fab} | EXCH {Exch} | ELIM {Elim} | CMP {Cmp}
-  | DUP {Dup} | ZAP {Zap} | SWAP {Swap} | CONS {Cons} | DIP {Dip}
-  | CAT {Cat} | UNIT {Unit}
+  | DUP {Dup} | ZAP {Zap} | SWAP {Swap} | CONS {Cons} | DIP {Dip} | UNIT {Unit}
   | DIVMOD {DivMod} | LIN {Lin} | PARSE {Parse} | SHOW {Show}
-  | NOP {Noop} | ID {Id} | AB {Ab} | AP {Ap}
+  | NOP {Noop} | ID {Id} | AB {Ab} | PURE {Pure}
