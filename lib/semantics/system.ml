@@ -58,3 +58,6 @@ let (-?-) c0 c1 =
   match uget c0, uget c1 with
   | UCons (u, _), UCons (v, _) -> unify_stack u v
   | _ -> Invalid_argument "-?-" |> raise
+let (<?>) = Umode.unify
+let mul_modes d0 d1 d2 = 
+  d0 <?> uref @@ Umode.mul_basic (uget d1) (uget d2)
