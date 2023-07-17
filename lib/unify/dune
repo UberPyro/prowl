@@ -1,4 +1,4 @@
 (library
- (name metadata)
- (libraries batteries unify)
+ (name unify)
+ (libraries batteries)
  (preprocess (pps ppx_deriving.show)))

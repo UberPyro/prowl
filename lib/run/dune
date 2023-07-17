@@ -1,4 +1,4 @@
 (library
  (name run)
- (libraries metadata syntax)
+ (libraries util metadata syntax)
  (preprocess (pps ppx_deriving.show)))

@@ -4,8 +4,11 @@ open Uref
 
 open System
 
+open Unify
+open Ulist
+open Umode
+
 open Util
-open Ull
 
 let rec pretty_value out = uget %> function
   | Lit Int -> fprintf out "z"
@@ -37,16 +40,20 @@ and pretty_costack out = uget %> function
   | USeq k -> fprintf out "\"%d" k
   | UNil -> fprintf out "$"
 
-and pretty_fn out (i, o) = 
+and pretty_fn out (i, o, m) = 
   pretty_costack out i;
   fprintf out " -- ";
-  pretty_costack out o
+  pretty_costack out o;
+  fprintf out " ; ";
+  pretty_mode out m
+
+and pretty_mode out = pretty_ubool out
 
 let pretty_ctx out = 
   fprintf out "Context:\n";
-  Ouro.to_list %> List.iter begin fun (s, (g, i, o)) -> 
+  Ouro.to_list %> List.iter begin fun (s, (g, i, o, d)) -> 
     fprintf out "%s %s " s @@ if g then "=>" else "->";
-    pretty_fn out (i, o);
+    pretty_fn out (i, o, d);
     fprintf out "\n"
   end
 

@@ -3,10 +3,11 @@ open Uref
 
 open System
 
-open Util
-open Ull
+open Unify
+open Ulist
+open Umode
 
-let rec fn f = Tuple2.mapn costack f
+let rec fn (c1, c2, x) = costack c1, costack c2, copy_ubool x
 
 and costack c = copy stack c
 and stack s = copy value s
