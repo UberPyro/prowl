@@ -69,7 +69,9 @@ module Make(C : Constant) = struct
     | vs, cs -> 
       let c' = List.fold C.and_const C.one cs in
       if c' = C.zero then [ref (BConst (C.zero))]
-      else ref (BConst (List.fold C.and_const C.one cs)) :: vs
+      else List.sort_unique Stdlib.compare @@
+        if c' = C.one then vs
+        else ref (BConst c') :: vs
 
   let coal_add b = 
     match b |> List.partition_map @@ fun x -> match List.map (!) x with
@@ -78,7 +80,8 @@ module Make(C : Constant) = struct
     | vs, [] -> vs
     | vs, cs -> [ref (BConst (List.fold C.xor_const C.zero cs))] :: vs
 
-  let mul_idem b1 b2 = mul_basic b1 b2 |> List.map @@ List.unique %> coal_mul
+  let mul_idem b1 b2 = 
+    mul_basic b1 b2 |> List.map @@ List.sort_uniq Stdlib.compare %> coal_mul
 
   let cancel_dups = 
     let[@tail_mod_cons] rec go = function
