@@ -418,28 +418,18 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     o0 =?= push_list c1 c2 c0
   
   | UVar s -> 
-    begin match find_rec_opt s ctx with
-    | None -> 
-      let msg = 
-        sprintf "Cannot find unbound unification variable [%s]" s in
-      UnifError msg |> raise
-    | Some ((_, (_, o1)), _) -> 
-      let c = mk_poly_costack () in
-      i0 =?= c;
-      o0 =?= (C.upop o1 |> fst |> S.upop |> fst) @> c
-    end
+    let v = mk_var () in
+    unify_uvar s v ctx;
+    let c = mk_poly_costack () in
+    i0 =?= c;
+    o0 =?= v @> c
   
   | StackVar s -> 
-    begin match find_rec_opt s ctx with
-    | None -> 
-      let msg = 
-        sprintf "Cannot find unbound stack variable [%s]" s in
-      UnifError msg |> raise
-    | Some ((_, (_, o1)), _) -> 
-      let c = C.ufresh () in
-      i0 =?= c;
-      o0 =?= (C.upop o1 |> fst) @>> c
-    end
+    let z = S.ufresh () in
+    unify_ustack s z ctx;
+    let c = mk_poly_costack () in
+    i0 =?= c;
+    o0 =?= z @>> c
   
   | Ex (s, (_, _, (i1, o1) as just), b) ->
     let v = Value.uvar () in

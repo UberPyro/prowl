@@ -34,18 +34,28 @@ let pretty_ouro out t =
   fprintf out "Context: \n";
   lst |> List.iter @@ fun (n, (_, fn)) -> 
     fprintf out "%s => " n;
-    Fn.pretty out fn
+    Fn.pretty out fn;
+    fprintf out "%s" "\n"
 
 let pretty_uctx out t = 
   let lst = Map.to_seq (second t) |> List.of_seq in
   fprintf out "Unification Variables: \n";
   lst |> List.iter @@ fun (n, uvar) -> 
     fprintf out "%s -> " n;
-    Value.pretty out uvar
+    Value.pretty out uvar;
+    fprintf out "%s" "\n"
 
 let pretty_stkctx out t = 
   let lst = Map.to_seq (third t) |> List.of_seq in
   fprintf out "Stack Variables: \n";
   lst |> List.iter @@ fun (n, uvar) -> 
     fprintf out "%s -> " n;
-    Stack.pretty out uvar
+    Stack.pretty out uvar;
+    fprintf out "%s" "\n"
+
+let pretty out t = 
+  pretty_ouro out t;
+  fprintf out "%s" "\n";
+  pretty_uctx out t;
+  fprintf out "%s" "\n";
+  pretty_stkctx out t

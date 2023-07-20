@@ -11,6 +11,9 @@ module rec Value : sig
 end = struct
   include Usyn.Make(Fn)
   let rec pretty out = uget %> function
+    | USyntax ("int", []) -> fprintf out "%s" "z"
+    | USyntax ("string", []) -> fprintf out "%s" "str"
+    | USyntax (n, []) -> fprintf out "%s" n
     | USyntax ("quote", [a]) -> 
       let[@warning "-8"] UAtom fn = uget a in
       fprintf out "%s" "[";
@@ -61,9 +64,9 @@ end = struct
   let rec pretty out = uget %> function
     | UCons (u, us) -> 
       pretty out us;
-      fprintf out " "; Stack.pretty out u
-    | USeq j -> fprintf out "%d*" j
-    | UNil -> fprintf out "."
+      fprintf out " | "; Stack.pretty out u
+    | USeq j -> fprintf out "%d+" j
+    | UNil -> fprintf out "$"
 end
 and Fn : UNIFIABLE with type t = Costack.t * Costack.t = struct
   type t = Costack.t * Costack.t

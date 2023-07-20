@@ -71,6 +71,7 @@ module Make(U : UNIFIABLE) = struct
     | UAtom a -> uref @@ UAtom (U.generalize (U.memo ()) a)
   
   let rec pretty out = uget %> function
+    | USyntax (n, []) -> fprintf out "%s" n
     | USyntax (n, us) -> 
       fprintf out "%s(" n;
       begin match us with
