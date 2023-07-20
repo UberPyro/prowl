@@ -6,7 +6,7 @@ open Syntax
 open Ast
 open System
 
-open Util
+open Ctx
 open Unify
 open Ucommon
 
@@ -16,7 +16,7 @@ module C = Costack
 
 exception InferError of
     Span.t
-  * (string, bool * Fn.t) Ouro.t
+  * Ctx.t
   * string
 
 let push_int u = V.usyn "int" [] @> u
@@ -418,7 +418,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     o0 =?= push_list c1 c2 c0
   
   | UVar s -> 
-    begin match Ouro.find_rec_opt s ctx with
+    begin match find_rec_opt s ctx with
     | None -> 
       let msg = 
         sprintf "Cannot find unbound unification variable [%s]" s in
@@ -430,7 +430,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     end
   
   | StackVar s -> 
-    begin match Ouro.find_rec_opt s ctx with
+    begin match find_rec_opt s ctx with
     | None -> 
       let msg = 
         sprintf "Cannot find unbound stack variable [%s]" s in
@@ -442,24 +442,24 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     end
   
   | Ex (s, (_, _, (i1, o1) as just), b) ->
-    let v = mk_var () in
-    let c = mk_poly_costack () in
-    infer (Ouro.insert s (false, (c, v @> c)) ctx) just;
+    let v = Value.uvar () in
+    let ctx' = introduce_uvar s v ctx in
+    infer ctx' just;
     if b then i0 =?= v @> i1
     else i0 =?= i1;
     o0 =?= o1
   
   | Each ((_, _, (i1, o1) as just), s, b) ->
     let z = S.ufresh () in
-    let c = mk_poly_costack () in
-    infer (Ouro.insert s (false, (c, z @>> c)) ctx) just;
+    let ctx' = introduce_stkvar s z ctx in
+    infer ctx' just;
     i0 =?= i1;
     if b then o0 =?= z @>> o1
     else o0 =?= o1
   
   | Var k -> 
     let (generalized, (i1, o1)), _ = 
-      Ouro.find_rec_opt k ctx
+      find_rec_opt k ctx
       |> Option.default_delayed @@ fun () -> 
         let msg = sprintf "Cannot find unbound variable [%s]" k in
         UnifError msg |> raise in
@@ -476,7 +476,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
   with UnifError msg -> raise @@ InferError (sp, ctx, msg)
 
 and stmts_rec ctx stmts = 
-  let ctx' = Ouro.insert_many begin stmts |> List.map @@ function
+  let ctx' = insert_many begin stmts |> List.map @@ function
     | Def (s, None, (_, _, (i, o))), _ -> s, (false, (i, o))
     | Def (d, Some ty, (_, _, (i, o as fn))), _ -> 
       Fn.unify fn (Elab.ty_expr ty);
@@ -501,15 +501,15 @@ and unify_ho_arg sp ctx ast u c1 c2 f i o =
 let top_stmts ctx = 
   List.fold_left begin fun ctx' -> function
     | Def (d, None, (_, _, (i, o) as e)), _ -> 
-      infer (Ouro.insert d (false, (i, o)) ctx') e;
-      Ouro.insert d (true, (i, o)) ctx'
+      infer (insert d (false, (i, o)) ctx') e;
+      insert d (true, (i, o)) ctx'
     | Def (d, Some ty, (_, _, (i, o as fn) as e)), _ -> 
       let elab_ty = Elab.ty_expr ty in
       Fn.unify fn elab_ty;
-      let annotctx = Ouro.insert d (true, (i, o)) ctx' in
+      let annotctx = insert d (true, (i, o)) ctx' in
       infer annotctx e;
       annotctx
   end ctx
 
 let prog : (_stmt * Span.t) list -> 'a = 
-  top_stmts Ouro.empty
+  top_stmts empty

@@ -3,7 +3,7 @@ open! Batteries
 open Syntax
 open Semantics
 open Unify
-open Util
+open Ctx
 
 open System
 open Infer
@@ -52,7 +52,7 @@ let check _debug fname args =
   let ast = parse (File.open_in fname) in
   let ctx = prog ast in
   let (_, (main_in, main_out)), _ = 
-    Ouro.find_rec_opt "main" ctx
+    find_rec_opt "main" ctx
     |> Option.default_delayed begin fun () -> 
       failwith @@ Printf.sprintf "%s has no main function!" fname
     end in
