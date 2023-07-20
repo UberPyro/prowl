@@ -54,8 +54,8 @@ and stack_expr m (opt, w) =
 and value_expr m = function
   | TyInt -> Value.usyn "int" []
   | TyString -> Value.usyn "string" []
-  | TyQuote ty -> Value.usyn "quote" [Value.uatom @@ Fn.mk @@ fn_expr m ty]
-  | TyList ty -> Value.usyn "list" [Value.uatom @@ Fn.mk @@ fn_expr m ty]
+  | TyQuote ty -> Value.usyn "quote" [Value.uatom @@ fn_expr m ty]
+  | TyList ty -> Value.usyn "list" [Value.uatom @@ fn_expr m ty]
   | TyVal s -> link_var (third m) s
 
 let ty_expr x = fn_expr Dict.(create 16, create 16, create 16) x

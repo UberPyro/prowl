@@ -18,6 +18,7 @@ and Stack : sig
   val ujoin : t -> Value.t list -> t
   val rebase : t -> t -> t
   val map_hd : (Value.t -> Value.t) -> t -> t
+  val upop : t -> Value.t * t
 end = Ulist.Make(Value)
 and Costack : sig
   include UNIFIABLE
@@ -29,13 +30,12 @@ and Costack : sig
   val ujoin : t -> Stack.t list -> t
   val rebase : t -> t -> t
   val map_hd : (Stack.t -> Stack.t) -> t -> t
+  val upop : t -> Stack.t * t
 end = Ulist.Make(Stack)
 and Fn : sig
-  include UNIFIABLE
-  val mk : Costack.t * Costack.t -> t
+  include UNIFIABLE with type t = Costack.t * Costack.t
 end = struct
   type t = Costack.t * Costack.t
-  let mk fn = fn
   type memo = unit
   let memo () = ()
   let refresh_memo () = ()
