@@ -38,6 +38,10 @@ let or2_fresh () =
   or_ d0 d1 d2;
   d0, d1, d2
 let or2fresh () = or2_fresh (), or2_fresh ()
+let btrue () = uref @@ [[ref (Det.BConst (true, true))]]
+let set_true d0 = Det.unify d0 (btrue ())
+let set_int v0 = Value.unify v0 (Value.usyn "int" [])
+let set_hof hof v fn = Value.unify v @@ V.usyn hof [V.uatom fn]
 
 let push_int u = V.usyn "int" [] @> u
 let push_str u = V.usyn "string" [] @> u
@@ -521,7 +525,7 @@ and stmts_rec ctx stmts =
   List.iter (fun (Def (_, _, e), _) -> infer ctx' e) stmts;
   ctx'
 
-and unify_arg sp ctx ast u i o = 
+(* and unify_arg sp ctx ast u i o = 
   infer ctx ast;
   try i =?= u; o =?= push_int u
   with UnifError msg -> InferError (sp, ctx, msg) |> raise
@@ -545,7 +549,109 @@ and alt (i0, o0, d0, e0) (i1, o1, d1, e1) (i2, o2, d2, e2) =
   o0 =?= o1;
   o0 =?= o2;
   or_ d0 d1 d2;
-  or_ e0 e1 e2
+  or_ e0 e1 e2 *)
+
+(* and base_cat (i0, o0, d0, e0) (_, _, d1, e1) (_, _, d2, e2) i1 o1 = 
+  i0 =?= i1; o0 =?= o1;
+  and2_ d0 d1 d2;
+  and2_ e0 e1 e2 *)
+
+and bop (i0, o0, d0, e0) (i1, o1, d1, e1) (i2, o2, d2, e2) = 
+  let v0, v1, v2 = Value.(uvar (), uvar (), uvar ()) in
+  let c0, c1, c2 = mk_poly_costack (), mk_poly_costack (), mk_poly_costack () in
+  i0 =?= c0; o0 =?= v0 @> c0;
+  i1 =?= c1; o1 =?= v1 @> c1;
+  i2 =?= c2; o2 =?= v2 @> c2;
+  and2_ d0 d1 d2; and2_ e0 e1 e2;
+  v0, v1, v2
+
+and sect_left (i0, o0, d0, e0) (i2, o2, d2, e2) = 
+  let v0, v1, v2 = Value.(uvar (), uvar (), uvar ()) in
+  let c0, c2 = mk_poly_costack (), mk_poly_costack () in
+  i0 =?= v1 @> c0; o0 =?= v0 @> c0;
+  i2 =?= c2; o2 =?= v2 @> c0;
+  Det.unify d0 d2; Det.unify e0 e2;
+  v0, v1, v2
+
+and sect_right (i0, o0, d0, e0) (i1, o1, d1, e1) = 
+  let v0, v1, v2 = Value.(uvar (), uvar (), uvar ()) in
+  let c0, c1 = mk_poly_costack (), mk_poly_costack () in
+  i0 =?= v2 @> c0; o0 =?= v0 @> c0;
+  i1 =?= c1; o1 =?= v1 @> c0;
+  Det.unify d0 d1; Det.unify e0 e1;
+  v0, v1, v2
+
+and sect (i0, o0, d0, e0) = 
+  let v0, v1, v2 = Value.(uvar (), uvar (), uvar ()) in
+  let c0 = mk_poly_costack () in
+  i0 =?= v2 @> v1 @> c0; o0 =?= v0 @> c0;
+  set_true d0; set_true e0; 
+  v0, v1, v2
+
+and bop_cmp (i0, o0, d0, e0) (i1, o1, d1, e1) (i2, o2, d2, e2) = 
+  let v1, v2 = Value.(uvar (), uvar ()) in
+  let s0 = Stack.ufresh () in
+  let c0, c1, c2 = s0 @>> mk_init_costack (), mk_poly_costack (), mk_poly_costack () in
+  i0 =?= c0; o0 =?= s0 @>> c0;
+  i1 =?= c1; o1 =?= v1 @> c1;
+  i2 =?= c2; o2 =?= v2 @> c2;
+  and2_ d0 d1 d2; and2_ e0 e1 e2;
+  v1, v2
+
+and sect_left_cmp (i0, o0, d0, e0) (i2, o2, d2, e2) = 
+  let v1, v2 = Value.(uvar (), uvar ()) in
+  let s0 = Stack.ufresh () in
+  let c0, c2 = mk_poly_costack (), mk_poly_costack () in
+  i0 =?= v1 @> c0; o0 =?= s0 @>> c0;
+  i2 =?= c2; o2 =?= v2 @> c0;
+  Det.unify d0 d2; Det.unify e0 e2;
+  v1, v2
+
+and sect_right_cmp (i0, o0, d0, e0) (i1, o1, d1, e1) = 
+  let v1, v2 = Value.(uvar (), uvar ()) in
+  let s0 = Stack.ufresh () in
+  let c0, c1 = mk_poly_costack (), mk_poly_costack () in
+  i0 =?= v2 @> c0; o0 =?= s0 @>> c0;
+  i1 =?= c1; o1 =?= v1 @> c0;
+  Det.unify d0 d1; Det.unify e0 e1;
+  v1, v2
+
+and sect_cmp (i0, o0, d0, e0) = 
+  let v1, v2 = Value.(uvar (), uvar ()) in
+  let s0 = Stack.ufresh () in
+  let c0 = mk_poly_costack () in
+  i0 =?= v2 @> v1 @> c0; o0 =?= s0 @>> c0;
+  set_true d0; set_true e0; 
+  v1, v2
+
+and ints (v0, v1, v2) = 
+  set_int v0; set_int v1; set_int v2
+
+and ints2 (v1, v2) = set_int v1; set_int v2
+
+and cat hof (v0, v1, v2) = 
+  let c0, c1, c2 = Costack.(ufresh (), ufresh (), ufresh ()) in
+  let d0, d1, d2 = and2_fresh () in
+  let e0, e1, e2 = and2_fresh () in
+  set_hof hof v0 (c0, c2, d0, e0);
+  set_hof hof v1 (c0, c1, d1, e1);
+  set_hof hof v2 (c1, c2, d2, e2)
+
+and alt hof (v0, v1, v2) = 
+  let c0, c1 = Costack.(ufresh () , ufresh ()) in
+  let d0, d1, d2 = or2_fresh () in
+  let e0, e1, e2 = or2_fresh () in
+  set_hof hof v0 (c0, c1, d0, e0);
+  set_hof hof v1 (c0, c1, d1, e1);
+  set_hof hof v2 (c0, c1, d2, e2)
+
+and app hof (v0, v1, v2) = 
+  let c0, c1 = Costack.(ufresh () , ufresh ()) in
+  let d0, d1, d2 = and2_fresh () in
+  let e0, e1, e2 = and2_fresh () in
+  set_hof hof v0 (c0, c1, d0, e0);
+  set_hof hof v1 (c0, c1, d1, e1);
+  set_hof hof v2 (c0, c1, d2, e2)
 
 let top_stmts ctx = 
   List.fold_left begin fun ctx' -> function
