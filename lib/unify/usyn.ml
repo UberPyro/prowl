@@ -6,7 +6,8 @@ module Make(U : UNIFIABLE) = struct
 
   type t = t_unif uref
   and t_unif = 
-    | USyntax of U.t * t list
+    | USyntax of string * t list
+    | UAtom of U.t
     | UVar of int
   
   type memo = (int, t) Hashtbl.t
@@ -19,6 +20,7 @@ module Make(U : UNIFIABLE) = struct
 
   let usyn n us = uref @@ USyntax (n, us)
   let uvar () = uref @@ UVar (unique ())
+  let uatom a = uref @@ UAtom a
 
   let rec unify r = 
     let sel x y = match x, y with
@@ -29,14 +31,25 @@ module Make(U : UNIFIABLE) = struct
       | USyntax (_, us), UVar i -> 
         List.iter (occurs i) us;
         x
+      | UVar _, UAtom _ -> y
+      | UAtom _, UVar _ -> x
       | USyntax (elem1, args1), USyntax (elem2, args2) -> 
-        U.unify elem1 elem2; 
-        try List.iter2 unify args1 args2; x
+        if elem1 <> elem2 then
+          UnifError (sprintf "Cannot unify distinct names [%s] and [%s]" elem1 elem2)
+          |> raise;
+        begin try List.iter2 unify args1 args2; x
         with Invalid_argument _ -> 
           UnifError (
             sprintf "Cannot unify terms of arity [%d] and [%d]"
             (List.length args1) (List.length args2))
-          |> raise in
+          |> raise end
+      | UAtom a1, UAtom a2 -> 
+        U.unify a1 a2;
+        x
+      | UAtom _, USyntax (n, _) | USyntax (n, _), UAtom _ -> 
+        UnifError (sprintf "Cannot unify term head [%s] with term contents" n)
+        |> raise
+      in
     Uref.unite ~sel r
 
   and occurs i = uget %> function
@@ -44,9 +57,8 @@ module Make(U : UNIFIABLE) = struct
         UnifError "Cannot unify a variable with syntax that contains it"
         |> raise
       | UVar _ -> ()
-      | USyntax (n, us) -> 
-        U.occurs i n;
-        List.iter (occurs i) us
+      | USyntax (_, us) -> List.iter (occurs i) us
+      | UAtom a -> U.occurs i a
   
   let rec generalize m t = match uget t with
     | UVar i -> 
@@ -55,11 +67,12 @@ module Make(U : UNIFIABLE) = struct
           Hashtbl.add m i nu;
           nu
     | USyntax (name, us) -> 
-      uref @@ USyntax (U.generalize (U.memo ()) name, List.map (generalize m) us)
+      uref @@ USyntax (name, List.map (generalize m) us)
+    | UAtom a -> uref @@ UAtom (U.generalize (U.memo ()) a)
   
   let rec pretty out = uget %> function
     | USyntax (n, us) -> 
-      U.pretty out n;
+      fprintf out "%s" n;
       begin match us with
         | [] -> ()
         | h :: t -> 
@@ -67,5 +80,6 @@ module Make(U : UNIFIABLE) = struct
           List.iter (fun u -> fprintf out " "; pretty out u) t
       end
     | UVar j -> fprintf out "%d*" j
+    | UAtom a -> U.pretty out a
 
 end

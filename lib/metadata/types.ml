@@ -4,8 +4,9 @@ open Ucommon
 
 module rec Value : sig
   include UNIFIABLE
-  val usyn : Fn.t -> t list -> t
+  val usyn : string -> t list -> t
   val uvar : unit -> t
+  val uatom : Fn.t -> t
 end = Usyn.Make(Fn)
 and Stack : sig
   include UNIFIABLE
@@ -29,8 +30,12 @@ and Costack : sig
   val rebase : t -> t -> t
   val map_hd : (Stack.t -> Stack.t) -> t -> t
 end = Ulist.Make(Stack)
-and Fn : UNIFIABLE = struct
+and Fn : sig
+  include UNIFIABLE
+  val mk : Costack.t * Costack.t -> t
+end = struct
   type t = Costack.t * Costack.t
+  let mk fn = fn
   type memo = unit
   let memo () = ()
   let refresh_memo () = ()
