@@ -1,5 +1,4 @@
 open! Batteries
-open! Uref
 open Printf
 
 open Metadata
@@ -11,6 +10,7 @@ open Nullify
 
 open Util
 open Unify
+open Ucommon
 open Ulist
 
 exception InferError of
