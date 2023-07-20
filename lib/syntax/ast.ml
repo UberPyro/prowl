@@ -13,9 +13,8 @@ and value_expr =
   | TyQuote of ty_expr
   | TyList of ty_expr
   | TyVal of string
-  [@@deriving show]
 
-type expr = _expr * Span.t * Types.fn
+type expr = _expr * Span.t * Types.Fn.t
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr
@@ -97,6 +96,5 @@ and lit =
 and stmt = _stmt * Metadata.Span.t
 and _stmt = 
   | Def of string * ty_expr option * expr
-  [@@deriving show]
 
-type toplevel = stmt list [@@deriving show]
+type toplevel = stmt list

@@ -2,34 +2,48 @@ open! Batteries
 open! Either
 open Ucommon
 
-type ('a, 'b) either = ('a, 'b) Either.t = 
-  | Left of 'a
-  | Right of 'b
-  [@@deriving show]
+module Make (L : UNIFIABLE) (R : UNIFIABLE) = struct
+  
+  type t = t_unif uref
+  and t_unif =  
+    | Left of L.t
+    | Right of R.t
 
-let uleft x = uref @@ Left x
-let uright x = uref @@ Right x
-let uleft_delayed f () = uref @@ Left (f ())
-let uright_delayed f () = uref @@ Right (f ())
+  type memo = unit
 
-type ('a, 'b) ueither = ('a, 'b) either uref
-and ('a, 'b) t = ('a, 'b) ueither [@@deriving show]
+  let memo () = ()
+  let refresh_memo () = 
+    L.refresh_memo ();
+    R.refresh_memo ()
 
-let unify unify_left unify_right = 
-  unite ~sel:begin curry @@ function
-    | Left x, Left y -> 
-      let x' = uref x in
-      unify_left x' (uref y);
-      Left (uget x')
-    | Right x, Right y -> 
-      let x' = uref x in
-      unify_right x' (uref y);
-      Right (uget x')
-    | _ -> 
-      UnifError "Cannot unify differently sorted terms"
-      |> raise
-  end
+  let uleft x = uref @@ Left x
+  let uright x = uref @@ Right x
+  let uleft_delayed f () = uref @@ Left (f ())
+  let uright_delayed f () = uref @@ Right (f ())
 
-let occurs occurs_left occurs_right i = uget %> function
-  | Left x -> occurs_left i x
-  | Right x -> occurs_right i x
+  let unify = 
+    unite ~sel:begin curry @@ function
+      | Left x, Left y -> 
+        L.unify x y;
+        Left x
+      | Right x, Right y -> 
+        R.unify x y;
+        Right x
+      | _ -> 
+        UnifError "Cannot unify differently sorted terms"
+        |> raise
+    end
+
+  let occurs i = uget %> function
+    | Left x -> L.occurs i x
+    | Right x -> R.occurs i x
+  
+  let generalize () t = match uget t with
+    | Left x -> uref @@ Left (L.generalize (L.memo ()) x)
+    | Right x -> uref @@ Right (R.generalize (R.memo ()) x)
+  
+  let pretty out = uget %> function
+    | Left x -> L.pretty out x
+    | Right x -> R.pretty out x
+  
+end

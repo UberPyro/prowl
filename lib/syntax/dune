@@ -1,8 +1,8 @@
-(ocamllex lex)
-(ocamllex lex_type)
-(menhir
- (modules parse)
- (flags --explain --strict))
+; (ocamllex lex)
+; (ocamllex lex_type)
+; (menhir
+;  (modules parse)
+;  (flags --explain --strict))
 (library
  (name syntax)
  (libraries batteries metadata)
