@@ -53,4 +53,4 @@ end = struct
     Costack.pretty out c2
 end
 
-(* let fresh () = Value. *)
+let fresh () = Costack.ufresh (), Costack.ufresh ()
