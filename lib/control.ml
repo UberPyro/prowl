@@ -2,6 +2,7 @@ open! Batteries
 
 open Syntax
 open Semantics
+open Unify
 open Util
 
 open System
@@ -61,7 +62,7 @@ let check debug fname args =
   begin try
     main_in =?= cs_in; 
     main_out =?= mk_end_costack ()
-  with Ull.UnifError msg -> failwith @@ "Error in main: " ^ msg end;
+  with Ulist.UnifError msg -> failwith @@ "Error in main: " ^ msg end;
   if debug then begin
     let out = IO.output_string () in
     Pretty.pretty_ctx out ctx;

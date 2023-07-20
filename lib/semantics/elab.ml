@@ -5,8 +5,8 @@ open Tuple3
 open Syntax
 open Ast
 open System
-open Util
-open Ull
+open Unify
+open Ulist
 
 let link m s = 
   Dict.find_option m s

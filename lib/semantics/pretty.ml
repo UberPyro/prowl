@@ -5,7 +5,8 @@ open Uref
 open System
 
 open Util
-open Ull
+open Unify
+open Ulist
 
 let rec pretty_value out = uget %> function
   | Lit Int -> fprintf out "z"

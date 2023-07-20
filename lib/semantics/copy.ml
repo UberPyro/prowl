@@ -3,8 +3,8 @@ open Uref
 
 open System
 
-open Util
-open Ull
+open Unify
+open Ulist
 
 let rec fn f = Tuple2.mapn costack f
 

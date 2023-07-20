@@ -3,8 +3,8 @@ open Uref
 
 open System
 
-open Util
-open Ull
+open Unify
+open Ulist
 
 module IM = Hashtbl.Make(struct
   include Hashtbl

@@ -10,7 +10,8 @@ open Memo
 open Nullify
 
 open Util
-open Ull
+open Unify
+open Ulist
 
 exception InferError of
     Span.t

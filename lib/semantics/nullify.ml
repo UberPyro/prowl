@@ -3,8 +3,8 @@ open Uref
 
 open System
 
-open Util
-open Ull
+open Unify
+open Ulist
 
 let rec nullify_fn fn = Tuple2.mapn nullify_costack fn
 

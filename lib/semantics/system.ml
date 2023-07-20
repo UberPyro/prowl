@@ -3,8 +3,8 @@ open Printf
 open Uref
 
 open Metadata
-open Util
-open Ull
+open Unify
+open Ulist
 
 include Types
 
@@ -31,10 +31,10 @@ and occurs_val k1 = uget %> function
   | Con (f, _) -> occurs_fn k1 f
   | _ -> ()
 
-and unify_stack s0 = Ull.unite unify occurs_val s0
-and occurs_stack k = Ull.occurs occurs_val k
-and (=?=) c0 = Ull.unite unify_stack occurs_stack c0
-and occurs_costack k = Ull.occurs occurs_stack k
+and unify_stack s0 = Ulist.unite unify occurs_val s0
+and occurs_stack k = Ulist.occurs occurs_val k
+and (=?=) c0 = Ulist.unite unify_stack occurs_stack c0
+and occurs_costack k = Ulist.occurs occurs_stack k
 
 and unify_fn (c1, c2) (d1, d2) = 
   c1 =?= d1;
