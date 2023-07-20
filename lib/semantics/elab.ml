@@ -68,7 +68,7 @@ and value_expr m = function
   | TyList ty -> Value.usyn "list" [Value.uatom @@ fn_expr m ty]
   | TyVal s -> link_var (third m) s
 
-and det_expr m = _det_expr m %> uref
+and det_expr m = _det_expr m %> Det.simp %> uref
 and _det_expr m = function
   | DLit d -> uget d
   | DAnd (d1, d2) -> Det.mul_basic (_det_expr m d1) (_det_expr m d2)

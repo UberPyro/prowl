@@ -19,73 +19,172 @@ exception InferError of
   * Ctx.t
   * string
 
+let and2 d0 e0 d1 e1 d2 e2 = 
+  Det.unify d0 (uref @@ Det.mul_basic (uget d1) (uget d2));
+  Det.unify e0 (uref @@ Det.mul_basic (uget e1) (uget e2))
+let and1 d0 e0 d1 e1 = Det.unify d0 d1, Det.unify e0 e1
+let and2_ d0 d1 d2 = 
+  Det.unify d0 (uref @@ Det.mul_basic (uget d1) (uget d2))
+let and2_fresh () = 
+  let d0, d1, d2 = Det.(bfresh (), bfresh (), bfresh ()) in
+  and2_ d0 d1 d2;
+  d0, d1, d2
+let and2fresh () = and2_fresh (), and2_fresh ()
+let or_ d0 d1 d2 = 
+  let d1, d2 = uget d1, uget d2 in
+  Det.unify d0 (uref @@ d1 @ d2 @ Det.mul_basic d1 d2)
+let or2_fresh () = 
+  let d0, d1, d2 = Det.(bfresh (), bfresh (), bfresh ()) in
+  or_ d0 d1 d2;
+  d0, d1, d2
+let or2fresh () = or2_fresh (), or2_fresh ()
+
 let push_int u = V.usyn "int" [] @> u
 let push_str u = V.usyn "string" [] @> u
-let push_quo c1 c2 u = V.usyn "quote" [V.uatom (c1, c2)] @> u
-let push_list c1 c2 u = V.usyn "list" [V.uatom (c1, c2)] @> u
+let push_quo fn u = V.usyn "quote" [V.uatom fn] @> u
+let push_list fn u = V.usyn "list" [V.uatom fn] @> u
 
-let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
-  | Bop ((_, sp1, (i1, o1) as left), Aop _, (_, sp2, (i2, o2) as right)) -> 
+let rec infer ctx (ast, sp, (i0, o0, d0, e0)) = try match ast with
+  | Bop ((_, sp1, (i1, o1, d1, e1) as left), Aop _, (_, sp2, (i2, o2, d2, e2) as right)) -> 
     let u = mk_init_costack () in
     unify_arg sp1 ctx left u i1 o1;
     unify_arg sp2 ctx right u i2 o2;
     let p = mk_poly_costack () in
     i0 =?= p;
-    o0 =?= push_int p
+    o0 =?= push_int p;
+    and2 d0 e0 d1 e1 d2 e2
   
-  | Bop ((_, sp1, (i1, o1) as left), Cop _, (_, sp2, (i2, o2) as right)) -> 
+  | Bop ((_, sp1, (i1, o1, d1, e1) as left), Cop _, (_, sp2, (i2, o2, d2, e2) as right)) -> 
     let u = mk_init_costack () in
     unify_arg sp1 ctx left u i1 o1;
     unify_arg sp2 ctx right u i2 o2;
     let s = S.ufresh () in
     let p = s @>> C.ufresh () in
     i0 =?= p;
-    o0 =?= s @>> p
+    o0 =?= s @>> p;
+    and2 d0 e0 d1 e1 d2 e2
 
-  | Bop ((_, sp1, (i1, o1) as left), Lop Cat, (_, sp2, (i2, o2) as right)) -> 
+  | Bop ((_, sp1, (i1, o1, d1, e1) as left), Lop Cat, (_, sp2, (i2, o2, d2, e2) as right)) -> 
     let u = mk_init_costack () in
     let c1, c2, c3 = Tuple3.mapn C.ufresh ((), (), ()) in
-    unify_ho_arg sp1 ctx left u c1 c2 push_quo i1 o1;
-    unify_ho_arg sp2 ctx right u c2 c3 push_quo i2 o2;
+    let (f1, f2, f3), (g1, g2, g3) = and2fresh () in
+    unify_ho_arg sp1 ctx left u c1 c2 f2 g2 push_quo i1 o1;
+    unify_ho_arg sp2 ctx right u c2 c3 f3 g3 push_quo i2 o2;
     let p = mk_poly_costack () in
     i0 =?= p;
-    o0 =?= push_quo c1 c3 p
+    o0 =?= push_quo (c1, c3, f1, g1) p;
+    and2 d0 e0 d1 e1 d2 e2
     
-  | Bop ((_, sp1, (i1, o1) as left), Lop Ap, (_, sp2, (i2, o2) as right)) -> 
+  | Bop ((_, sp1, (i1, o1, d1, e1) as left), Lop Ap, (_, sp2, (i2, o2, d2, e2) as right)) -> 
     let u = mk_init_costack () in
     let c1, c2, c3 = Tuple3.mapn C.ufresh ((), (), ()) in
-    unify_ho_arg sp1 ctx left u c1 c2 push_list i1 o1;
-    unify_ho_arg sp2 ctx right u c2 c3 push_list i2 o2;
+    let (f1, f2, f3), (g1, g2, g3) = and2fresh () in
+    unify_ho_arg sp1 ctx left u c1 c2 f2 g2 push_list i1 o1;
+    unify_ho_arg sp2 ctx right u c2 c3 f3 g3 push_list i2 o2;
     let p = mk_poly_costack () in
     i0 =?= p;
-    o0 =?= push_list c1 c3 p
+    o0 =?= push_list (c1, c3, f1, g1) p;
+    and2 d0 e0 d1 e1 d2 e2
   
-  | Bop ((_, sp1, (i1, o1) as left), Lop Alt, (_, sp2, (i2, o2) as right)) -> 
+  | Bop ((_, sp1, (i1, o1, d1, e1) as left), Lop Alt, (_, sp2, (i2, o2, d2, e2) as right)) -> 
     let u = mk_init_costack () in
     let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
-    unify_ho_arg sp1 ctx left u c1 c2 push_quo i1 o1;
-    unify_ho_arg sp2 ctx right u c1 c2 push_quo i2 o2;
+    let (f1, f2, f3), (g1, g2, g3) = or2fresh () in
+    unify_ho_arg sp1 ctx left u c1 c2 f2 g2 push_quo i1 o1;
+    unify_ho_arg sp2 ctx right u c1 c2 f3 g3 push_quo i2 o2;
     let p = mk_poly_costack () in
     i0 =?= p;
+    o0 =?= push_quo (c1, c2, f1, g1) p;
+    and2 d0 e0 d1 e1 d2 e2
+    
+  | Bop ((_, sp1, (i1, o1, d1, e1) as left), Lop Append, (_, sp2, (i2, o2, d2, e2) as right)) -> 
+    let u = mk_init_costack () in
+    let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
+    let (f1, f2, f3), (g1, g2, g3) = and2fresh () in
+    unify_ho_arg sp1 ctx left u c1 c2 f2 g2 push_list i1 o1;
+    unify_ho_arg sp2 ctx right u c1 c2 f3 g3 push_list i2 o2;
+    let p = mk_poly_costack () in
+    i0 =?= p;
+    o0 =?= push_list (c1, c2, f1, g1) p;
+    and2 d0 e0 d1 e1 d2 e2
+    
+  | Bop ((_, sp1, (i1, o1, d1, e1) as left), Lop Join, (_, sp2, (i2, o2, d2, e2) as right)) -> 
+    let u = mk_init_costack () in
+    let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
+    let (f1, f2, f3), (g1, g2, g3) = or2fresh () in
+    unify_ho_arg sp1 ctx left u c1 c2 f2 g2 push_list i1 o1;
+    unify_ho_arg sp2 ctx right u c1 c2 f3 g3 push_list i2 o2;
+    let p = mk_poly_costack () in
+    i0 =?= p;
+    o0 =?= push_list (c1, c2, f1, g1) p;
+    and2 d0 e0 d1 e1 d2 e2
+    
+  | SectLeft (Aop _, (_, sp1, (i1, o1, d1, e1) as just)) -> 
+    let u = mk_init_costack () in
+    unify_arg sp1 ctx just u i1 o1;
+    let p = push_int @@ mk_poly_costack () in
+    i0 =?= p;
+    o0 =?= p; 
+    Det.unify d0 d1; Det.unify e0 e1
+  
+  | SectLeft (Cop _, (_, sp1, (i1, o1, d1, e1) as just)) -> 
+    let u = mk_init_costack () in
+    unify_arg sp1 ctx just u i1 o1;
+    let s = S.ufresh () in
+    let p = s @>> C.ufresh () in
+    i0 =?= push_int p;
+    o0 =?= s @>> p;
+    Det.unify d0 d1; Det.unify e0 e1
+  
+  | SectLeft (Lop Cat, (_, sp1, (i1, o1, d1, e1) as just)) -> 
+    infer ctx just;
+    let u = mk_init_costack () in
+    let c1, c2, c3 = Tuple3.mapn C.ufresh ((), (), ()) in
+    let (f1, f2, f3), (g1, g2, g3) = and2fresh () in
+    unify_ho_arg sp1 ctx just u c1 c2 f2 g2 push_quo i1 o1;
+    let p = mk_poly_costack () in
+    i0 =?= push_quo (c2, c3, f3, g3) p;
+    o0 =?= push_quo (c1, c3, f1, g1) p;
+    Det.unify d0 d1; Det.unify e0 e1
+  
+  | SectLeft (Lop Ap, (_, sp1, (i1, o1, d1, e1) as just)) -> 
+    infer ctx just;
+    let u = mk_init_costack () in
+    let c1, c2, c3 = Tuple3.mapn C.ufresh ((), (), ()) in
+    unify_ho_arg sp1 ctx just u c1 c2 push_list i1 o1;
+    let p = mk_poly_costack () in
+    i0 =?= push_list c1 c2 p;
+    o0 =?= push_list c1 c3 p;
+    Det.unify d0 d1; Det.unify e0 e1
+
+  | SectLeft (Lop Alt, (_, sp1, (i1, o1, d1, e1) as just)) -> 
+    infer ctx just;
+    let u = mk_init_costack () in
+    let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
+    unify_ho_arg sp1 ctx just u c1 c2 push_quo i1 o1;
+    let p = mk_poly_costack () in
+    i0 =?= push_quo c1 c2 p;
     o0 =?= push_quo c1 c2 p
     
-  | Bop ((_, sp1, (i1, o1) as left), Lop (Append | Join), (_, sp2, (i2, o2) as right)) -> 
+  | SectLeft (Lop (Append | Join), (_, sp1, (i1, o1, d1, e1) as just)) -> 
+    infer ctx just;
     let u = mk_init_costack () in
     let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
-    unify_ho_arg sp1 ctx left u c1 c2 push_list i1 o1;
-    unify_ho_arg sp2 ctx right u c1 c2 push_list i2 o2;
+    unify_ho_arg sp1 ctx just u c1 c2 push_list i1 o1;
     let p = mk_poly_costack () in
-    i0 =?= p;
+    i0 =?= push_list c1 c2 p;
     o0 =?= push_list c1 c2 p
     
-  | SectLeft (Aop _, (_, sp1, (i1, o1) as just)) -> 
+  | SectRight ((_, sp1, (i1, o1, d1, e1) as just), Aop _) -> 
+    infer ctx just;
     let u = mk_init_costack () in
     unify_arg sp1 ctx just u i1 o1;
     let p = push_int @@ mk_poly_costack () in
     i0 =?= p;
     o0 =?= p
   
-  | SectLeft (Cop _, (_, sp1, (i1, o1) as just)) -> 
+  | SectRight ((_, sp1, (i1, o1, d1, e1) as just), Cop _) -> 
+    infer ctx just;
     let u = mk_init_costack () in
     unify_arg sp1 ctx just u i1 o1;
     let s = S.ufresh () in
@@ -93,60 +192,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= push_int p;
     o0 =?= s @>> p
   
-  | SectLeft (Lop Cat, (_, sp1, (i1, o1) as just)) -> 
-    infer ctx just;
-    let u = mk_init_costack () in
-    let c1, c2, c3 = Tuple3.mapn C.ufresh ((), (), ()) in
-    unify_ho_arg sp1 ctx just u c1 c2 push_quo i1 o1;
-    let p = mk_poly_costack () in
-    i0 =?= push_quo c1 c2 p;
-    o0 =?= push_quo c1 c3 p
-  
-  | SectLeft (Lop Ap, (_, sp1, (i1, o1) as just)) -> 
-    infer ctx just;
-    let u = mk_init_costack () in
-    let c1, c2, c3 = Tuple3.mapn C.ufresh ((), (), ()) in
-    unify_ho_arg sp1 ctx just u c1 c2 push_list i1 o1;
-    let p = mk_poly_costack () in
-    i0 =?= push_list c1 c2 p;
-    o0 =?= push_list c1 c3 p
-
-  | SectLeft (Lop Alt, (_, sp1, (i1, o1) as just)) -> 
-    infer ctx just;
-    let u = mk_init_costack () in
-    let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
-    unify_ho_arg sp1 ctx just u c1 c2 push_quo i1 o1;
-    let p = mk_poly_costack () in
-    i0 =?= push_quo c1 c2 p;
-    o0 =?= push_quo c1 c2 p
-    
-  | SectLeft (Lop (Append | Join), (_, sp1, (i1, o1) as just)) -> 
-    infer ctx just;
-    let u = mk_init_costack () in
-    let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
-    unify_ho_arg sp1 ctx just u c1 c2 push_list i1 o1;
-    let p = mk_poly_costack () in
-    i0 =?= push_list c1 c2 p;
-    o0 =?= push_list c1 c2 p
-    
-  | SectRight ((_, sp1, (i1, o1) as just), Aop _) -> 
-    infer ctx just;
-    let u = mk_init_costack () in
-    unify_arg sp1 ctx just u i1 o1;
-    let p = push_int @@ mk_poly_costack () in
-    i0 =?= p;
-    o0 =?= p
-  
-  | SectRight ((_, sp1, (i1, o1) as just), Cop _) -> 
-    infer ctx just;
-    let u = mk_init_costack () in
-    unify_arg sp1 ctx just u i1 o1;
-    let s = S.ufresh () in
-    let p = s @>> C.ufresh () in
-    i0 =?= push_int p;
-    o0 =?= s @>> p
-  
-  | SectRight ((_, sp1, (i1, o1) as just), Lop Cat) -> 
+  | SectRight ((_, sp1, (i1, o1, d1, e1) as just), Lop Cat) -> 
     infer ctx just;
     let u = mk_init_costack () in
     let c1, c2, c3 = Tuple3.mapn C.ufresh ((), (), ()) in
@@ -155,7 +201,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= push_quo c2 c3 p;
     o0 =?= push_quo c1 c3 p
   
-  | SectRight ((_, sp1, (i1, o1) as just), Lop Ap) -> 
+  | SectRight ((_, sp1, (i1, o1, d1, e1) as just), Lop Ap) -> 
     infer ctx just;
     let u = mk_init_costack () in
     let c1, c2, c3 = Tuple3.mapn C.ufresh ((), (), ()) in
@@ -164,7 +210,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= push_list c2 c3 p;
     o0 =?= push_list c1 c3 p
 
-  | SectRight ((_, sp1, (i1, o1) as just), Lop Alt) -> 
+  | SectRight ((_, sp1, (i1, o1, d1, e1) as just), Lop Alt) -> 
     infer ctx just;
     let u = mk_init_costack () in
     let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
@@ -173,7 +219,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= push_quo c1 c2 p;
     o0 =?= push_quo c1 c2 p;
     
-  | SectRight ((_, sp1, (i1, o1) as just), Lop (Append | Join)) -> 
+  | SectRight ((_, sp1, (i1, o1, d1, e1) as just), Lop (Append | Join)) -> 
     infer ctx just;
     let u = mk_init_costack () in
     let c1, c2 = Tuple2.mapn C.ufresh ((), ()) in
@@ -217,38 +263,38 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= push_list c1 c2 @@ push_list c1 c2 c0;
     o0 =?= push_list c1 c2 c0;
     
-  | Uop ((_, _, (i1, o1) as just), Dag) -> 
+  | Uop ((_, _, (i1, o1, d1, e1) as just), Dag) -> 
     infer ctx just;
     o0 =?= i1;
     i0 =?= o1
   
-  | Uop ((_, _, (i1, o1) as just), (Mark | Star | Plus)) -> 
+  | Uop ((_, _, (i1, o1, d1, e1) as just), (Mark | Star | Plus)) -> 
     infer ctx just;
     i1 =?= o1;
     i0 =?= i1;
     o0 =?= o1
   
-  | Dop ((_, _, (i1, o1) as left), Ponder, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Ponder, (_, _, (i2, o2, d2, e2) as right)) -> 
     infer ctx left;
     infer ctx right;
     i0 =?= C.rebase i1 i2;
     o0 =?= C.rebase o1 o2
   
-  | Dop ((_, _, (i1, o1) as left), Pick, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Pick, (_, _, (i2, o2, d2, e2) as right)) -> 
     infer ctx left;
     infer ctx right;
     i0 =?= C.rebase i1 i2;
     o0 =?= o1;
     o0 =?= o2
   
-  | Dop ((_, _, (i1, o1) as left), Guess, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Guess, (_, _, (i2, o2, d2, e2) as right)) -> 
     infer ctx left;
     infer ctx right;
     i0 =?= i1;
     i0 =?= i2;
     o0 =?= C.rebase o1 o2
   
-  | Dop ((_, _, (i1, o1) as left), Tensor, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Tensor, (_, _, (i2, o2, d2, e2) as right)) -> 
     infer ctx left;
     infer ctx right;
     i1 =?= mk_poly_costack ();
@@ -260,7 +306,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let s1, c1 = C.upop o1 in
     o0 =?= S.rebase s1 (C.upop o2 |> fst) @>> c1
   
-  | Dop ((_, _, (i1, o1) as left), Fork, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Fork, (_, _, (i2, o2, d2, e2) as right)) -> 
     infer ctx left;
     infer ctx right;
     o1 =?= mk_poly_costack ();
@@ -270,7 +316,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let s0, c0 = C.upop o1 in
     o0 =?= S.rebase s0 (C.upop o2 |> fst) @>> c0
   
-  | Dop ((_, _, (i1, o1) as left), Cross, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Cross, (_, _, (i2, o2, d2, e2) as right)) -> 
     infer ctx left;
     infer ctx right;
     i1 =?= mk_poly_costack ();
@@ -280,14 +326,14 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     o0 =?= o1;
     o0 =?= o2
   
-  | Dop ((_, _, (i1, o1) as left), Jux, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Jux, (_, _, (i2, o2, d2, e2) as right)) -> 
     infer ctx left;
     infer ctx right;
     i0 =?= i1;
     o1 =?= i2;
     o0 =?= o2
   
-  | Dop ((_, _, (i1, o1) as left), Union, (_, _, (i2, o2) as right)) -> 
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Union, (_, _, (i2, o2, d2, e2) as right)) -> 
     infer ctx left;
     infer ctx right;
     i0 =?= i1;
@@ -431,7 +477,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     i0 =?= c;
     o0 =?= z @>> c
   
-  | Ex (s, (_, _, (i1, o1) as just), b) ->
+  | Ex (s, (_, _, (i1, o1, d1, e1) as just), b) ->
     let v = Value.uvar () in
     let ctx' = introduce_uvar s v ctx in
     infer ctx' just;
@@ -439,7 +485,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     else i0 =?= i1;
     o0 =?= o1
   
-  | Each ((_, _, (i1, o1) as just), s, b) ->
+  | Each ((_, _, (i1, o1, d1, e1) as just), s, b) ->
     let z = S.ufresh () in
     let ctx' = introduce_stkvar s z ctx in
     infer ctx' just;
@@ -448,7 +494,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     else o0 =?= o1
   
   | Var k -> 
-    let (generalized, (i1, o1)), _ = 
+    let (generalized, (i1, o1, d1, e1)), _ = 
       find_rec_opt k ctx
       |> Option.default_delayed @@ fun () -> 
         let msg = sprintf "Cannot find unbound variable [%s]" k in
@@ -456,7 +502,7 @@ let rec infer ctx (ast, sp, (i0, o0)) = try match ast with
     let i, o = 
       if generalized then begin
         Fn.refresh_memo ();
-        Fn.generalize (Fn.memo ()) (i1, o1);
+        Fn.generalize (Fn.memo ()) (i1, o1, d1, e1);
       end else i1, o1 in
     i0 =?= i;
     o0 =?= o
@@ -480,13 +526,26 @@ and unify_arg sp ctx ast u i o =
   try i =?= u; o =?= push_int u
   with UnifError msg -> InferError (sp, ctx, msg) |> raise
 
-and unify_ho_arg sp ctx ast u c1 c2 f i o = 
+and unify_ho_arg sp ctx ast u c1 c2 d1 d2 f i o = 
   infer ctx ast;
   begin try
     i =?= u;
-    o =?= f c1 c2 u;
+    o =?= f (c1, c2, d1, d2) u;
   with UnifError msg -> InferError (sp, ctx, msg) |> raise end
-  
+
+and cat (i0, o0, d0, e0) (i1, o1, d1, e1) (i2, o2, d2, e2) = 
+  i0 =?= i1;
+  o1 =?= i2;
+  o0 =?= o2;
+  and2 d0 e0 d1 e1 d2 e2
+
+and alt (i0, o0, d0, e0) (i1, o1, d1, e1) (i2, o2, d2, e2) = 
+  i0 =?= i1;
+  i0 =?= i2;
+  o0 =?= o1;
+  o0 =?= o2;
+  or_ d0 d1 d2;
+  or_ e0 e1 e2
 
 let top_stmts ctx = 
   List.fold_left begin fun ctx' -> function
