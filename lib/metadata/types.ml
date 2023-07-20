@@ -3,6 +3,23 @@ open Printf
 open Unify
 open Ucommon
 
+module DetConst = struct
+  type t = bool * bool
+  let detmap f (b1, b2) (c1, c2) = f b1 b2, f c1 c2
+  let and_const x y = detmap (&&) x y
+  let xor_const x y = detmap (fun a b -> 
+    (a || b) && not (a && b)) x y
+  let one = true, true
+  let zero = false, false
+  let to_string = function
+    | true, true -> "fn"
+    | false, true -> "pt"
+    | true, false -> "mt"
+    | false, false -> "rl"
+end
+
+module Det = Ubool.Make(DetConst)
+
 module rec Value : sig
   include UNIFIABLE
   val usyn : string -> t list -> t
@@ -68,24 +85,32 @@ end = struct
     | USeq j -> fprintf out "%d+" j
     | UNil -> fprintf out "$"
 end
-and Fn : UNIFIABLE with type t = Costack.t * Costack.t = struct
-  type t = Costack.t * Costack.t
+and Fn : UNIFIABLE with type t = Costack.t * Costack.t * Det.t * Det.t = struct
+  type t = Costack.t * Costack.t * Det.t * Det.t
   type memo = unit
   let memo () = ()
   let refresh_memo () = ()
-  let unify (c1, c2) (d1, d2) = 
+  let unify (c1, c2, x1, y1) (d1, d2, x2, y2) = 
     Costack.unify c1 c2;
-    Costack.unify d1 d2
-  let occurs i (c1, c2) = 
+    Costack.unify d1 d2;
+    Det.unify x1 x2;
+    Det.unify y1 y2
+  let occurs i (c1, c2, _, _) = 
     Costack.occurs i c1;
     Costack.occurs i c2
-  let generalize () (c1, c2) = 
+  let generalize () (c1, c2, d1, d2) = 
     Costack.generalize (Costack.memo ()) c1,
-    Costack.generalize (Costack.memo ()) c2
-  let pretty out (c1, c2) = 
+    Costack.generalize (Costack.memo ()) c2, 
+    Det.generalize (Det.memo ()) d1,
+    Det.generalize (Det.memo ()) d2
+  let pretty out (c1, c2, d1, d2) = 
     Costack.pretty out c1;
     fprintf out "%s" " -- ";
-    Costack.pretty out c2
+    Costack.pretty out c2;
+    fprintf out "%s" " :: ";
+    Det.pretty out d1;
+    fprintf out "%s" "/";
+    Det.pretty out d2
 end
 
-let fresh () = Costack.ufresh (), Costack.ufresh ()
+let fresh () = Costack.ufresh (), Costack.ufresh (), Det.bfresh (), Det.bfresh ()

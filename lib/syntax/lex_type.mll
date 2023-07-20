@@ -28,6 +28,14 @@ rule token = parse
   | "--"        {BAR}
   | "."         {DOT}
   | "$"         {DOLLAR}
+  | "^"         {XOR}
+  | "&"         {AND}
+  
+  | "/"         {SPLIT}
+  | "fn"        {FN}
+  | "pt"        {PT}
+  | "mt"        {MT}
+  | "rl"        {RL}
 
   | "["         {LBRACK}
   | "]"         {RBRACK}
@@ -36,8 +44,8 @@ rule token = parse
 
   | "|"         {PIPE}
 
-  | '"' (id as s) {COSTACK_VAR s}
-  | "'" (id as s) {STACK_VAR s}
+  | (id as s) '+' {COSTACK_VAR s}
+  | (id as s) '*' {STACK_VAR s}
   | id as s     {VAR s}
   | cap_id as s {CAP s}
 

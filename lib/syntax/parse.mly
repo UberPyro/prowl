@@ -3,6 +3,8 @@
   open! Metadata
   open! Types
   open! Ast
+
+  let conv (b1, b2) = Uref.uref [[ref (Det.BConst (b1, b2))]]
 %}
 
 %token
@@ -21,11 +23,15 @@
   NOP ID AB AP PURE APPEND ALT JOIN
   COMMA EOF
   PIPE BAR DOT DOLLAR
+  SPLIT FN PT MT RL XOR AND
 
 %token<string> VAR CAP STRING COSTACK_VAR STACK_VAR
 %token<int> INT
 
 %start<stmt list> prog
+
+%left AND
+%left XOR
 
 %nonassoc IN WITHIN ARROW
 %left UNION
@@ -41,10 +47,27 @@
 
 prog: list(stmt) EOF {$1}
 
+det: 
+  | FN {DLit (conv (true, true))}
+  | PT {DLit (conv (false, true))}
+  | MT {DLit (conv (true, false))}
+  | RL {DLit (conv (false, false))}
+  | CAP {DVar $1}
+  | det AND det {DAnd ($1, $3)}
+  | det XOR det {DXor ($1, $3)}
+
+%inline mode: 
+  | SPECIFY det SPLIT det {$2, $4}
+  | {DVar (Printf.sprintf "__internal%d" (unique ())), 
+     DVar (Printf.sprintf "__internal%d" (unique ()))}
+
 ty_expr: 
-  | costack_ty BAR costack_ty {Explicit ($1, $3)}
-  | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) {ImplicitCostack ($1, $3)}
-  | list(value_ty) BAR list(value_ty) {ImplicitStack ($1, $3)}
+  | costack_ty BAR costack_ty mode
+    {let d1, d2 = $4 in Explicit ($1, $3, d1, d2)}
+  | nonempty_list(stack_ty) BAR nonempty_list(stack_ty) mode
+    {let d1, d2 = $4 in ImplicitCostack ($1, $3, d1, d2)}
+  | list(value_ty) BAR list(value_ty) mode
+    {let d1, d2 = $4 in ImplicitStack ($1, $3, d1, d2)}
 costack_ty: 
   | COSTACK_VAR list(preceded(PIPE, stack_ty)) {Some $1, $2}
   | DOLLAR separated_list(PIPE, stack_ty) {None, $2}

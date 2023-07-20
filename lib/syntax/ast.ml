@@ -1,10 +1,17 @@
-open Metadata
 [@@@warning "-32"]
+open Metadata
+open Types
+
+type det = 
+  | DLit of Det.t
+  | DAnd of det * det
+  | DXor of det * det
+  | DVar of string
 
 type ty_expr = 
-  | Explicit of costack_expr * costack_expr
-  | ImplicitCostack of stack_expr list * stack_expr list
-  | ImplicitStack of value_expr list * value_expr list
+  | Explicit of costack_expr * costack_expr * det * det
+  | ImplicitCostack of stack_expr list * stack_expr list * det * det
+  | ImplicitStack of value_expr list * value_expr list * det * det
 and costack_expr = string option * stack_expr list
 and stack_expr = string option * value_expr list
 and value_expr = 
@@ -14,7 +21,7 @@ and value_expr =
   | TyList of ty_expr
   | TyVal of string
 
-type expr = _expr * Span.t * Types.Fn.t
+type expr = _expr * Span.t * Fn.t
 and _expr = 
   | Bop of expr * bop * expr
   | SectLeft of bop * expr
