@@ -72,14 +72,15 @@ module Make(U : UNIFIABLE) = struct
   
   let rec pretty out = uget %> function
     | USyntax (n, us) -> 
-      fprintf out "%s" n;
+      fprintf out "%s(" n;
       begin match us with
         | [] -> ()
         | h :: t -> 
           pretty out h;
-          List.iter (fun u -> fprintf out " "; pretty out u) t
-      end
-    | UVar j -> fprintf out "%d*" j
+          List.iter (fun u -> fprintf out ","; pretty out u) t
+      end;
+      fprintf out ")"
+    | UVar j -> fprintf out "V%d" j
     | UAtom a -> U.pretty out a
 
 end

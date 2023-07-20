@@ -1,4 +1,5 @@
 open! Batteries
+open Printf
 open Unify
 open Ucommon
 
@@ -7,7 +8,31 @@ module rec Value : sig
   val usyn : string -> t list -> t
   val uvar : unit -> t
   val uatom : Fn.t -> t
-end = Usyn.Make(Fn)
+end = struct
+  include Usyn.Make(Fn)
+  let rec pretty out = uget %> function
+    | USyntax ("quote", [a]) -> 
+      let[@warning "-8"] UAtom fn = uget a in
+      fprintf out "%s" "[";
+      Fn.pretty out fn;
+      fprintf out "%s" "]"
+    | USyntax ("list", [a]) -> 
+      let[@warning "-8"] UAtom fn = uget a in
+      fprintf out "%s" "{";
+      Fn.pretty out fn;
+      fprintf out "%s" "}"
+    | USyntax (n, us) -> 
+      fprintf out "%s(" n;
+      begin match us with
+        | [] -> ()
+        | h :: t -> 
+          pretty out h;
+          List.iter (fun u -> fprintf out ","; pretty out u) t
+      end;
+      fprintf out ")"
+    | UVar j -> fprintf out "V%d" j
+    | UAtom a -> Fn.pretty out a
+end
 and Stack : sig
   include UNIFIABLE
   val unil : unit -> t
@@ -31,10 +56,16 @@ and Costack : sig
   val rebase : t -> t -> t
   val map_hd : (Stack.t -> Stack.t) -> t -> t
   val upop : t -> Stack.t * t
-end = Ulist.Make(Stack)
-and Fn : sig
-  include UNIFIABLE with type t = Costack.t * Costack.t
-end = struct
+end = struct 
+  include Ulist.Make(Stack)
+  let rec pretty out = uget %> function
+    | UCons (u, us) -> 
+      pretty out us;
+      fprintf out " "; Stack.pretty out u
+    | USeq j -> fprintf out "%d*" j
+    | UNil -> fprintf out "."
+end
+and Fn : UNIFIABLE with type t = Costack.t * Costack.t = struct
   type t = Costack.t * Costack.t
   type memo = unit
   let memo () = ()
@@ -50,6 +81,7 @@ end = struct
     Costack.generalize (Costack.memo ()) c2
   let pretty out (c1, c2) = 
     Costack.pretty out c1;
+    fprintf out "%s" " -- ";
     Costack.pretty out c2
 end
 
