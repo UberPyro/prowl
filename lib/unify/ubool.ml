@@ -153,7 +153,7 @@ module Make(C : Constant) = struct
     | BExpr b -> ref @@ BExpr (generalize_ m b)
     | _ -> t
   
-  let rec pretty out t = pretty_ out (uget t)
+  let rec pretty out t = pretty_ out (simp @@ uget t)
   and pretty_ out = function
     | [] -> fprintf out "%s" C.(to_string zero)
     | h :: t -> 
