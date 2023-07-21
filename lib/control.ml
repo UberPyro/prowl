@@ -56,7 +56,6 @@ let entry_logic ctx =
     set_det e0 (true, true);
     main_in, main_out
   | None, Some ((_, (main_in, main_out, _, _)), _) -> main_in, main_out
-;; 
 
 let check debug fname args = 
   let ast = parse (File.open_in fname) in
