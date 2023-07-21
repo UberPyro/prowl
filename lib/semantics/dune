@@ -1,4 +1,4 @@
 (library
  (name semantics)
  (libraries batteries util syntax)
- (preprocess (pps ppx_deriving.show)))
+ (preprocess (pps ppx_deriving.show ppx_deriving.map)))
