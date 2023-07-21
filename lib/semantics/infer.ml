@@ -20,17 +20,17 @@ exception InferError of
   * string
 
 let and2 d0 e0 d1 e1 d2 e2 = 
-  Det.unify d0 (uref @@ Det.mul_basic (uget d1) (uget d2));
-  Det.unify e0 (uref @@ Det.mul_basic (uget e1) (uget e2))
+  Det.unify d0 (uref @@ Det.mul_idem (uget d1) (uget d2));
+  Det.unify e0 (uref @@ Det.mul_idem (uget e1) (uget e2))
 let and1 d0 e0 d1 e1 = Det.unify d0 d1, Det.unify e0 e1
 let and2_ d0 d1 d2 = 
-  Det.unify d0 (uref @@ Det.mul_basic (uget d1) (uget d2))
+  Det.unify d0 (uref @@ Det.mul_idem (uget d1) (uget d2))
 let and2_fresh () = 
   let d0, d1, d2 = Det.(bfresh (), bfresh (), bfresh ()) in
   and2_ d0 d1 d2;
   d0, d1, d2
 let and2fresh () = and2_fresh (), and2_fresh ()
-let union d1 d2 = d1 @ d2 @ Det.mul_basic d1 d2
+let union d1 d2 = Det.add_xor d1 @@ Det.add_xor d2 @@ Det.mul_idem d1 d2
 let union_ d1 d2 = uref @@ union (uget d1) (uget d2)
 let or_ d0 d1 d2 = Det.unify d0 @@ union_ d1 d2
 let or2_fresh () = 

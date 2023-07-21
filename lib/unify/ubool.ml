@@ -152,12 +152,12 @@ module Make(C : Constant) = struct
   
   let rec pretty out t = pretty_ out (uget t)
   and pretty_ out = function
-    | [] -> ()
+    | [] -> fprintf out "%s" C.(to_string zero)
     | h :: t -> 
       pretty_inner out h;
       List.iter (fun x -> fprintf out "%s" " ^ "; pretty_inner out x) t
   and pretty_inner out = function
-    | [] -> ()
+    | [] -> fprintf out "%s" C.(to_string one)
     | h :: t -> 
       pretty_boolean out h;
       List.iter (fun x -> fprintf out "%s" " "; pretty_boolean out x) t
