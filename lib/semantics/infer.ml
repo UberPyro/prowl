@@ -320,9 +320,9 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     else i0 =?= i1 end;
     o0 =?= o1;
     let uc = Map.find s ctx'.ucount |> (!) in
-    and2_ d0 d1 @@ b_any @@ (uc >= 1, uc <= 1);
+    and2_ d0 d1 @@ b_any @@ (uc <= 1, uc >= 1);
     let udagc = Map.find s ctx'.udagcount |> (!) in
-    and2_ e0 e1 @@ b_any @@ (udagc >= 1, udagc <= 1)
+    and2_ e0 e1 @@ b_any @@ (udagc <= 1, udagc >= 1)
   
   | Each ((_, _, (i1, o1, d1, e1) as just), s, b) ->
     let z = S.ufresh () in
@@ -332,9 +332,9 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     begin if b then (o0 =?= z @>> o1; sincr s ctx')
     else o0 =?= o1 end;
     let sdagc = Map.find s ctx'.sdagcount |> (!) in
-    and2_ d0 d1 @@ b_any (sdagc <= 1, sdagc >= 1);
+    and2_ d0 d1 @@ b_any (sdagc >= 1, sdagc <= 1);
     let sc = Map.find s ctx'.scount |> (!) in
-    and2_ e0 e1 @@ b_any (sc <= 1, sc >= 1)
+    and2_ e0 e1 @@ b_any (sc >= 1, sc <= 1)
   
   | Var k -> 
     let (generalized, (i1, o1, d1, e1)), _ = 
