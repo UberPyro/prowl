@@ -1,9 +1,9 @@
-= idd ex X -> X
-= dupp ex X -> X X
-= drop ex X -> idd
-= sw ex X Y -> Y X
 
-= z 0
-= zz 0 0
+= rot ex X Y Z -> Y Z X
+= trip ex X -> X X X
+= same3 trip~
+
+= f swap rot swap
+= g trip same3
 
 = main main
