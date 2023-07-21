@@ -43,6 +43,14 @@ let set_det d0 det = Det.unify d0 (b_any det)
 let set_true d0 e0 = set_det d0 (true, true); set_det e0 (true, true)
 let set_int v0 = Value.unify v0 (Value.usyn "int" [])
 let set_hof hof v fn = Value.unify v @@ V.usyn hof [V.uatom fn]
+let alt_ d0 d1 d2 = 
+  Det.unify d0 @@ uref @@ Det.mul_idem
+    (union (uget d1) (uget d2))
+    (uget @@ b_any (true, false))
+let alt_fresh () = 
+  let d0, d1, d2 = Det.(bfresh (), bfresh (), bfresh ()) in
+  alt_ d0 d1 d2;
+  d0, d1, d2
 
 let push_int u = V.usyn "int" [] @> u
 let push_str u = V.usyn "string" [] @> u
@@ -373,8 +381,8 @@ and base_and ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2,
 and base_or ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, e2) as right) = 
   infer ctx left;
   infer ctx right;
-  or_ d0 d1 d2;
-  or_ e0 e1 e2
+  alt_ d0 d1 d2;
+  alt_ e0 e1 e2
 
 and bop ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2, d2, e2) as right) = 
   infer ctx left;
@@ -467,8 +475,8 @@ and cat hof (v0, v1, v2) =
 
 and alt hof (v0, v1, v2) = 
   let c0, c1 = Costack.(ufresh () , ufresh ()) in
-  let d0, d1, d2 = or2_fresh () in
-  let e0, e1, e2 = or2_fresh () in
+  let d0, d1, d2 = alt_fresh () in
+  let e0, e1, e2 = alt_fresh () in
   set_hof hof v0 (c0, c1, d0, e0);
   set_hof hof v1 (c0, c1, d1, e1);
   set_hof hof v2 (c0, c1, d2, e2)
