@@ -319,6 +319,8 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     if b then i0 =?= v @> i1
     else i0 =?= i1;
     o0 =?= o1
+
+    (* ? *)
   
   | Each ((_, _, (i1, o1, d1, e1) as just), s, b) ->
     let z = S.ufresh () in
@@ -334,13 +336,13 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
       |> Option.default_delayed @@ fun () -> 
         let msg = sprintf "Cannot find unbound variable [%s]" k in
         UnifError msg |> raise in
-    let i, o = 
+    let i, o, d, e = 
       if generalized then begin
         Fn.refresh_memo ();
         Fn.generalize (Fn.memo ()) (i1, o1, d1, e1);
-      end else i1, o1 in
-    i0 =?= i;
-    o0 =?= o
+      end else i1, o1, d1, e1 in
+    i0 =?= i; o0 =?= o;
+    Det.unify d0 d; Det.unify e0 e
   
   | Let (stmts, e) -> infer (stmts_rec ctx stmts) e
 
@@ -348,44 +350,13 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
 
 and stmts_rec ctx stmts = 
   let ctx' = insert_many begin stmts |> List.map @@ function
-    | Def (s, None, (_, _, (i, o))), _ -> s, (false, (i, o))
-    | Def (d, Some ty, (_, _, (i, o as fn))), _ -> 
+    | Def (s, None, (_, _, fn)), _ -> s, (false, fn)
+    | Def (d, Some ty, (_, _, fn)), _ -> 
       Fn.unify fn (Elab.ty_expr ty);
-      d, (true, (i, o))
+      d, (true, fn)
   end ctx in
   List.iter (fun (Def (_, _, e), _) -> infer ctx' e) stmts;
   ctx'
-
-(* and unify_arg sp ctx ast u i o = 
-  infer ctx ast;
-  try i =?= u; o =?= push_int u
-  with UnifError msg -> InferError (sp, ctx, msg) |> raise
-
-and unify_ho_arg sp ctx ast u c1 c2 d1 d2 f i o = 
-  infer ctx ast;
-  begin try
-    i =?= u;
-    o =?= f (c1, c2, d1, d2) u;
-  with UnifError msg -> InferError (sp, ctx, msg) |> raise end
-
-and cat (i0, o0, d0, e0) (i1, o1, d1, e1) (i2, o2, d2, e2) = 
-  i0 =?= i1;
-  o1 =?= i2;
-  o0 =?= o2;
-  and2 d0 e0 d1 e1 d2 e2
-
-and alt (i0, o0, d0, e0) (i1, o1, d1, e1) (i2, o2, d2, e2) = 
-  i0 =?= i1;
-  i0 =?= i2;
-  o0 =?= o1;
-  o0 =?= o2;
-  or_ d0 d1 d2;
-  or_ e0 e1 e2 *)
-
-(* and base_cat (i0, o0, d0, e0) (_, _, d1, e1) (_, _, d2, e2) i1 o1 = 
-  i0 =?= i1; o0 =?= o1;
-  and2_ d0 d1 d2;
-  and2_ e0 e1 e2 *)
 
 and base_and ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, e2) as right) = 
   infer ctx left;
@@ -506,13 +477,13 @@ and app (v0, v1, v2) =
 
 let top_stmts ctx = 
   List.fold_left begin fun ctx' -> function
-    | Def (d, None, (_, _, (i, o) as e)), _ -> 
-      infer (insert d (false, (i, o)) ctx') e;
-      insert d (true, (i, o)) ctx'
-    | Def (d, Some ty, (_, _, (i, o as fn) as e)), _ -> 
+    | Def (d, None, (_, _, fn as e)), _ -> 
+      infer (insert d (false, fn) ctx') e;
+      insert d (true, fn) ctx'
+    | Def (d, Some ty, (_, _, fn as e)), _ -> 
       let elab_ty = Elab.ty_expr ty in
       Fn.unify fn elab_ty;
-      let annotctx = insert d (true, (i, o)) ctx' in
+      let annotctx = insert d (true, fn) ctx' in
       infer annotctx e;
       annotctx
   end ctx
