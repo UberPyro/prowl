@@ -38,7 +38,7 @@ let or2_fresh () =
   or_ d0 d1 d2;
   d0, d1, d2
 let or2fresh () = or2_fresh (), or2_fresh ()
-let b_any det = uref @@ [[ref (Det.BConst det)]]
+let b_any det = uref [[ref (Det.BConst det)]]
 let set_det d0 det = Det.unify d0 (b_any det)
 let set_true d0 e0 = set_det d0 (true, true); set_det e0 (true, true)
 let set_int v0 = Value.unify v0 (Value.usyn "int" [])
