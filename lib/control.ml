@@ -48,14 +48,20 @@ let parse_arg a =
   then Ast.String (String.sub a 1 (len - 2))
   else Ast.Int (String.to_int a)
 
+let entry_logic ctx = 
+  match find_rec_opt "main" ctx, find_rec_opt "main_nondet" ctx with
+  | None, None -> failwith "This program has no main function!"
+  | Some _, Some _ -> failwith "This program has multiple main functions!"
+  | Some ((_, (main_in, main_out, _, e0)), _), None -> 
+    set_det e0 (true, true);
+    main_in, main_out
+  | None, Some ((_, (main_in, main_out, _, _)), _) -> main_in, main_out
+;; 
+
 let check debug fname args = 
   let ast = parse (File.open_in fname) in
   let ctx = prog ast in
-  let (_, (main_in, main_out, _, _)), _ = 
-    find_rec_opt "main" ctx
-    |> Option.default_delayed begin fun () -> 
-      failwith @@ Printf.sprintf "%s has no main function!" fname
-    end in
+  let main_in, main_out = entry_logic ctx in
   let cs_in = List.fold_left begin fun acc -> function[@warning "-8"]
       | Ast.String _ -> push_str acc
       | Ast.Int _ -> push_int acc
