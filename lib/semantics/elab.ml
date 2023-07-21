@@ -71,8 +71,8 @@ and value_expr m = function
 and det_expr m = _det_expr m %> Det.simp %> uref
 and _det_expr m = function
   | DLit d -> uget d
-  | DAnd (d1, d2) -> Det.mul_basic (_det_expr m d1) (_det_expr m d2)
-  | DXor (d1, d2) -> _det_expr m d1 @ _det_expr m d2
+  | DAnd (d1, d2) -> Det.mul_idem (_det_expr m d1) (_det_expr m d2)
+  | DXor (d1, d2) -> Det.add_xor (_det_expr m d1) (_det_expr m d2)
   | DVar s -> [[link_bvar (fourth m) s]]
 
 
