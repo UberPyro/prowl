@@ -3,8 +3,6 @@ open Printf
 open Either
 open Ucommon
 
-exception BUError
-
 module type Constant = sig
   type t
   val and_const : t -> t -> t
@@ -112,7 +110,7 @@ module Make(C : Constant) = struct
     |> List.sort (fun x y -> Stdlib.compare (snd y) (snd x))
     |> List.map fst |> function
       | h :: _ -> h  (* variable with *most* counts *)
-      | [] -> raise BUError  (* no variables *)
+      | [] -> raise @@ UnifError "Determinism Error!"
   
   let extract b = 
     let v = get_var b in
