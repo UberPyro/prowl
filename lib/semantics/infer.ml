@@ -80,7 +80,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | Sect Lop Join -> alt "list" @@ sect fn0
     
   | Uop ((_, _, (i1, o1, d1, e1) as just), Dag) -> 
-    infer ctx just;
+    infer (ctx |> swap_uvar |> swap_svar) just;
     o0 =?= i1; i0 =?= o1; 
     Det.unify d0 d1; Det.unify e0 e1
   
