@@ -7,5 +7,6 @@
 = f swap rot swap
 = g trip same3
 = h [f] [g] (>>)  /* broken */
+= i 0 | 0
 
 = main main
