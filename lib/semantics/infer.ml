@@ -271,19 +271,19 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | Lit Int _ -> 
     let c0 = mk_poly_costack () in
     i0 =?= c0; o0 =?= push_int c0;
-    set_det d0 (false, true); set_det d0 (true, true)
+    set_det d0 (false, true); set_det e0 (true, true)
   
   | Lit String _ -> 
     let c0 = mk_poly_costack () in
     i0 =?= c0; o0 =?= push_str c0;
-    set_det d0 (false, true); set_det d0 (true, true)
+    set_det d0 (false, true); set_det e0 (true, true)
   
   | Lit Quote (_, _, fn1 as just) -> 
     infer ctx just;
     let c0 = mk_poly_costack () in
     i0 =?= c0;
     o0 =?= push_quo fn1 c0;
-    set_det d0 (false, true); set_det d0 (true, true)
+    set_det d0 (false, true); set_det e0 (true, true)
   
   | Lit List lst -> 
     let fn0 = mk_poly_costack (), mk_poly_costack (), Det.bfresh (), Det.bfresh () in
@@ -294,7 +294,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     let c0 = mk_poly_costack () in
     i0 =?= c0;
     o0 =?= push_list fn0 c0;
-    set_det d0 (false, true); set_det d0 (true, true)
+    set_det d0 (false, true); set_det e0 (true, true)
   
   | UVar s -> 
     let v = mk_var () in
