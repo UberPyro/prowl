@@ -88,7 +88,10 @@ module Make(C : Constant) = struct
   let rec simp b = 
     List.map begin fun bs -> 
       match List.partition_map begin fun x -> match !x with
-        | BExpr e -> Right (simp e)
+        | BExpr e -> 
+          let e' = simp e in
+          x := BExpr e';
+          Right e'
         | _ -> Left x
       end bs with
       | xs, [] -> [xs]
