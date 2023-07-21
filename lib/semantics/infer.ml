@@ -313,7 +313,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     set_true d0 e0
   
   | Ex (s, (_, _, (i1, o1, d1, e1) as just), b) ->
-    let v = Value.uvar () in
+    let v = V.uvar () in
     let ctx' = introduce_uvar s v ctx in
     infer ctx' just;
     begin if b then (i0 =?= v @> i1; uincr_op s ctx')
@@ -329,8 +329,12 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     let ctx' = introduce_stkvar s z ctx in
     infer ctx' just;
     i0 =?= i1;
-    begin if b then o0 =?= z @>> o1
-    else o0 =?= o1 end
+    begin if b then (o0 =?= z @>> o1; sincr s ctx')
+    else o0 =?= o1 end;
+    let sdagc = Map.find s ctx'.sdagcount |> (!) in
+    and2_ d0 d1 @@ b_any (sdagc < 1, sdagc > 1);
+    let sc = Map.find s ctx'.scount |> (!) in
+    and2_ e0 e1 @@ b_any (sc < 1, sc > 1)
   
   | Var k -> 
     let (generalized, (i1, o1, d1, e1)), _ = 

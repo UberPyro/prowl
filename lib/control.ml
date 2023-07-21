@@ -51,7 +51,7 @@ let parse_arg a =
 let check debug fname args = 
   let ast = parse (File.open_in fname) in
   let ctx = prog ast in
-  let (_, (main_in, main_out)), _ = 
+  let (_, (main_in, main_out, _, _)), _ = 
     find_rec_opt "main" ctx
     |> Option.default_delayed begin fun () -> 
       failwith @@ Printf.sprintf "%s has no main function!" fname

@@ -50,7 +50,7 @@ let unify_ustack n u t =
   Stack.unify u @@ Map.find n @@ t.sctx;
   vc_incr n t.scount
 
-let sincr_op n t = vc_incr n t.sdagcount
+let sincr n t = vc_incr n t.scount
 
 let swap_uvar t = {
   t with
