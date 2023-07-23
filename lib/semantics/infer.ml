@@ -497,6 +497,9 @@ let top_stmts ctx =
     | Def (d, Some ty, (_, _, fn as e)), _ -> 
       let elab_ty = Elab.ty_expr ty in
       Fn.unify fn elab_ty;
+      (* print_endline "\nvv";
+      Fn.pretty stdout elab_ty;
+      print_endline "\n^^\n"; *)
       let annotctx = insert d (true, fn) ctx' in
       infer annotctx e;
       annotctx

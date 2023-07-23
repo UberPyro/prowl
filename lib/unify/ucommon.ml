@@ -15,5 +15,5 @@ module type UNIFIABLE = sig
   val generalize : memo -> t -> t
   val refresh_memo : unit -> unit
   val memo : unit -> memo
-  val pretty : string BatInnerIO.output -> t -> unit
+  val pretty : 'a BatInnerIO.output -> t -> unit
 end

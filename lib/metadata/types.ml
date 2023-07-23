@@ -91,8 +91,8 @@ and Fn : UNIFIABLE with type t = Costack.t * Costack.t * Det.t * Det.t = struct
   let memo () = ()
   let refresh_memo () = ()
   let unify (c1, c2, x1, y1) (d1, d2, x2, y2) = 
-    Costack.unify c1 c2;
-    Costack.unify d1 d2;
+    Costack.unify c1 d1;
+    Costack.unify c2 d2;
     Det.unify x1 x2;
     Det.unify y1 y2
   let occurs i (c1, c2, _, _) = 
