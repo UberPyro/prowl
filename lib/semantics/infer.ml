@@ -86,7 +86,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | Sect Lop Alt -> alt "quote" @@ sect fn0
   | Sect Lop Append -> app @@ sect fn0
   | Sect Lop Join -> alt "list" @@ sect fn0
-    
+  
   | Uop ((_, _, (i1, o1, d1, e1) as just), Dag) -> 
     infer (ctx |> swap_uvar |> swap_svar) just;
     o0 =?= i1; i0 =?= o1; 
@@ -497,9 +497,6 @@ let top_stmts ctx =
     | Def (d, Some ty, (_, _, fn as e)), _ -> 
       let elab_ty = Elab.ty_expr ty in
       Fn.unify fn elab_ty;
-      (* print_endline "\nvv";
-      Fn.pretty stdout elab_ty;
-      print_endline "\n^^\n"; *)
       let annotctx = insert d (true, fn) ctx' in
       infer annotctx e;
       annotctx

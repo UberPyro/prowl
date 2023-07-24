@@ -10,6 +10,7 @@ include Uref
 module Matcher : sig
   type t
   val check : t -> int -> int -> bool
+  val mk : unit -> t
 end = struct
   module IM = Hashtbl.Make(struct
     include Hashtbl
@@ -20,6 +21,7 @@ end = struct
     IM.find_option m i |> Option.map_default_delayed
       ((=) j)
       (fun () -> IM.add m i j; true)
+  let mk () = IM.create 32
 end
 
 module type UNIFIABLE = sig
