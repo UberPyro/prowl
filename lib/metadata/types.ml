@@ -6,9 +6,9 @@ open Ucommon
 module DetConst = struct
   type t = bool * bool
   let detmap f (b1, b2) (c1, c2) = f b1 c1, f b2 c2
-  let and_const x y = detmap (&&) x y
-  let xor_const x y = detmap (fun a b -> 
-    (a || b) && not (a && b)) x y
+  let and_const = detmap (&&)
+  let xor_const = detmap @@ fun a b -> 
+    (a || b) && not (a && b)
   let one = true, true
   let zero = false, false
   let to_string = function
