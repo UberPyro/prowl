@@ -363,6 +363,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   with UnifError msg -> raise @@ InferError (sp, ctx, msg)
 
 and stmts_rec ctx stmts = 
+  (* setup and add each to context *)
   let ctx' = insert_many begin stmts |> List.map @@ function
     | Def (s, None, (_, _, fn)), _ -> s, (false, fn)
     | Def (d, Some ty, (_, _, fn)), _ -> 
@@ -370,6 +371,15 @@ and stmts_rec ctx stmts =
       d, (true, fn)
   end ctx in
   List.iter (fun (Def (_, _, e), _) -> infer ctx' e) stmts;
+  let rec go asumps = 
+    let funs = List.filter_map (fun ((Def (_, ty, (_, _, fn))), _) -> 
+      Option.map (fun _ -> fn) ty) stmts in
+    if not @@ List.exists2 Fn.ge funs asumps then
+      let funs_copy = List.map Fn.gen funs in
+      List.iter (fun (Def (_, _, e), _) -> infer ctx' e) stmts;
+      go funs_copy in
+  let get_ty ((Def (_, ty, _)), _) = ty in
+  go (List.map Elab.ty_expr (List.filter_map get_ty stmts));
   ctx'
 
 and base_and ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, e2) as right) = 
@@ -495,10 +505,18 @@ let top_stmts ctx =
       infer (insert d (false, fn) ctx') e;
       insert d (true, fn) ctx'
     | Def (d, Some ty, (_, _, fn as e)), _ -> 
-      let elab_ty = Elab.ty_expr ty in
-      Fn.unify fn elab_ty;
-      let annotctx = insert d (true, fn) ctx' in
-      infer annotctx e;
+      Fn.unify fn @@ Elab.ty_expr ty;  (* assume fn is the annotated type *)
+      let annotctx = insert d (true, fn) ctx' in  (* assume fn is the annotation in its own body *)
+      infer annotctx e;  (* infer *)
+      let rec go ty_assume = 
+        (* if the annotation is more general than what was inferred *)
+        if not @@ Fn.ge fn ty_assume then begin
+          let fn_copy = Fn.gen fn in
+          (* assume fn is the inferred type in its own body -- already done mutably *)
+          infer annotctx e;  (* infer a more specific fn *)
+          go fn_copy
+        end in
+      go (Elab.ty_expr ty);  (* repeat if assumption was too general *)
       annotctx
   end ctx
 

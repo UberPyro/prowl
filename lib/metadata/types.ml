@@ -67,6 +67,7 @@ and Fn : sig
   include UNIFIABLE with type t = Costack.t * Costack.t * Det.t * Det.t
   val ge : t -> t -> bool
   val eq : t -> t -> bool
+  val gen : t -> t
 end = struct
   type t = Costack.t * Costack.t * Det.t * Det.t
   type memo = unit
@@ -100,6 +101,7 @@ end = struct
     && Det.atleast m x2 y2
   let ge f1 f2 = atleast (Matcher.mk ()) f1 f2
   let eq f1 f2 = ge f1 f2 && ge f2 f1
+  let gen = generalize ()
 end
 
 let fresh () = Costack.ufresh (), Costack.ufresh (), Det.bfresh (), Det.bfresh ()
