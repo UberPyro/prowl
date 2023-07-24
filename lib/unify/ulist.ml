@@ -107,6 +107,12 @@ module Make (U : UNIFIABLE) = struct
       fprintf out " "; U.pretty out u
     | USeq j -> fprintf out "%d*" j
     | UNil -> fprintf out "."
+  
+  let rec atleast m = curry @@ Tuple2.mapn uget %> function
+    | UCons (u, us), UCons (v, vs) -> U.atleast m u v && atleast m us vs
+    | USeq i, USeq j -> Matcher.check m i j
+    | USeq _, _ | UNil, UNil -> true
+    | _, _ -> false
 
 end
 

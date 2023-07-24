@@ -111,6 +111,11 @@ and Fn : UNIFIABLE with type t = Costack.t * Costack.t * Det.t * Det.t = struct
     Det.pretty out d1;
     fprintf out "%s" "/";
     Det.pretty out d2
+  let atleast m (c1, c2, x1, x2) (d1, d2, y1, y2) = 
+    Costack.atleast m c1 d1
+    && Costack.atleast m c2 d2
+    && Det.atleast m x1 y1
+    && Det.atleast m x2 y2
 end
 
 let fresh () = Costack.ufresh (), Costack.ufresh (), Det.bfresh (), Det.bfresh ()

@@ -7,6 +7,21 @@ let pp_uref fmt x y = fmt x (uget y)
 
 include Uref
 
+module Matcher : sig
+  type t
+  val check : t -> int -> int -> bool
+end = struct
+  module IM = Hashtbl.Make(struct
+    include Hashtbl
+    include Int
+  end)
+  type t = int IM.t
+  let check m i j = 
+    IM.find_option m i |> Option.map_default_delayed
+      ((=) j)
+      (fun () -> IM.add m i j; true)
+end
+
 module type UNIFIABLE = sig
   type t
   type memo
@@ -16,4 +31,5 @@ module type UNIFIABLE = sig
   val refresh_memo : unit -> unit
   val memo : unit -> memo
   val pretty : 'a BatInnerIO.output -> t -> unit
+  val atleast : Matcher.t -> t -> t -> bool
 end

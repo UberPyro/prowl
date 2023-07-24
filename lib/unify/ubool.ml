@@ -169,5 +169,18 @@ module Make(C : Constant) = struct
     | BVar i -> fprintf out "X%d" i
     | BConst j -> fprintf out "%s" (C.to_string j)
     | BExpr b -> pretty_ out b
+  
+  let rec atleast_ m = 
+    List.for_all2 (List.for_all2 (atleast_inner m))
+  
+  and atleast_inner m = curry @@ Tuple2.mapn (!) %> function
+    | BExpr e1, BExpr e2 -> atleast_ m e1 e2
+    | BConst c1, BConst c2 -> c1 = c2
+    | BVar i, BVar j -> Matcher.check m i j
+    | BVar _, _ -> true
+    | _ -> false
+  
+  let atleast m t1 t2 = 
+    atleast_ m (t1 |> uget |> simp) (t2 |> uget |> simp)
 
 end

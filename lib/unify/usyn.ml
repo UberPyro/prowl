@@ -83,5 +83,13 @@ module Make(U : UNIFIABLE) = struct
       fprintf out ")"
     | UVar j -> fprintf out "V%d" j
     | UAtom a -> U.pretty out a
+  
+  let rec atleast m = curry @@ Tuple2.mapn uget %> function
+    | USyntax (s1, ts1), USyntax (s2, ts2) -> 
+      s1 = s2 && List.for_all2 (atleast m) ts1 ts2
+    | UAtom a1, UAtom a2 -> U.atleast m a1 a2
+    | UVar i, UVar j -> Matcher.check m i j
+    | UVar _, _ -> true
+    | _, _ -> false
 
 end
