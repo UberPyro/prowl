@@ -53,30 +53,8 @@ end = struct
     | UVar j -> fprintf out "V%d" j
     | UAtom a -> Fn.pretty out a
 end
-and Stack : sig
-  include UNIFIABLE
-  val unil : unit -> t
-  val ucons : Value.t -> t -> t
-  val useq : int -> t
-  val ufresh : unit -> t
-  val usplit : ?acc:Value.t list -> t -> Value.t list * int option
-  val ujoin : t -> Value.t list -> t
-  val rebase : t -> t -> t
-  val map_hd : (Value.t -> Value.t) -> t -> t
-  val upop : t -> Value.t * t
-end = Ulist.Make(Value)
-and Costack : sig
-  include UNIFIABLE
-  val unil : unit -> t
-  val ucons : Stack.t -> t -> t
-  val useq : int -> t
-  val ufresh : unit -> t
-  val usplit : ?acc:Stack.t list -> t -> Stack.t list * int option
-  val ujoin : t -> Stack.t list -> t
-  val rebase : t -> t -> t
-  val map_hd : (Stack.t -> Stack.t) -> t -> t
-  val upop : t -> Stack.t * t
-end = struct 
+and Stack : Ulist.UNIF_LIST with type u = Value.t = Ulist.Make(Value)
+and Costack : Ulist.UNIF_LIST with type u = Stack.t = struct
   include Ulist.Make(Stack)
   let rec pretty out = uget %> function
     | UCons (u, us) -> 

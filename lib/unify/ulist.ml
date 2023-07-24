@@ -10,6 +10,7 @@ module Make (U : UNIFIABLE) = struct
     | UNil
     | USeq of int
   type ulist = t
+  type u = U.t
 
   type memo = (int, t) Hashtbl.t
 
@@ -116,15 +117,16 @@ module Make (U : UNIFIABLE) = struct
 
 end
 
-module MakeSig(U : UNIFIABLE) = struct
-  module type UNIF_LIST = sig
-    include UNIFIABLE
-    val unil : unit -> t
-    val ucons : U.t -> t -> t
-    val useq : int -> t
-    val ufresh : unit -> t
-    val usplit : ?acc:U.t list -> t -> U.t list * int option
-    val ujoin : t -> U.t list -> t
-    val rebase : t -> t -> t
-  end
+module type UNIF_LIST = sig
+  include UNIFIABLE
+  type u
+  val unil : unit -> t
+  val ucons : u -> t -> t
+  val useq : int -> t
+  val ufresh : unit -> t
+  val usplit : ?acc:u list -> t -> u list * int option
+  val ujoin : t -> u list -> t
+  val rebase : t -> t -> t
+  val map_hd : (u -> u) -> t -> t
+  val upop : t -> u * t
 end
