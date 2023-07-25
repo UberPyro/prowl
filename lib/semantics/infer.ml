@@ -61,20 +61,20 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | Bop (left, Lop Alt, right) -> alt "quote" @@ bop ctx fn0 left right
   | Bop (left, Lop Append, right) -> app @@ bop ctx fn0 left right
   | Bop (left, Lop Join, right) -> alt "list" @@ bop ctx fn0 left right
-  | SectLeft (Aop _, right) -> ints @@ sect_left ctx fn0 right
+  | SectLeft (Aop _, right) -> ints @@ sect_left (true, true) ctx fn0 right
   | SectLeft (Cop _, right) -> ints2 @@ sect_left_cmp ctx fn0 right
-  | SectLeft (Lop Cat, right) -> cat "quote" @@ sect_left ctx fn0 right
-  | SectLeft (Lop Ap, right) -> cat "list" @@ sect_left ctx fn0 right
-  | SectLeft (Lop Alt, right) -> alt "quote" @@ sect_left ctx fn0 right
-  | SectLeft (Lop Append, right) -> app @@ sect_left ctx fn0 right
-  | SectLeft (Lop Join, right) -> alt "list" @@ sect_left ctx fn0 right
-  | SectRight (left, Aop _) -> ints @@ sect_right ctx fn0 left
+  | SectLeft (Lop Cat, right) -> cat "quote" @@ sect_left (true, true) ctx fn0 right
+  | SectLeft (Lop Ap, right) -> cat "list" @@ sect_left (false, true) ctx fn0 right
+  | SectLeft (Lop Alt, right) -> alt "quote" @@ sect_left (false, true) ctx fn0 right
+  | SectLeft (Lop Append, right) -> app @@ sect_left (false, true) ctx fn0 right
+  | SectLeft (Lop Join, right) -> alt "list" @@ sect_left (false, true) ctx fn0 right
+  | SectRight (left, Aop _) -> ints @@ sect_right (true, true) ctx fn0 left
   | SectRight (left, Cop _) -> ints2 @@ sect_right_cmp ctx fn0 left
-  | SectRight (left, Lop Cat) -> cat "quote" @@ sect_right ctx fn0 left
-  | SectRight (left, Lop Ap) -> cat "list" @@ sect_right ctx fn0 left
-  | SectRight (left, Lop Alt) -> alt "quote" @@ sect_right ctx fn0 left
-  | SectRight (left, Lop Append) -> app @@ sect_right ctx fn0 left
-  | SectRight (left, Lop Join) -> alt "list" @@ sect_right ctx fn0 left
+  | SectRight (left, Lop Cat) -> cat "quote" @@ sect_right (true, true) ctx fn0 left
+  | SectRight (left, Lop Ap) -> cat "list" @@ sect_right (false, true) ctx fn0 left
+  | SectRight (left, Lop Alt) -> alt "quote" @@ sect_right (false, true) ctx fn0 left
+  | SectRight (left, Lop Append) -> app @@ sect_right (false, true) ctx fn0 left
+  | SectRight (left, Lop Join) -> alt "list" @@ sect_right (false, true) ctx fn0 left
   | Sect Aop _ -> ints @@ sect fn0
   | Sect Cop _ -> ints2 @@ sect_cmp fn0
   | Sect Lop Cat -> cat "quote" @@ sect fn0
@@ -416,7 +416,7 @@ and base_coelim ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, 
   Det.unify e0 (uref @@ Det.(mul_idem (uget @@ b_any (true, false)) @@ 
     mul_idem (uget e1) (uget e2)))
 
-and bop ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2, d2, e2) as right) = 
+and bop ctx (i0, o0, d0, e0) (_, _, (i1, o1, _, e1) as left) (_, _, (i2, o2, _, e2) as right) = 
   infer ctx left;
   infer ctx right;
   let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
@@ -424,35 +424,37 @@ and bop ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2, d2
   i0 =?= c0; o0 =?= v0 @> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
   i2 =?= c2; o2 =?= v2 @> c2;
-  and2_ d0 d1 d2; and2_ e0 e1 e2;
+  set_det d0 (false, false);
+  and2_ e0 e1 e2;
   v0, v1, v2
 
-and sect_left ctx (i0, o0, d0, e0) (_, _, (i2, o2, d2, e2) as right) = 
+and sect_left d ctx (i0, o0, d0, e0) (_, _, (i2, o2, _, e2) as right) = 
   infer ctx right;
   let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
   let c0, c2 = mk_poly_costack (), mk_init_costack () in
   i0 =?= v1 @> c0; o0 =?= v0 @> c0;
   i2 =?= c2; o2 =?= v2 @> c2;
-  Det.unify d0 d2; Det.unify e0 e2;
+  and2_ d0 (b_any d) e2; Det.unify e0 e2;
   v0, v1, v2
 
-and sect_right ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) = 
+and sect_right d ctx (i0, o0, d0, e0) (_, _, (i1, o1, _, e1) as left) = 
   infer ctx left;
   let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
   let c0, c1 = mk_poly_costack (), mk_init_costack () in
   i0 =?= v2 @> c0; o0 =?= v0 @> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
-  Det.unify d0 d1; Det.unify e0 e1;
+  and2_ d0 (b_any d) e1; Det.unify e0 e1;
   v0, v1, v2
 
 and sect (i0, o0, d0, e0) = 
   let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
   let c0 = mk_poly_costack () in
   i0 =?= v2 @> v1 @> c0; o0 =?= v0 @> c0;
-  set_true d0 e0; 
+  set_det d0 (true, false);
+  set_det e0 (true, true);
   v0, v1, v2
 
-and bop_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2, d2, e2) as right) = 
+and bop_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, _, e1) as left) (_, _, (i2, o2, _, e2) as right) = 
   infer ctx left;
   infer ctx right;
   let v1, v2 = V.(uvar (), uvar ()) in
@@ -461,27 +463,27 @@ and bop_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2
   i0 =?= c0; o0 =?= s0 @>> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
   i2 =?= c2; o2 =?= v2 @> c2;
-  and2_ d0 d1 d2; and2_ e0 e1 e2;
+  set_det d0 (false, false); and2_ e0 e1 e2;
   v1, v2
 
-and sect_left_cmp ctx (i0, o0, d0, e0) (_, _, (i2, o2, d2, e2) as right) = 
+and sect_left_cmp ctx (i0, o0, d0, e0) (_, _, (i2, o2, _, e2) as right) = 
   infer ctx right;
   let v1, v2 = V.(uvar (), uvar ()) in
   let s0 = S.ufresh () in
   let c0, c2 = s0 @>> C.ufresh (), mk_init_costack () in
   i0 =?= v1 @> c0; o0 =?= s0 @>> c0;
   i2 =?= c2; o2 =?= v2 @> c2;
-  Det.unify d0 d2; Det.unify e0 e2;
+  set_det d0 (true, false); Det.unify e0 e2;
   v1, v2
 
-and sect_right_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) = 
+and sect_right_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, _, e1) as left) = 
   infer ctx left;
   let v1, v2 = V.(uvar (), uvar ()) in
   let s0 = S.ufresh () in
   let c0, c1 = s0 @>> C.ufresh (), mk_init_costack () in
   i0 =?= v2 @> c0; o0 =?= s0 @>> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
-  Det.unify d0 d1; Det.unify e0 e1;
+  set_det d0 (true, false); Det.unify e0 e1;
   v1, v2
 
 and sect_cmp (i0, o0, d0, e0) = 
