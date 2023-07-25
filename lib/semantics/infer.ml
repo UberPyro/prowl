@@ -368,16 +368,16 @@ and stmts_rec ctx stmts =
       Fn.unify fn (Elab.ty_expr ty);
       d, (true, fn)
   end ctx in
-  List.iter (fun (Def (_, _, e), _) -> infer ctx' e) stmts;
-  let rec go asumps = 
-    let funs = List.filter_map (fun ((Def (_, ty, (_, _, fn))), _) -> 
-      Option.map (fun _ -> fn) ty) stmts in
-    if not @@ List.exists2 Fn.ge funs asumps then
-      let funs_copy = List.map Fn.gen funs in
-      List.iter (fun (Def (_, _, e), _) -> infer ctx' e) stmts;
-      go funs_copy in
-  let get_ty ((Def (_, ty, _)), _) = ty in
-  go (List.map Elab.ty_expr (List.filter_map get_ty stmts));
+  List.iter begin fun (Def (_, sty, (_, _, fn as e)), _) -> 
+    infer ctx' e;
+    sty |> Option.may @@ Elab.ty_expr %> fun elab_ty -> 
+      if not @@ Fn.ge fn elab_ty then
+        (let msg = sprintf
+          "The inferred type [%s] is less general than the annotation [%s]"
+          (pstr Fn.pretty fn)
+          (pstr Fn.pretty elab_ty) in
+        UnifError msg |> raise)
+  end stmts;
   ctx'
 
 and base_and ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, e2) as right) = 

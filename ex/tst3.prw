@@ -1,12 +1,5 @@
-= pred (- 1)
+= succ (+ 1)
+= f succ f succ
+= g f succ
 
-= h pred
-
-: fib z -- z
-= fib
-  dup (> 1)
-    pred (fib && pred) fib (+)
-  elim
-
-
-= main 5 fib
+= main main
