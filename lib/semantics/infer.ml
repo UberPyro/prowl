@@ -67,7 +67,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | SectLeft (Lop Ap, right) -> cat "list" @@ sect_left false ctx fn0 right
   | SectLeft (Lop Alt, right) -> alt "quote" @@ sect_left false ctx fn0 right
   | SectLeft (Lop Append, right) -> app @@ sect_left false ctx fn0 right
-  | SectLeft (Lop Join, right) -> alt "list" @@ sect_left true ctx fn0 right
+  | SectLeft (Lop Join, right) -> alt "list" @@ sect_left false ctx fn0 right
   | SectRight (left, Aop _) -> ints @@ sect_right true ctx fn0 left
   | SectRight (left, Cop _) -> ints2 @@ sect_right_cmp ctx fn0 left
   | SectRight (left, Lop Cat) -> cat "quote" @@ sect_right true ctx fn0 left
