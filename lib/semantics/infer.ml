@@ -10,10 +10,7 @@ open Ctx
 open Unify
 open Ucommon
 
-exception InferError of
-    Span.t
-  * Ctx.t
-  * string
+exception InferError of Span.t * Ctx.t * string
 
 let and2 d0 e0 d1 e1 d2 e2 = 
   Det.unify d0 (uref @@ Det.mul_idem (uget d1) (uget d2));
