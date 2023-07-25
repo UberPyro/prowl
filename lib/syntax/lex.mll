@@ -31,7 +31,7 @@ rule token = parse
   | "let"       {LET}
   | "in"        {IN}
   | "ex"        {EXISTS}
-  | "each"      {EACH}
+  | "coex"      {EACH}
   | "::"        {WITHIN}
   | "->"        {ARROW}
 
