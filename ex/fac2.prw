@@ -4,5 +4,4 @@
     || 0
   )
 
-/* = main 5 fac */
-= main main
+= main 5 fac
