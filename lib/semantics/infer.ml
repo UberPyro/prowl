@@ -109,12 +109,12 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     i0 =?= C.rebase i1 i2; o0 =?= C.rebase o1 o2;
   
   | Dop ((_, _, (i1, o1, _, _) as left), Pick, (_, _, (i2, o2, _, _) as right)) -> 
-    base_and ctx fn0 left right;
+    base_elim ctx fn0 left right;
     i0 =?= C.rebase i1 i2;
     o0 =?= o1; o0 =?= o2
   
   | Dop ((_, _, (i1, o1, _, _) as left), Guess, (_, _, (i2, o2, _, _) as right)) -> 
-    base_and ctx fn0 left right;
+    base_coelim ctx fn0 left right;
     i0 =?= i1; i0 =?= i2;
     o0 =?= C.rebase o1 o2
   
@@ -130,7 +130,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     o0 =?= S.rebase s1 (C.upop o2 |> fst) @>> c1
   
   | Dop ((_, _, (i1, o1, _, _) as left), Fork, (_, _, (i2, o2, _, _) as right)) -> 
-    base_and ctx fn0 left right;
+    base_dup ctx fn0 left right;
     o1 =?= mk_poly_costack ();
     o2 =?= mk_poly_costack ();
     i0 =?= i1; i0 =?= i2;
@@ -138,7 +138,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     o0 =?= S.rebase s0 (C.upop o2 |> fst) @>> c0
   
   | Dop ((_, _, (i1, o1, _, _) as left), Cross, (_, _, (i2, o2, _, _) as right)) -> 
-    base_and ctx fn0 left right;
+    base_codup ctx fn0 left right;
     i1 =?= mk_poly_costack ();
     i2 =?= mk_end_costack ();
     let s0, c0 = C.upop i1 in
@@ -391,6 +391,34 @@ and base_or ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, 
   infer ctx right;
   alt_ d0 d1 d2;
   alt_ e0 e1 e2
+  
+and base_dup ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, e2) as right) = 
+  infer ctx left;
+  infer ctx right;
+  Det.unify d0 (uref @@ Det.(mul_idem (uget @@ b_any (false, true)) @@ 
+    mul_idem (uget d1) (uget d2)));
+  and2_ e0 e1 e2
+
+and base_elim ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, e2) as right) = 
+  infer ctx left;
+  infer ctx right;
+  Det.unify d0 (uref @@ Det.(mul_idem (uget @@ b_any (true, false)) @@ 
+    mul_idem (uget d1) (uget d2)));
+  and2_ e0 e1 e2
+
+and base_codup ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, e2) as right) = 
+  infer ctx left;
+  infer ctx right;
+  and2_ d0 d1 d2;
+  Det.unify e0 (uref @@ Det.(mul_idem (uget @@ b_any (false, true)) @@ 
+    mul_idem (uget e1) (uget e2)))
+
+and base_coelim ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, d2, e2) as right) = 
+  infer ctx left;
+  infer ctx right;
+  and2_ d0 d1 d2;
+  Det.unify e0 (uref @@ Det.(mul_idem (uget @@ b_any (true, false)) @@ 
+    mul_idem (uget e1) (uget e2)))
 
 and bop ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2, d2, e2) as right) = 
   infer ctx left;
