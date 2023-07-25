@@ -75,13 +75,13 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | SectRight (left, Lop Alt) -> alt "quote" @@ sect_right (false, true) ctx fn0 left
   | SectRight (left, Lop Append) -> app @@ sect_right (false, true) ctx fn0 left
   | SectRight (left, Lop Join) -> alt "list" @@ sect_right (false, true) ctx fn0 left
-  | Sect Aop _ -> ints @@ sect fn0
+  | Sect Aop _ -> ints @@ sect true fn0
   | Sect Cop _ -> ints2 @@ sect_cmp fn0
-  | Sect Lop Cat -> cat "quote" @@ sect fn0
-  | Sect Lop Ap -> cat "list" @@ sect fn0
-  | Sect Lop Alt -> alt "quote" @@ sect fn0
-  | Sect Lop Append -> app @@ sect fn0
-  | Sect Lop Join -> alt "list" @@ sect fn0
+  | Sect Lop Cat -> cat "quote" @@ sect true fn0
+  | Sect Lop Ap -> cat "list" @@ sect false fn0
+  | Sect Lop Alt -> alt "quote" @@ sect false fn0
+  | Sect Lop Append -> app @@ sect false fn0
+  | Sect Lop Join -> alt "list" @@ sect false fn0
   
   | Uop ((_, _, (i1, o1, d1, e1) as just), Dag) -> 
     infer (ctx |> swap_uvar |> swap_svar) just;
@@ -446,11 +446,11 @@ and sect_right d ctx (i0, o0, d0, e0) (_, _, (i1, o1, _, e1) as left) =
   and2_ d0 (b_any d) e1; Det.unify e0 e1;
   v0, v1, v2
 
-and sect (i0, o0, d0, e0) = 
+and sect b (i0, o0, d0, e0) = 
   let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
   let c0 = mk_poly_costack () in
   i0 =?= v2 @> v1 @> c0; o0 =?= v0 @> c0;
-  set_det d0 (true, false);
+  set_det d0 (true && b, false);
   set_det e0 (true, true);
   v0, v1, v2
 
@@ -491,7 +491,8 @@ and sect_cmp (i0, o0, d0, e0) =
   let s0 = S.ufresh () in
   let c0 = s0 @>> C.ufresh () in
   i0 =?= v2 @> v1 @> c0; o0 =?= s0 @>> c0;
-  set_true d0 e0; 
+  set_det d0 (false, false);
+  set_det e0 (true, true);
   v1, v2
 
 and ints (v0, v1, v2) = 
