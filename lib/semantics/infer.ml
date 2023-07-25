@@ -10,10 +10,6 @@ open Ctx
 open Unify
 open Ucommon
 
-module V = Value
-module S = Stack
-module C = Costack
-
 exception InferError of
     Span.t
   * Ctx.t
@@ -41,8 +37,8 @@ let or2fresh () = or2_fresh (), or2_fresh ()
 let b_any det = uref [[ref (Det.BConst det)]]
 let set_det d0 det = Det.unify d0 (b_any det)
 let set_true d0 e0 = set_det d0 (true, true); set_det e0 (true, true)
-let set_int v0 = Value.unify v0 (Value.usyn "int" [])
-let set_hof hof v fn = Value.unify v @@ V.usyn hof [V.uatom fn]
+let set_int v0 = V.unify v0 (V.usyn "int" [])
+let set_hof hof v fn = V.unify v @@ V.usyn hof [V.uatom fn]
 let alt_ d0 d1 d2 = 
   Det.unify d0 @@ uref @@ Det.mul_idem
     (union (uget d1) (uget d2))
@@ -423,7 +419,7 @@ and base_coelim ctx (_, _, d0, e0) (_, _, (_, _, d1, e1) as left) (_, _, (_, _, 
 and bop ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2, d2, e2) as right) = 
   infer ctx left;
   infer ctx right;
-  let v0, v1, v2 = Value.(uvar (), uvar (), uvar ()) in
+  let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
   let c0, c1, c2 = mk_poly_costack (), mk_init_costack (), mk_init_costack () in
   i0 =?= c0; o0 =?= v0 @> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
@@ -433,7 +429,7 @@ and bop ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2, d2
 
 and sect_left ctx (i0, o0, d0, e0) (_, _, (i2, o2, d2, e2) as right) = 
   infer ctx right;
-  let v0, v1, v2 = Value.(uvar (), uvar (), uvar ()) in
+  let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
   let c0, c2 = mk_poly_costack (), mk_init_costack () in
   i0 =?= v1 @> c0; o0 =?= v0 @> c0;
   i2 =?= c2; o2 =?= v2 @> c2;
@@ -442,7 +438,7 @@ and sect_left ctx (i0, o0, d0, e0) (_, _, (i2, o2, d2, e2) as right) =
 
 and sect_right ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) = 
   infer ctx left;
-  let v0, v1, v2 = Value.(uvar (), uvar (), uvar ()) in
+  let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
   let c0, c1 = mk_poly_costack (), mk_init_costack () in
   i0 =?= v2 @> c0; o0 =?= v0 @> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
@@ -450,7 +446,7 @@ and sect_right ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) =
   v0, v1, v2
 
 and sect (i0, o0, d0, e0) = 
-  let v0, v1, v2 = Value.(uvar (), uvar (), uvar ()) in
+  let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
   let c0 = mk_poly_costack () in
   i0 =?= v2 @> v1 @> c0; o0 =?= v0 @> c0;
   set_true d0 e0; 
@@ -459,9 +455,9 @@ and sect (i0, o0, d0, e0) =
 and bop_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2, d2, e2) as right) = 
   infer ctx left;
   infer ctx right;
-  let v1, v2 = Value.(uvar (), uvar ()) in
-  let s0 = Stack.ufresh () in
-  let c0, c1, c2 = s0 @>> Costack.ufresh (), mk_init_costack (), mk_init_costack () in
+  let v1, v2 = V.(uvar (), uvar ()) in
+  let s0 = S.ufresh () in
+  let c0, c1, c2 = s0 @>> C.ufresh (), mk_init_costack (), mk_init_costack () in
   i0 =?= c0; o0 =?= s0 @>> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
   i2 =?= c2; o2 =?= v2 @> c2;
@@ -470,9 +466,9 @@ and bop_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2
 
 and sect_left_cmp ctx (i0, o0, d0, e0) (_, _, (i2, o2, d2, e2) as right) = 
   infer ctx right;
-  let v1, v2 = Value.(uvar (), uvar ()) in
-  let s0 = Stack.ufresh () in
-  let c0, c2 = s0 @>> Costack.ufresh (), mk_init_costack () in
+  let v1, v2 = V.(uvar (), uvar ()) in
+  let s0 = S.ufresh () in
+  let c0, c2 = s0 @>> C.ufresh (), mk_init_costack () in
   i0 =?= v1 @> c0; o0 =?= s0 @>> c0;
   i2 =?= c2; o2 =?= v2 @> c2;
   Det.unify d0 d2; Det.unify e0 e2;
@@ -480,18 +476,18 @@ and sect_left_cmp ctx (i0, o0, d0, e0) (_, _, (i2, o2, d2, e2) as right) =
 
 and sect_right_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) = 
   infer ctx left;
-  let v1, v2 = Value.(uvar (), uvar ()) in
-  let s0 = Stack.ufresh () in
-  let c0, c1 = s0 @>> Costack.ufresh (), mk_init_costack () in
+  let v1, v2 = V.(uvar (), uvar ()) in
+  let s0 = S.ufresh () in
+  let c0, c1 = s0 @>> C.ufresh (), mk_init_costack () in
   i0 =?= v2 @> c0; o0 =?= s0 @>> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
   Det.unify d0 d1; Det.unify e0 e1;
   v1, v2
 
 and sect_cmp (i0, o0, d0, e0) = 
-  let v1, v2 = Value.(uvar (), uvar ()) in
-  let s0 = Stack.ufresh () in
-  let c0 = s0 @>> Costack.ufresh () in
+  let v1, v2 = V.(uvar (), uvar ()) in
+  let s0 = S.ufresh () in
+  let c0 = s0 @>> C.ufresh () in
   i0 =?= v2 @> v1 @> c0; o0 =?= s0 @>> c0;
   set_true d0 e0; 
   v1, v2
@@ -502,7 +498,7 @@ and ints (v0, v1, v2) =
 and ints2 (v1, v2) = set_int v1; set_int v2
 
 and cat hof (v0, v1, v2) = 
-  let c0, c1, c2 = Costack.(ufresh (), ufresh (), ufresh ()) in
+  let c0, c1, c2 = C.(ufresh (), ufresh (), ufresh ()) in
   let d0, d1, d2 = and2_fresh () in
   let e0, e1, e2 = and2_fresh () in
   set_hof hof v0 (c0, c2, d0, e0);
@@ -510,7 +506,7 @@ and cat hof (v0, v1, v2) =
   set_hof hof v2 (c1, c2, d2, e2)
 
 and alt hof (v0, v1, v2) = 
-  let c0, c1 = Costack.(ufresh () , ufresh ()) in
+  let c0, c1 = C.(ufresh () , ufresh ()) in
   let d0, d1, d2 = alt_fresh () in
   let e0, e1, e2 = alt_fresh () in
   set_hof hof v0 (c0, c1, d0, e0);
@@ -518,7 +514,7 @@ and alt hof (v0, v1, v2) =
   set_hof hof v2 (c0, c1, d2, e2)
 
 and app (v0, v1, v2) = 
-  let c0, c1 = Costack.(ufresh () , ufresh ()) in
+  let c0, c1 = C.(ufresh () , ufresh ()) in
   let d0, d1, d2 = and2_fresh () in
   let e0, e1, e2 = and2_fresh () in
   set_hof "list" v0 (c0, c1, d0, e0);
