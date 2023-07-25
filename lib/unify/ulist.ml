@@ -25,6 +25,13 @@ module Make (U : UNIFIABLE) = struct
   let useq u = uref @@ USeq u
   let ufresh () = useq @@ unique ()
 
+  let rec pretty out = uget %> function
+    | UCons (u, us) -> 
+      pretty out us;
+      fprintf out " "; U.pretty out u
+    | USeq j -> fprintf out "%d*" j
+    | UNil -> fprintf out "."
+
   let rec uiter ?(g=ignore) f us = match uget us with
     | UCons (u, us) -> f u; uiter ~g f us
     | USeq u -> g u
@@ -76,11 +83,12 @@ module Make (U : UNIFIABLE) = struct
       | USeq _, UNil | UNil, USeq _ | UNil, UNil -> UNil
     end r
 
-  and occurs v = 
+  and occurs v us = 
     let msg = 
       Printf.sprintf
-        "Cannot unify a variable with a sequence that contains it" in
-    uiter ~g:(assert_exn (UnifError msg) v) (U.occurs v)
+        "Cannot unify a variable [%d] with a sequence [%s] that contains it"
+        v (pstr pretty us) in
+    uiter ~g:(assert_exn (UnifError msg) v) (U.occurs v) us
 
   let rec extend unifier ulst vs = match uget ulst with
     | UCons (_, us) -> extend unifier us vs
@@ -101,13 +109,6 @@ module Make (U : UNIFIABLE) = struct
           nu
     | UCons (u, us) -> uref @@ UCons (U.generalize (U.memo ()) u, generalize m us)
     | UNil -> unil ()
-  
-  let rec pretty out = uget %> function
-    | UCons (u, us) -> 
-      pretty out us;
-      fprintf out " "; U.pretty out u
-    | USeq j -> fprintf out "%d*" j
-    | UNil -> fprintf out "."
   
   let rec atleast m = curry @@ Tuple2.mapn uget %> function
     | UCons (u, us), UCons (v, vs) -> U.atleast m u v && atleast m us vs
