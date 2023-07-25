@@ -26,27 +26,6 @@ module Make(C : Constant) = struct
   let memo_ : memo = Hashtbl.create 16
   let memo () = memo_
   let refresh_memo () = Hashtbl.clear memo_
-
-  let rec pretty_ubool out = uget %> pretty_ubool_ out
-  and pretty_ubool_ out = function
-    | [] -> fprintf out "%s" @@ C.to_string C.zero
-    | h :: t -> 
-      pretty_ubool_inner out h;
-      List.iter (fun x -> fprintf out " ^ "; pretty_ubool_inner out x) t
-  and pretty_ubool_inner out = function
-    | [] -> fprintf out "%s" @@ C.to_string C.one
-    | h :: t -> 
-      pretty_boolean out h;
-      List.iter (fun x -> fprintf out " & "; pretty_boolean out x) t
-  and pretty_boolean out = (!) %> pretty_boolean_ out
-  and pretty_boolean_ out = function
-    | BExpr e -> pretty_ubool_ out e
-    | BVar i -> fprintf out "X%d" i
-    | BConst c -> fprintf out "%s" @@ C.to_string c
-  let pretty_print printer in_ = 
-    let out = IO.output_string () in
-    printer out in_;
-    IO.close_out out
   
   let bfresh_ () = [[ref (BVar (unique ()))]]
   let bfresh () = uref (bfresh_ ())
@@ -111,6 +90,27 @@ module Make(C : Constant) = struct
     m |> Hashtbl.modify_opt v @@ function
       | Some i -> Some (i + 1)
       | None -> Some 1
+  
+  let rec pretty_ubool out = uget %> simp %> pretty_ubool_ out
+    and pretty_ubool_ out = function
+      | [] -> fprintf out "%s" @@ C.to_string C.zero
+      | h :: t -> 
+        pretty_ubool_inner out h;
+        List.iter (fun x -> fprintf out " ^ "; pretty_ubool_inner out x) t
+    and pretty_ubool_inner out = function
+      | [] -> fprintf out "%s" @@ C.to_string C.one
+      | h :: t -> 
+        pretty_boolean out h;
+        List.iter (fun x -> fprintf out " & "; pretty_boolean out x) t
+    and pretty_boolean out = (!) %> pretty_boolean_ out
+    and pretty_boolean_ out = function
+      | BExpr e -> pretty_ubool_ out e
+      | BVar i -> fprintf out "X%d" i
+      | BConst c -> fprintf out "%s" @@ C.to_string c
+    let pretty_print printer in_ = 
+      let out = IO.output_string () in
+      printer out in_;
+      IO.close_out out
   
   let get_var b = 
     let m = Hashtbl.create 16 in
