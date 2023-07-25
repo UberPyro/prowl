@@ -351,10 +351,8 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
         let msg = sprintf "Cannot find unbound variable [%s]" k in
         UnifError msg |> raise in
     let i, o, d, e = 
-      if generalized then begin
-        Fn.refresh_memo ();
-        Fn.generalize (Fn.memo ()) (i1, o1, d1, e1);
-      end else i1, o1, d1, e1 in
+      if generalized then Fn.gen (i1, o1, d1, e1)
+      else i1, o1, d1, e1 in
     i0 =?= i; o0 =?= o;
     Det.unify d0 d; Det.unify e0 e
   

@@ -72,7 +72,9 @@ end = struct
   type t = Costack.t * Costack.t * Det.t * Det.t
   type memo = unit
   let memo () = ()
-  let refresh_memo () = ()
+  let refresh_memo () = 
+    Costack.refresh_memo ();
+    Det.refresh_memo ()
   let unify (c1, c2, x1, y1) (d1, d2, x2, y2) = 
     Costack.unify c1 d1;
     Costack.unify c2 d2;
@@ -101,9 +103,9 @@ end = struct
     && Det.atleast m x2 y2
   let ge f1 f2 = atleast (Matcher.mk ()) f1 f2
   let eq f1 f2 = ge f1 f2 && ge f2 f1
-  let gen = 
-    Fn.refresh_memo ();
-    generalize ()
+  let gen f = 
+    refresh_memo ();
+    generalize () f
 end
 
 let fresh () = Costack.ufresh (), Costack.ufresh (), Det.bfresh (), Det.bfresh ()

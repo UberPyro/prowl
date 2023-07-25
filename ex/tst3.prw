@@ -2,8 +2,6 @@
 
 = h pred
 
-
-
 : fib z -- z
 = fib
   dup (> 1)
