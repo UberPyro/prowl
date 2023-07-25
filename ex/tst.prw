@@ -1,8 +1,9 @@
+= succ (+ 1)
+
 = fac ex N -> 
   (N > 1) exch (
-       N * (N - 1) fac
+       N * (N - 1) succ
     || 0
   )
 
-/* = main 5 fac */
 = main main

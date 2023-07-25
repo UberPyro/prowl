@@ -435,7 +435,7 @@ and bop_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) (_, _, (i2, o2
   infer ctx right;
   let v1, v2 = Value.(uvar (), uvar ()) in
   let s0 = Stack.ufresh () in
-  let c0, c1, c2 = s0 @>> mk_init_costack (), mk_poly_costack (), mk_poly_costack () in
+  let c0, c1, c2 = s0 @>> Costack.ufresh (), mk_poly_costack (), mk_poly_costack () in
   i0 =?= c0; o0 =?= s0 @>> c0;
   i1 =?= c1; o1 =?= v1 @> c1;
   i2 =?= c2; o2 =?= v2 @> c2;
@@ -446,7 +446,7 @@ and sect_left_cmp ctx (i0, o0, d0, e0) (_, _, (i2, o2, d2, e2) as right) =
   infer ctx right;
   let v1, v2 = Value.(uvar (), uvar ()) in
   let s0 = Stack.ufresh () in
-  let c0, c2 = mk_poly_costack (), mk_poly_costack () in
+  let c0, c2 = Costack.ufresh (), mk_init_costack () in
   i0 =?= v1 @> c0; o0 =?= s0 @>> c0;
   i2 =?= c2; o2 =?= v2 @> c0;
   Det.unify d0 d2; Det.unify e0 e2;
@@ -456,7 +456,7 @@ and sect_right_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) =
   infer ctx left;
   let v1, v2 = Value.(uvar (), uvar ()) in
   let s0 = Stack.ufresh () in
-  let c0, c1 = mk_poly_costack (), mk_poly_costack () in
+  let c0, c1 = Costack.ufresh (), mk_init_costack () in
   i0 =?= v2 @> c0; o0 =?= s0 @>> c0;
   i1 =?= c1; o1 =?= v1 @> c0;
   Det.unify d0 d1; Det.unify e0 e1;
@@ -465,7 +465,7 @@ and sect_right_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, d1, e1) as left) =
 and sect_cmp (i0, o0, d0, e0) = 
   let v1, v2 = Value.(uvar (), uvar ()) in
   let s0 = Stack.ufresh () in
-  let c0 = mk_poly_costack () in
+  let c0 = Costack.ufresh () in
   i0 =?= v2 @> v1 @> c0; o0 =?= s0 @>> c0;
   set_true d0 e0; 
   v1, v2
