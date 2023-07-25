@@ -1,14 +1,12 @@
-= x ex N -> (N > 1)
-= y ex N -> N
-= z (0 > 1)
+= pred (- 1)
 
-/*
-= succ (+ 1) 
-= fac ex N -> 
-  (N > 1) exch (
-       N * (N - 1) succ
-    || 0
-  )
-*/
+= g (> 1)
+= h (+ 1)
 
-= main main
+: fib z -- z
+= fib
+  dup (> 1)
+    pred (fib && pred) fib (+)
+  elim
+
+= main 5 fib
