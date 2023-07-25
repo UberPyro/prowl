@@ -77,8 +77,9 @@ let introduce_stkvar n u t =
 let pretty_ouro out t = 
   let lst = Ouro.to_list t.ctx in
   fprintf out "Context: \n";
-  lst |> List.iter @@ fun (n, (_, fn)) -> 
-    fprintf out "%s => " n;
+  lst |> List.iter @@ fun (n, (b, fn)) -> 
+    let g = if b then "+" else "-" in
+    fprintf out "%s %s => " g n;
     Fn.pretty out fn;
     fprintf out "%s" "\n"
 
