@@ -35,3 +35,8 @@ module type UNIFIABLE = sig
   val pretty : 'a BatInnerIO.output -> t -> unit
   val atleast : Matcher.t -> t -> t -> bool
 end
+
+let pstr f x = 
+  let out = IO.output_string () in
+  f out x;
+  IO.close_out out

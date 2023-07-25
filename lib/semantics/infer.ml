@@ -505,18 +505,15 @@ let top_stmts ctx =
       infer (insert d (false, fn) ctx') e;
       insert d (true, fn) ctx'
     | Def (d, Some ty, (_, _, fn as e)), _ -> 
-      Fn.unify fn @@ Elab.ty_expr ty;  (* assume fn is the annotated type *)
-      let annotctx = insert d (true, fn) ctx' in  (* assume fn is the annotation in its own body *)
-      infer annotctx e;  (* infer *)
-      let rec go ty_assume = 
-        (* if the annotation is more general than what was inferred *)
-        if not @@ Fn.ge fn ty_assume then begin
-          let fn_copy = Fn.gen fn in
-          (* assume fn is the inferred type in its own body -- already done mutably *)
-          infer annotctx e;  (* infer a more specific fn *)
-          go fn_copy
-        end in
-      go (Elab.ty_expr ty);  (* repeat if assumption was too general *)
+      let elab_ty = Elab.ty_expr ty in
+      let annotctx = insert d (true, Fn.gen elab_ty) ctx' in
+      infer annotctx e;
+      if not @@ Fn.ge fn elab_ty then
+        (let msg = sprintf
+          "The inferred type [%s] is less general than the annotation [%s]"
+          (pstr Fn.pretty fn)
+          (pstr Fn.pretty elab_ty) in
+        UnifError msg |> raise);
       annotctx
   end ctx
 

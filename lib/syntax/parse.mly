@@ -58,8 +58,8 @@ det:
 
 %inline mode: 
   | SPECIFY det SPLIT det {$2, $4}
-  | {DVar (Printf.sprintf "__internal%d" (unique ())), 
-     DVar (Printf.sprintf "__internal%d" (unique ()))}
+  | { DLit (conv (false, false)), 
+      DLit (conv (true, true)) }
 
 ty_expr: 
   | costack_ty BAR costack_ty mode

@@ -84,6 +84,14 @@ module Make(C : Constant) = struct
     List.sort Stdlib.compare %> go
 
   let add_xor b1 b2 = b1 @ b2 |> cancel_dups |> coal_add
+
+  let rec normalize_ = function
+    | [] -> [[ref @@ BConst C.zero]]
+    | lst -> List.map (fun y -> match y with
+      | [] -> [ref @@ BConst C.one]
+      | r -> List.map (fun x -> match !x with
+        | BExpr e -> ref @@ BExpr (normalize_ e)
+        | _ -> x) r) lst
   
   let rec simp b = 
     List.map begin fun bs -> 
@@ -97,7 +105,7 @@ module Make(C : Constant) = struct
       | xs, [] -> [xs]
       | xs, es -> List.fold mul_idem [xs] es
     end b
-    |> List.flatten |> cancel_dups |> coal_add
+    |> List.flatten |> cancel_dups |> coal_add |> normalize_
   
   let tally m v = 
     m |> Hashtbl.modify_opt v @@ function
@@ -136,10 +144,16 @@ module Make(C : Constant) = struct
   
   let size = List.flatten %> List.length
   let smaller x y = if size y > size x then y else x
-  let unify = unite ~sel:begin fun x y -> 
+  let unify u v = try unite ~sel:begin fun x y -> 
     solve (x @ y); 
     smaller (simp x) (simp y)
-  end
+  end u v with
+  | UnifError _ -> 
+    let msg = sprintf
+      "Cannot unify booleans [%s] and [%s]"
+      (pstr pretty_ubool u)
+      (pstr pretty_ubool v) in
+    UnifError msg |> raise
 
   let occurs _ _ = ()
   let rec generalize m t = t |> uget |> generalize_ m |> uref
@@ -152,26 +166,11 @@ module Make(C : Constant) = struct
         nu
     | BExpr b -> ref @@ BExpr (generalize_ m b)
     | _ -> t
+
+  let pretty = pretty_ubool
   
-  let rec pretty out t = pretty_ out (simp @@ uget t)
-  and pretty_ out = function
-    | [] -> fprintf out "%s" C.(to_string zero)
-    | h :: t -> 
-      pretty_inner out h;
-      List.iter (fun x -> fprintf out "%s" " ^ "; pretty_inner out x) t
-  and pretty_inner out = function
-    | [] -> fprintf out "%s" C.(to_string one)
-    | h :: t -> 
-      pretty_boolean out h;
-      List.iter (fun x -> fprintf out "%s" " "; pretty_boolean out x) t
-  
-  and pretty_boolean out = (!) %> function
-    | BVar i -> fprintf out "X%d" i
-    | BConst j -> fprintf out "%s" (C.to_string j)
-    | BExpr b -> pretty_ out b
-  
-  let rec atleast_ m = 
-    List.for_all2 (List.for_all2 (atleast_inner m))
+  let rec atleast_ m t1 t2 = 
+    List.for_all2 (List.for_all2 (atleast_inner m)) t1 t2
   
   and atleast_inner m = curry @@ Tuple2.mapn (!) %> function
     | BExpr e1, BExpr e2 -> atleast_ m e1 e2
@@ -181,6 +180,6 @@ module Make(C : Constant) = struct
     | _ -> false
   
   let atleast m t1 t2 = 
-    atleast_ m (t1 |> uget |> simp) (t2 |> uget |> simp)
+    atleast_ m (t1 |> uget %> simp) (t2 |> uget %> simp)
 
 end
