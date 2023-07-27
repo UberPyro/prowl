@@ -3,6 +3,8 @@ open Printf
 open Either
 open Ucommon
 
+exception BUError
+
 module type Constant = sig
   type t
   val and_const : t -> t -> t
@@ -121,7 +123,7 @@ module Make(C : Constant) = struct
     |> List.sort (fun x y -> Stdlib.compare (snd y) (snd x))
     |> List.map fst |> function
       | h :: _ -> h  (* variable with *most* counts *)
-      | [] -> raise @@ UnifError "Determinism Error!"
+      | [] -> raise BUError
   
   let extract b = 
     let v = get_var b in
@@ -147,13 +149,9 @@ module Make(C : Constant) = struct
   let unify u v = try unite ~sel:begin fun x y -> 
     solve (x @ y); 
     smaller (simp x) (simp y)
-  end u v with
-  | UnifError _ -> 
-    let msg = sprintf
-      "Cannot unify booleans [%s] and [%s]"
-      (pstr pretty_ubool u)
-      (pstr pretty_ubool v) in
-    UnifError msg |> raise
+  end u v with BUError -> 
+    UnifError (DifferentBooleans (pstr pretty_ubool u, pstr pretty_ubool v))
+    |> raise
 
   let occurs _ _ = ()
   let rec generalize m t = t |> uget |> generalize_ m |> uref

@@ -16,7 +16,7 @@ let () = match P.parse_argv op with
     with Infer.InferError (sp, ctx, msg) -> 
       let out = IO.output_string () in
       Span.print_span out sp;
-      IO.write_line out msg;
+      Unify.Ucommon.pp_err out msg;
       if debug then Ctx.pretty out ctx;
       IO.close_out out |> print_endline;
       exit 2

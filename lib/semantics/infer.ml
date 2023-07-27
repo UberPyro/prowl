@@ -1,5 +1,4 @@
 open! Batteries
-open Printf
 
 open Metadata
 open Syntax
@@ -10,7 +9,7 @@ open Ctx
 open Unify
 open Ucommon
 
-exception InferError of Span.t * Ctx.t * string
+exception InferError of Span.t * Ctx.t * uerr
 
 let and2 d0 e0 d1 e1 d2 e2 = 
   Det.unify d0 (uref @@ Det.mul_idem (uget d1) (uget d2));
@@ -341,8 +340,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     let (generalized, (i1, o1, d1, e1)), _ = 
       find_rec_opt k ctx
       |> Option.default_delayed @@ fun () -> 
-        let msg = sprintf "Cannot find unbound variable [%s]" k in
-        UnifError msg |> raise in
+        UnifError (UnboundVariable k) |> raise in
     let i, o, d, e = 
       if generalized then Fn.gen (i1, o1, d1, e1)
       else i1, o1, d1, e1 in
@@ -365,11 +363,8 @@ and stmts_rec ctx stmts =
     infer ctx' e;
     sty |> Option.may @@ Elab.ty_expr %> fun elab_ty -> 
       if not @@ Fn.ge fn elab_ty then
-        (let msg = sprintf
-          "The inferred type [%s] is less general than the annotation [%s]"
-          (pstr Fn.pretty fn)
-          (pstr Fn.pretty elab_ty) in
-        UnifError msg |> raise)
+        UnifError (TooGeneralSpec (pstr Fn.pretty fn, pstr Fn.pretty elab_ty))
+        |> raise
   end stmts;
   ctx'
 
@@ -531,11 +526,8 @@ let top_stmts ctx =
       let annotctx = insert d (true, Fn.gen elab_ty) ctx' in
       infer annotctx e;
       if not @@ Fn.ge fn elab_ty then
-        (let msg = sprintf
-          "The inferred type [%s] is less general than the annotation [%s]"
-          (pstr Fn.pretty fn)
-          (pstr Fn.pretty elab_ty) in
-        UnifError msg |> raise);
+        UnifError (TooGeneralSpec (pstr Fn.pretty fn, pstr Fn.pretty elab_ty))
+        |> raise;
       annotctx
   end ctx
 

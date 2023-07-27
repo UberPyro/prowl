@@ -2,7 +2,6 @@ open! Batteries
 
 open Syntax
 open Semantics
-open Unify
 open Ctx
 
 open System
@@ -65,10 +64,8 @@ let check debug fname args =
       | Ast.String _ -> push_str acc
       | Ast.Int _ -> push_int acc
     end (mk_init_costack ()) (List.map parse_arg args) in
-  begin try
     main_in =?= cs_in; 
-    main_out =?= mk_end_costack ()
-  with Ucommon.UnifError msg -> failwith @@ "Error in main: " ^ msg end;
+    main_out =?= mk_end_costack ();
   if debug then begin
     let out = IO.output_string () in
     pretty out ctx;

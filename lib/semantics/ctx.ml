@@ -41,14 +41,16 @@ let insert k v t = map_ctx (Ouro.insert k v) t
 let vmap f t = map_ctx (Ouro.vmap f) t
 
 let unify_uvar n u t = 
-  Value.unify u @@ Map.find n @@ t.uctx;
-  vc_incr n t.ucount
+  try Value.unify u @@ Map.find n @@ t.uctx;
+  vc_incr n t.ucount with Not_found -> 
+    Unify.Ucommon.UnifError (UnboundUVar n) |> raise
 
 let uincr_op n t = vc_incr n t.udagcount
 
 let unify_ustack n u t = 
-  Stack.unify u @@ Map.find n @@ t.sctx;
-  vc_incr n t.scount
+  try Stack.unify u @@ Map.find n @@ t.sctx;
+  vc_incr n t.scount with Not_found -> 
+    Unify.Ucommon.UnifError (UnboundSVar n) |> raise
 
 let sincr n t = vc_incr n t.scount
 

@@ -78,23 +78,17 @@ module Make (U : UNIFIABLE) = struct
         U.unify u v;
         unify us vs;
         s
-      | UCons _, UNil | UNil, UCons _ -> 
-        raise @@ UnifError "Cannot unify differently sized sequences"
+      | UCons _, UNil | UNil, UCons _ -> UnifError DifferentSizes |> raise
       | USeq _, UNil | UNil, USeq _ | UNil, UNil -> UNil
     end r
 
-  and occurs v us = 
-    let msg = 
-      Printf.sprintf
-        "Cannot unify a variable [%d] with a sequence [%s] that contains it"
-        v (pstr pretty us) in
-    uiter ~g:(assert_exn (UnifError msg) v) (U.occurs v) us
+  and occurs v us = uiter
+    ~g:(assert_exn (UnifError (OccursSequence (v, (pstr pretty us)))) v)
+    (U.occurs v) us
 
   let rec extend unifier ulst vs = match uget ulst with
     | UCons (_, us) -> extend unifier us vs
-    | UNil -> 
-      UnifError "Cannot extend terminated difference list"
-      |> raise
+    | UNil -> UnifError TerminatedSequence |> raise
     | USeq _ -> unifier ulst vs
 
   let rec rebase base vs = match uget vs with

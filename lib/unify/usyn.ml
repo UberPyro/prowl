@@ -35,27 +35,21 @@ module Make(U : UNIFIABLE) = struct
       | UAtom _, UVar _ -> x
       | USyntax (elem1, args1), USyntax (elem2, args2) -> 
         if elem1 <> elem2 then
-          UnifError (sprintf "Cannot unify distinct names [%s] and [%s]" elem1 elem2)
+          UnifError (DifferentNames (elem1, elem2))
           |> raise;
         begin try List.iter2 unify args1 args2; x
         with Invalid_argument _ -> 
-          UnifError (
-            sprintf "Cannot unify terms of arity [%d] and [%d]"
-            (List.length args1) (List.length args2))
+          UnifError (DifferentArity ((List.length args1), (List.length args2)))
           |> raise end
       | UAtom a1, UAtom a2 -> 
         U.unify a1 a2;
         x
       | UAtom _, USyntax (n, _) | USyntax (n, _), UAtom _ -> 
-        UnifError (sprintf "Cannot unify term head [%s] with term contents" n)
-        |> raise
-      in
+        UnifError (TermHead n) |> raise in
     Uref.unite ~sel r
 
   and occurs i = uget %> function
-      | UVar j when i = j -> 
-        UnifError "Cannot unify a variable with syntax that contains it"
-        |> raise
+      | UVar j when i = j -> UnifError Occurs |> raise
       | UVar _ -> ()
       | USyntax (_, us) -> List.iter (occurs i) us
       | UAtom a -> U.occurs i a
