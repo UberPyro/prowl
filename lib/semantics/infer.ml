@@ -21,15 +21,8 @@ let and2_fresh () =
   let d0, d1, d2 = Det.(bfresh (), bfresh (), bfresh ()) in
   and2_ d0 d1 d2;
   d0, d1, d2
-let and2fresh () = and2_fresh (), and2_fresh ()
 let union d1 d2 = Det.add_xor d1 @@ Det.add_xor d2 @@ Det.mul_idem d1 d2
 let union_ d1 d2 = uref @@ union (uget d1) (uget d2)
-let or_ d0 d1 d2 = Det.unify d0 @@ union_ d1 d2
-let or2_fresh () = 
-  let d0, d1, d2 = Det.(bfresh (), bfresh (), bfresh ()) in
-  or_ d0 d1 d2;
-  d0, d1, d2
-let or2fresh () = or2_fresh (), or2_fresh ()
 let b_any det = uref [[ref (Det.BConst det)]]
 let set_det d0 det = Det.unify d0 (b_any det)
 let set_true d0 e0 = set_det d0 (true, true); set_det e0 (true, true)
