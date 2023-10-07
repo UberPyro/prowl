@@ -74,8 +74,6 @@ rule token = parse
   | "nop" {NOP} | "id" {ID} | "ab" {AB}
 
   | id as s     {VAR s}
-  | cap_id as s {CAP s}
-  | "'" (id as s) {STACK_VAR s}
 
 and comment level = parse
   | "*/" {if level = 0 then token lexbuf
