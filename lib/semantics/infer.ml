@@ -133,6 +133,26 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     i0 =?= i1; i0 =?= i2;
     o0 =?= o1; o0 =?= o2
   
+  | Dop ((_, _, (i1, o1, _, _) as left), Inter, (_, _, (i2, o2, _, _) as right)) -> 
+    base_and ctx fn0 left right;
+    i0 =?= i1; i0 =?= i2;
+    o0 =?= o1; o0 =?= o2
+  
+  | Dop ((ex1, sp1, (i1, o1, d1, e1)), Procat, (_, _, (i2, o2, _, _) as right)) -> 
+    base_and ctx fn0 (ex1, sp1, (i1, o1, e1, d1)) right;
+    i0 =?= o1;
+    i1 =?= i2;
+    o0 =?= o2
+  
+  | Dop ((_, _, (i1, o1, d1, e1) as left), Proverse, (_, _, (i2, o2, d2, e2) as right)) -> 
+    infer ctx left; infer ctx right;
+    let d3, e3 = Det.bfresh (), Det.bfresh () in
+    and2_ d3 e1 d2; and2_ e3 d1 e2;
+    and2_ d0 d3 d1; and2_ e0 e3 e1;
+    i0 =?= o1;
+    i2 =?= o2;
+    o0 =?= i1
+  
   | Nop Gen -> 
     let stunted, stack = C.ufresh (), S.ufresh () in
     i0 =?= stack @>> stunted;

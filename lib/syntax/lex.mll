@@ -43,6 +43,9 @@ rule token = parse
   | "}"         {RBRACE}
 
   | ","         {UNION}
+  | "|"         {UNION}
+  | "&"         {INTER}
+  | ";"         {SEMI}
   | "^?"        {MARK}
   | "^*"        {STAR}
   | "^+"        {PLUS}
@@ -57,6 +60,8 @@ rule token = parse
 
   | ">>"        {CAT}
   | "<>"        {ALT}
+  | "--"        {PROCAT}
+  | "~~"        {PROVERSE}
 
   | (integer as i) {INT (int_of_string i)}
   | '`' (string_body as s) '`' {STRING s}

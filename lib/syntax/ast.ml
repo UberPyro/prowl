@@ -80,6 +80,10 @@ and dop =
   
   | Jux
   | Union
+  | Inter
+
+  | Procat
+  | Proverse
 
 (* nullary/stack operators *)
 and nop = 
