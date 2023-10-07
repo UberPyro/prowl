@@ -46,31 +46,19 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | Bop (left, Aop _, right) -> ints @@ bop ctx fn0 left right
   | Bop (left, Cop _, right) -> ints2 @@ bop_cmp ctx fn0 left right
   | Bop (left, Lop Cat, right) -> cat "quote" @@ bop ctx fn0 left right
-  | Bop (left, Lop Ap, right) -> cat "list" @@ bop ctx fn0 left right
   | Bop (left, Lop Alt, right) -> alt "quote" @@ bop ctx fn0 left right
-  | Bop (left, Lop Append, right) -> app @@ bop ctx fn0 left right
-  | Bop (left, Lop Join, right) -> alt "list" @@ bop ctx fn0 left right
   | SectLeft (Aop _, right) -> ints @@ sect_left true ctx fn0 right
   | SectLeft (Cop _, right) -> ints2 @@ sect_left_cmp ctx fn0 right
   | SectLeft (Lop Cat, right) -> cat "quote" @@ sect_left true ctx fn0 right
-  | SectLeft (Lop Ap, right) -> cat "list" @@ sect_left false ctx fn0 right
   | SectLeft (Lop Alt, right) -> alt "quote" @@ sect_left false ctx fn0 right
-  | SectLeft (Lop Append, right) -> app @@ sect_left false ctx fn0 right
-  | SectLeft (Lop Join, right) -> alt "list" @@ sect_left false ctx fn0 right
   | SectRight (left, Aop _) -> ints @@ sect_right true ctx fn0 left
   | SectRight (left, Cop _) -> ints2 @@ sect_right_cmp ctx fn0 left
   | SectRight (left, Lop Cat) -> cat "quote" @@ sect_right true ctx fn0 left
-  | SectRight (left, Lop Ap) -> cat "list" @@ sect_right false ctx fn0 left
   | SectRight (left, Lop Alt) -> alt "quote" @@ sect_right false ctx fn0 left
-  | SectRight (left, Lop Append) -> app @@ sect_right false ctx fn0 left
-  | SectRight (left, Lop Join) -> alt "list" @@ sect_right false ctx fn0 left
   | Sect Aop _ -> ints @@ sect true fn0
   | Sect Cop _ -> ints2 @@ sect_cmp fn0
   | Sect Lop Cat -> cat "quote" @@ sect true fn0
-  | Sect Lop Ap -> cat "list" @@ sect false fn0
   | Sect Lop Alt -> alt "quote" @@ sect false fn0
-  | Sect Lop Append -> app @@ sect false fn0
-  | Sect Lop Join -> alt "list" @@ sect false fn0
   
   | Uop ((_, _, (i1, o1, d1, e1) as just), Dag) -> 
     infer (ctx |> swap_uvar |> swap_svar) just;
@@ -213,27 +201,11 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     i0 =?= v @> c0;
     o0 =?= push_quo (c1, v @> c1, b_any (true, true), b_any (true, true)) @@ c0;
     set_true d0 e0
-  
-  | Nop Pure -> 
-    let c0, c1 = mk_poly_costack (), mk_poly_costack () in
-    let v = mk_var () in
-    i0 =?= v @> c0;
-    o0 =?= push_list (c1, v @> c1, b_any (true, true), b_any (true, true)) @@ c0;
-    set_true d0 e0
+
   
   | Nop DivMod -> 
     let c1 = push_int @@ push_int @@ mk_poly_costack () in
     i0 =?= c1; o0 =?= c1;
-    set_true d0 e0
-  
-  | Nop Lin -> 
-    let c1, c2 = mk_poly_costack (), mk_poly_costack () in
-    let d1, d2, d3 = and2_fresh () in
-    let e1, e2, e3 = and2_fresh () in
-    let s = S.ufresh () in
-    let c0 = s @>> C.ufresh () in
-    i0 =?= push_quo (c1, c2, d2, e2) @@ push_list (c1, c2, d3, e3) @@ s @>> c0;
-    o0 =?= push_list (c1, c2, d1, e1) @@ c0;
     set_true d0 e0
   
   | Nop Parse -> 
@@ -276,17 +248,6 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     let c0 = mk_poly_costack () in
     i0 =?= c0;
     o0 =?= push_quo fn1 c0;
-    set_det d0 (false, true); set_det e0 (true, true)
-  
-  | Lit List lst -> 
-    let fn0 = mk_poly_costack (), mk_poly_costack (), Det.bfresh (), Det.bfresh () in
-    List.iter begin fun (_, _, fn as just) -> 
-      infer ctx just;
-      Fn.unify fn0 fn
-    end lst;
-    let c0 = mk_poly_costack () in
-    i0 =?= c0;
-    o0 =?= push_list fn0 c0;
     set_det d0 (false, true); set_det e0 (true, true)
   
   | Ex (s, (_, _, (i1, o1, d1, e1) as just), b) ->

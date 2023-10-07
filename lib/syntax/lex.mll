@@ -42,7 +42,7 @@ rule token = parse
   | "{"         {LBRACE}
   | "}"         {RBRACE}
 
-  | "|"         {UNION}
+  | ","         {UNION}
   | "^?"        {MARK}
   | "^*"        {STAR}
   | "^+"        {PLUS}
@@ -58,8 +58,6 @@ rule token = parse
   | ">>"        {CAT}
   | "<>"        {ALT}
 
-  | ","         {COMMA}
-
   | (integer as i) {INT (int_of_string i)}
   | '`' (string_body as s) '`' {STRING s}
   | '"' (string_body as s) '"' {STRING s}
@@ -71,9 +69,9 @@ rule token = parse
   | "cmp" {CMP}
   | "dup" {DUP} | "zap" {ZAP} | "swap" {SWAP}
   | "cons" {CONS} | "dip" {DIP} | "unit" {UNIT}
-  | "divmod" {DIVMOD} | "lin" {LIN}
+  | "divmod" {DIVMOD}
   | "parse" {PARSE} | "show" {SHOW}
-  | "nop" {NOP} | "id" {ID} | "ab" {AB} | "pure" {PURE}
+  | "nop" {NOP} | "id" {ID} | "ab" {AB}
 
   | id as s     {VAR s}
   | cap_id as s {CAP s}

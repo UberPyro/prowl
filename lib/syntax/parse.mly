@@ -19,9 +19,9 @@
   TENSOR PONDER FORK PICK CROSS GUESS UNION
   GEN FAB EXCH ELIM CMP
   DUP ZAP SWAP CONS DIP CAT UNIT
-  DIVMOD LIN PARSE SHOW
-  NOP ID AB PURE ALT
-  COMMA EOF
+  DIVMOD PARSE SHOW
+  NOP ID AB ALT
+  EOF
   PIPE BAR DOT DOLLAR
   SPLIT FN PT MT RL XOR AND
 
@@ -135,7 +135,6 @@ _hiexpr:
   | INT {Int $1}
   | STRING {String $1}
   | LBRACK sect RBRACK {Quote $2}
-  | LBRACE separated_list(COMMA, sect) RBRACE {List $2}
 
 %inline bop: 
   | ADD {Aop Add}
@@ -168,5 +167,5 @@ _hiexpr:
 %inline nop: 
   | GEN {Gen} | FAB {Fab} | EXCH {Exch} | ELIM {Elim} | CMP {Cmp}
   | DUP {Dup} | ZAP {Zap} | SWAP {Swap} | CONS {Cons} | DIP {Dip} | UNIT {Unit}
-  | DIVMOD {DivMod} | LIN {Lin} | PARSE {Parse} | SHOW {Show}
-  | NOP {Noop} | ID {Id} | AB {Ab} | PURE {Pure}
+  | DIVMOD {DivMod} | PARSE {Parse} | SHOW {Show}
+  | NOP {Noop} | ID {Id} | AB {Ab}

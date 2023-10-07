@@ -60,10 +60,7 @@ and cop =
 (* lifted operators *)
 and lop = 
   | Cat
-  | Ap
-  | Append
   | Alt
-  | Join
 
 (* unary operators *)
 and uop = 
@@ -88,15 +85,14 @@ and dop =
 and nop = 
   | Gen | Fab | Exch | Elim | Cmp
   | Dup | Zap | Swap | Cons | Dip | Unit
-  | DivMod | Lin | Parse | Show
-  | Noop | Id | Ab | Pure
+  | DivMod | Parse | Show
+  | Noop | Id | Ab
 
 and lit = 
   | Int of int
   | String of string
 
   | Quote of expr
-  | List of expr list
 
 and stmt = _stmt * Metadata.Span.t
 and _stmt = 
