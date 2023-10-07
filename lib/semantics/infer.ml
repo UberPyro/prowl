@@ -23,6 +23,11 @@ let and2_fresh () =
   d0, d1, d2
 let union d1 d2 = Det.add_xor d1 @@ Det.add_xor d2 @@ Det.mul_idem d1 d2
 let union_ d1 d2 = uref @@ union (uget d1) (uget d2)
+let or_ d0 d1 d2 = Det.unify d0 @@ union_ d1 d2
+let or2_fresh () = 
+  let d0, d1, d2 = Det.(bfresh (), bfresh (), bfresh ()) in
+  or_ d0 d1 d2;
+  d0, d1, d2
 let b_any det = uref [[ref (Det.BConst det)]]
 let set_det d0 det = Det.unify d0 (b_any det)
 let set_true d0 e0 = set_det d0 (true, true); set_det e0 (true, true)
@@ -201,6 +206,12 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     o0 =?= push_quo (c1, v @> c1, b_any (true, true), b_any (true, true)) @@ c0;
     set_true d0 e0
 
+  | Nop Call -> 
+    let c0, c1 = C.ufresh (), C.ufresh () in
+    let d1, d2 = Det.bfresh (), Det.bfresh () in
+    i0 =?= push_quo (c0, c1, d1, d2) c0;
+    o0 =?= c1;
+    Det.unify d0 d1; Det.unify e0 d2
   
   | Nop DivMod -> 
     let c1 = push_int @@ push_int @@ mk_poly_costack () in
@@ -217,6 +228,28 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     let c0 = mk_poly_costack () in
     i0 =?= push_int c0;
     o0 =?= push_str c0;
+    set_true d0 e0
+  
+  | Nop Push -> 
+    let c1, c2 = mk_poly_costack (), mk_poly_costack () in
+    let d1, d2, d3 = or2_fresh () in
+    let e1, e2, e3 = or2_fresh () in
+    let s = S.ufresh () in
+    let c0 = s @>> C.ufresh () in
+    set_det e3 (true, true);
+    i0 =?= push_quo (c1, c2, d2, e2) @@ push_quo (c1, c2, d3, e3) @@ s @>> c0;
+    o0 =?= push_quo (c1, c2, d1, e1) @@ c0;
+    set_true d0 e0
+  
+  | Nop Enq -> 
+    let c1, c2 = mk_poly_costack (), mk_poly_costack () in
+    let d1, d2, d3 = or2_fresh () in
+    let e1, e2, e3 = or2_fresh () in
+    let s = S.ufresh () in
+    let c0 = s @>> C.ufresh () in
+    set_det e2 (true, true);
+    i0 =?= push_quo (c1, c2, d2, e2) @@ push_quo (c1, c2, d3, e3) @@ s @>> c0;
+    o0 =?= push_quo (c1, c2, d1, e1) @@ c0;
     set_true d0 e0
   
   | Nop Noop -> i0 =?= o0; set_true d0 e0

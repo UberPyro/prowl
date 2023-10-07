@@ -18,8 +18,8 @@
   DAG MARK PLUS STAR
   TENSOR PONDER FORK PICK CROSS GUESS UNION
   GEN FAB EXCH ELIM CMP
-  DUP ZAP SWAP CONS DIP CAT UNIT
-  DIVMOD PARSE SHOW
+  DUP ZAP SWAP CONS DIP CAT UNIT CALL
+  DIVMOD PARSE SHOW PUSH ENQ
   NOP ID AB ALT
   EOF
   PIPE BAR DOT DOLLAR
@@ -166,6 +166,8 @@ _hiexpr:
 
 %inline nop: 
   | GEN {Gen} | FAB {Fab} | EXCH {Exch} | ELIM {Elim} | CMP {Cmp}
-  | DUP {Dup} | ZAP {Zap} | SWAP {Swap} | CONS {Cons} | DIP {Dip} | UNIT {Unit}
+  | DUP {Dup} | ZAP {Zap} | SWAP {Swap} | CONS {Cons} | DIP {Dip}
+  | UNIT {Unit} | CALL {Call}
   | DIVMOD {DivMod} | PARSE {Parse} | SHOW {Show}
+  | PUSH {Push} | ENQ {Enq}
   | NOP {Noop} | ID {Id} | AB {Ab}

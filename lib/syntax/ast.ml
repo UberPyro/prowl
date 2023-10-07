@@ -84,8 +84,8 @@ and dop =
 (* nullary/stack operators *)
 and nop = 
   | Gen | Fab | Exch | Elim | Cmp
-  | Dup | Zap | Swap | Cons | Dip | Unit
-  | DivMod | Parse | Show
+  | Dup | Zap | Swap | Cons | Dip | Unit | Call
+  | DivMod | Parse | Show | Push | Enq
   | Noop | Id | Ab
 
 and lit = 
