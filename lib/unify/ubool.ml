@@ -33,7 +33,7 @@ module Make(C : Constant) = struct
   let bfresh () = uref (bfresh_ ())
   
   let mul_basic b1 b2 = 
-    List.concat_map (fun p1 -> List.map ((@) p1) b2) b1
+    List.map (fun p1 -> List.map ((@) p1) b2) b1 |> List.flatten
   
   let coal_mul bs = 
     match bs |> List.partition_map @@ fun x -> match !x with

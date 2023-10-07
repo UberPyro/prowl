@@ -65,6 +65,7 @@ rule token = parse
 
   | (integer as i) {INT (int_of_string i)}
   | '`' (string_body as s) '`' {STRING s}
+  | '"' (string_body as s) '"' {STRING s}
 
   | "+" {ADD} | "-" {SUB} | "*" {MUL}
   | "==" {EQ} | "!="{NEQ}
