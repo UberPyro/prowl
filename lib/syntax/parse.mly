@@ -20,7 +20,7 @@
   GEN FAB EXCH ELIM CMP
   DUP ZAP SWAP CONS DIP CAT UNIT
   DIVMOD LIN PARSE SHOW
-  NOP ID AB AP PURE APPEND ALT JOIN
+  NOP ID AB PURE ALT
   COMMA EOF
   PIPE BAR DOT DOLLAR
   SPLIT FN PT MT RL XOR AND
@@ -37,8 +37,8 @@
 %left UNION
 %left PONDER PICK GUESS
 %left TENSOR FORK CROSS
-%left APPEND ALT JOIN
-%left CAT AP
+%left ALT
+%left CAT
 %left GT LT GE LE
 %left EQ NEQ
 %left ADD SUB MUL
@@ -130,8 +130,6 @@ _hiexpr:
   | LPAREN RPAREN {Nop Noop}
   | nop {Nop $1}
   | VAR {Var $1}
-  | CAP {UVar $1}
-  | STACK_VAR {StackVar $1}
 
 %inline lit: 
   | INT {Int $1}
@@ -150,10 +148,7 @@ _hiexpr:
   | GT {Cop Gt}
   | GE {Cop Ge}
   | CAT {Lop Cat}
-  | AP {Lop Ap}
-  | APPEND {Lop Append}
   | ALT {Lop Alt}
-  | JOIN {Lop Join}
 
 %inline dop: 
   | PONDER {Ponder}

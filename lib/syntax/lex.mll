@@ -30,9 +30,9 @@ rule token = parse
   | ":"         {SPECIFY}
   | "let"       {LET}
   | "in"        {IN}
-  | "ex"        {EXISTS}
-  | "coex"      {EACH}
-  | "::"        {WITHIN}
+  | "@"         {EXISTS}
+  | "#"         {EACH}
+  | "."         {WITHIN}
   | "->"        {ARROW}
 
   | "("         {LPAREN}
@@ -56,10 +56,7 @@ rule token = parse
   | "==="       {CROSS}
 
   | ">>"        {CAT}
-  | "@>"        {AP}
-  | "@"         {APPEND}
   | "<>"        {ALT}
-  | "<@>"       {JOIN}
 
   | ","         {COMMA}
 

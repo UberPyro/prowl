@@ -296,22 +296,6 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     o0 =?= push_list fn0 c0;
     set_det d0 (false, true); set_det e0 (true, true)
   
-  | UVar s -> 
-    let v = mk_var () in
-    unify_uvar s v ctx;
-    let c = mk_poly_costack () in
-    i0 =?= c;
-    o0 =?= v @> c;
-    set_true d0 e0
-  
-  | StackVar s -> 
-    let z = S.ufresh () in
-    unify_ustack s z ctx;
-    let c = mk_poly_costack () in
-    i0 =?= c;
-    o0 =?= z @>> c;
-    set_true d0 e0
-  
   | Ex (s, (_, _, (i1, o1, d1, e1) as just), b) ->
     let v = V.uvar () in
     let ctx' = introduce_uvar s v ctx in
@@ -337,16 +321,30 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     and2_ e0 e1 @@ b_any (sc >= 1, sc <= 1)
   
   | Var k -> 
-    let (generalized, (i1, o1, d1, e1)), _ = 
-      find_rec_opt k ctx
-      |> Option.default_delayed @@ fun () -> 
-        UnifError (UnboundVariable k) |> raise in
-    let i, o, d, e = 
-      if generalized then Fn.gen (i1, o1, d1, e1)
-      else i1, o1, d1, e1 in
-    i0 =?= i; o0 =?= o;
-    Det.unify d0 d; Det.unify e0 e
-  
+    begin match find_rec_opt k ctx with
+    | Some ((generalized, (i1, o1, d1, e1)), _) -> 
+        let i, o, d, e = 
+          if generalized then Fn.gen (i1, o1, d1, e1)
+          else i1, o1, d1, e1 in
+        i0 =?= i; o0 =?= o;
+        Det.unify d0 d; Det.unify e0 e
+    | None -> 
+      begin try
+        let v = mk_var () in
+        unify_uvar k v ctx;
+        let c = mk_poly_costack () in
+        i0 =?= c;
+        o0 =?= v @> c;
+        set_true d0 e0 with Unify.Ucommon.UnifError (UnboundUVar _) -> 
+      try
+        let z = S.ufresh () in
+        unify_ustack k z ctx;
+        let c = mk_poly_costack () in
+        i0 =?= c;
+        o0 =?= z @>> c;
+        set_true d0 e0 with Unify.Ucommon.UnifError (UnboundSVar _) -> 
+          UnifError (UnboundVariable k) |> raise end end
+    
   | Let (stmts, e) -> infer (stmts_rec ctx stmts) e
 
   with UnifError msg -> raise @@ InferError (sp, ctx, msg)

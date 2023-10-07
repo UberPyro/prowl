@@ -36,8 +36,6 @@ and _expr =
   | Let of stmt list * expr
   | Ex of string * expr * bool
   | Each of expr * string * bool
-  | UVar of string
-  | StackVar of string
 
 and bop = 
   | Aop of aop
