@@ -40,7 +40,6 @@ let alt_fresh () =
 let push_int u = V.usyn "int" [] @> u
 let push_str u = V.usyn "string" [] @> u
 let push_quo fn u = V.usyn "quote" [V.uatom fn] @> u
-let push_list fn u = V.usyn "list" [V.uatom fn] @> u
 
 let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | Bop (left, Aop _, right) -> ints @@ bop ctx fn0 left right
@@ -459,14 +458,6 @@ and alt hof (v0, v1, v2) =
   set_hof hof v0 (c0, c1, d0, e0);
   set_hof hof v1 (c0, c1, d1, e1);
   set_hof hof v2 (c0, c1, d2, e2)
-
-and app (v0, v1, v2) = 
-  let c0, c1 = C.(ufresh () , ufresh ()) in
-  let d0, d1, d2 = and2_fresh () in
-  let e0, e1, e2 = and2_fresh () in
-  set_hof "list" v0 (c0, c1, d0, e0);
-  set_hof "list" v1 (c0, c1, d1, e1);
-  set_hof "list" v2 (c0, c1, d2, e2)
 
 let top_stmts ctx = 
   List.fold_left begin fun ctx' -> function
