@@ -205,7 +205,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     set_true d0 e0
   
   | Nop Cons -> 
-    let c0, c1, c2 = Tuple3.mapn C.ufresh ((), (), ()) in
+    let c0, c1, c2 = Tuple3.mapn mk_poly_costack ((), (), ()) in
     let v = mk_var () in
     let d1, d2 = Det.bfresh (), Det.bfresh () in
     i0 =?= push_quo (v @> c1, c2, d1, d2) @@ v @> c0;
@@ -213,7 +213,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     set_true d0 e0
   
   | Nop Dip -> 
-    let c0, c1, v = C.ufresh (), C.ufresh (), V.uvar () in
+    let c0, c1, v = mk_poly_costack (), mk_poly_costack (), V.uvar () in
     let d1, d2 = Det.bfresh (), Det.bfresh () in
     i0 =?= push_quo (c0, c1, d1, d2) @@ v @> c0;
     o0 =?= v @> c1;
@@ -227,7 +227,7 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     set_true d0 e0
 
   | Nop Call -> 
-    let c0, c1 = C.ufresh (), C.ufresh () in
+    let c0, c1 = mk_poly_costack (), mk_poly_costack () in
     let d1, d2 = Det.bfresh (), Det.bfresh () in
     i0 =?= push_quo (c0, c1, d1, d2) c0;
     o0 =?= c1;
