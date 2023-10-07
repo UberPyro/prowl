@@ -41,6 +41,7 @@ and bop =
   | Aop of aop
   | Cop of cop
   | Lop of lop
+  | Range
 
 (* arithmetic operators *)
 and aop = 

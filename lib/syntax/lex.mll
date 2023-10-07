@@ -62,6 +62,7 @@ rule token = parse
   | "<>"        {ALT}
   | "--"        {PROCAT}
   | "~~"        {PROVERSE}
+  | ".."        {RANGE}
 
   | (integer as i) {INT (int_of_string i)}
   | '`' (string_body as s) '`' {STRING s}

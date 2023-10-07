@@ -51,18 +51,22 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
   | Bop (left, Cop _, right) -> ints2 @@ bop_cmp ctx fn0 left right
   | Bop (left, Lop Cat, right) -> cat "quote" @@ bop ctx fn0 left right
   | Bop (left, Lop Alt, right) -> alt "quote" @@ bop ctx fn0 left right
+  | Bop (left, Range, right) -> ints @@ bop_range ctx fn0 left right
   | SectLeft (Aop _, right) -> ints @@ sect_left true ctx fn0 right
   | SectLeft (Cop _, right) -> ints2 @@ sect_left_cmp ctx fn0 right
   | SectLeft (Lop Cat, right) -> cat "quote" @@ sect_left true ctx fn0 right
   | SectLeft (Lop Alt, right) -> alt "quote" @@ sect_left false ctx fn0 right
+  | SectLeft (Range, right) -> ints @@ sect_left_range ctx fn0 right
   | SectRight (left, Aop _) -> ints @@ sect_right true ctx fn0 left
   | SectRight (left, Cop _) -> ints2 @@ sect_right_cmp ctx fn0 left
   | SectRight (left, Lop Cat) -> cat "quote" @@ sect_right true ctx fn0 left
   | SectRight (left, Lop Alt) -> alt "quote" @@ sect_right false ctx fn0 left
+  | SectRight (left, Range) -> ints @@ sect_right_range ctx fn0 left
   | Sect Aop _ -> ints @@ sect true fn0
   | Sect Cop _ -> ints2 @@ sect_cmp fn0
   | Sect Lop Cat -> cat "quote" @@ sect true fn0
   | Sect Lop Alt -> alt "quote" @@ sect false fn0
+  | Sect Range -> ints @@ sect_range fn0
   
   | Uop ((_, _, (i1, o1, d1, e1) as just), Dag) -> 
     infer (ctx |> swap_uvar |> swap_svar) just;
@@ -450,6 +454,44 @@ and sect b (i0, o0, d0, e0) =
   i0 =?= v2 @> v1 @> c0; o0 =?= v0 @> c0;
   set_det d0 (true && b, false);
   set_det e0 (true, true);
+  v0, v1, v2
+
+and bop_range ctx (i0, o0, d0, e0) (_, _, (i1, o1, _, _) as left) (_, _, (i2, o2, _, _) as right) = 
+  infer ctx left;
+  infer ctx right;
+  let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
+  let c0, c1, c2 = mk_poly_costack (), mk_init_costack (), mk_init_costack () in
+  i0 =?= c0; o0 =?= v0 @> c0;
+  i1 =?= c1; o1 =?= v1 @> c1;
+  i2 =?= c2; o2 =?= v2 @> c2;
+  set_det d0 (false, false);
+  set_det e0 (false, false);
+  v0, v1, v2
+
+and sect_left_range ctx (i0, o0, d0, e0) (_, _, (i2, o2, _, _) as right) = 
+  infer ctx right;
+  let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
+  let c0, c2 = mk_poly_costack (), mk_init_costack () in
+  i0 =?= v1 @> c0; o0 =?= v0 @> c0;
+  i2 =?= c2; o2 =?= v2 @> c2;
+  set_det d0 (false, false); set_det e0 (false, false);
+  v0, v1, v2
+
+and sect_right_range ctx (i0, o0, d0, e0) (_, _, (i1, o1, _, _) as left) = 
+  infer ctx left;
+  let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
+  let c0, c1 = mk_poly_costack (), mk_init_costack () in
+  i0 =?= v2 @> c0; o0 =?= v0 @> c0;
+  i1 =?= c1; o1 =?= v1 @> c1;
+  set_det d0 (false, false); set_det e0 (false, false);
+  v0, v1, v2
+
+and sect_range (i0, o0, d0, e0) = 
+  let v0, v1, v2 = V.(uvar (), uvar (), uvar ()) in
+  let c0 = mk_poly_costack () in
+  i0 =?= v2 @> v1 @> c0; o0 =?= v0 @> c0;
+  set_det d0 (false, false);
+  set_det e0 (false, false);
   v0, v1, v2
 
 and bop_cmp ctx (i0, o0, d0, e0) (_, _, (i1, o1, _, e1) as left) (_, _, (i2, o2, _, e2) as right) = 
