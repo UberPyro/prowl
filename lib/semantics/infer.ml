@@ -265,6 +265,8 @@ let rec infer ctx (ast, sp, (i0, o0, d0, e0 as fn0)) = try match ast with
     set_det d0 (true, false);
     set_det e0 (true, false)
   
+  | Nop San -> i0 =?= o0
+  
   | Lit Int _ -> 
     let c0 = mk_poly_costack () in
     i0 =?= c0; o0 =?= push_int c0;

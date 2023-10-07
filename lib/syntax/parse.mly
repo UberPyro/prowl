@@ -20,7 +20,7 @@
   GEN FAB EXCH ELIM CMP
   DUP ZAP SWAP CONS DIP CAT UNIT CALL
   DIVMOD PARSE SHOW PUSH ENQ
-  NOP ID AB ALT
+  NOP ID AB ALT SAN
   EOF
   PIPE BAR DOT DOLLAR
   SPLIT FN PT MT RL XOR AND
@@ -170,4 +170,4 @@ _hiexpr:
   | UNIT {Unit} | CALL {Call}
   | DIVMOD {DivMod} | PARSE {Parse} | SHOW {Show}
   | PUSH {Push} | ENQ {Enq}
-  | NOP {Noop} | ID {Id} | AB {Ab}
+  | NOP {Noop} | ID {Id} | AB {Ab} | SAN {San}

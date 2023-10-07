@@ -71,7 +71,7 @@ rule token = parse
   | "cons" {CONS} | "dip" {DIP} | "unit" {UNIT} | "call" {CALL}
   | "divmod" {DIVMOD}
   | "parse" {PARSE} | "show" {SHOW} | "push" {PUSH} | "enq" {ENQ}
-  | "nop" {NOP} | "id" {ID} | "ab" {AB}
+  | "nop" {NOP} | "id" {ID} | "ab" {AB} | "san" {SAN}
 
   | id as s     {VAR s}
 
