@@ -10,7 +10,7 @@
 %token
   LPAREN RPAREN
   LBRACK RBRACK
-  LBRACE RBRACE
+  // LBRACE RBRACE
   LET ASSIGN SPECIFY IN
   EXISTS EACH WITHIN ARROW
   ADD SUB MUL
@@ -85,7 +85,6 @@ stack_ty:
     | _ -> failwith @@ Printf.sprintf "Unrecognized type %s" $1
   }
   | LBRACK ty_expr RBRACK {TyQuote $2}
-  | LBRACE ty_expr RBRACE {TyList $2}
   | CAP {TyVal $1}
 
 stmt: _stmt {$1, $loc}

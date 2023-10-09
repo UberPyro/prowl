@@ -65,7 +65,6 @@ and value_expr m = function
   | TyInt -> Value.usyn "int" []
   | TyString -> Value.usyn "string" []
   | TyQuote ty -> Value.usyn "quote" [Value.uatom @@ fn_expr m ty]
-  | TyList ty -> Value.usyn "list" [Value.uatom @@ fn_expr m ty]
   | TyVal s -> link_var (third m) s
 
 and det_expr m = _det_expr m %> Det.simp %> uref

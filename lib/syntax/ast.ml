@@ -18,7 +18,6 @@ and value_expr =
   | TyInt
   | TyString
   | TyQuote of ty_expr
-  | TyList of ty_expr
   | TyVal of string
 
 type expr = _expr * Span.t * Fn.t

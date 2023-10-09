@@ -39,8 +39,8 @@ rule token = parse
   | ")"         {RPAREN}
   | "["         {LBRACK}
   | "]"         {RBRACK}
-  | "{"         {LBRACE}
-  | "}"         {RBRACE}
+  (* | "{"         {LBRACE} *)
+  (* | "}"         {RBRACE} *)
 
   | ","         {UNION}
   | "|"         {UNION}
