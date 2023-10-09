@@ -19,6 +19,8 @@ and value_expr =
   | TyString
   | TyQuote of ty_expr
   | TyVal of string
+  | TyDat of string
+  | TyRec of string
 
 type expr = _expr * Span.t * Fn.t
 and _expr = 
@@ -29,6 +31,7 @@ and _expr =
   | Uop of expr * uop
   | Dop of expr * dop * expr
   | Nop of nop
+  | Match of (string * expr) list
 
   | Lit of lit
   | Var of string
@@ -97,9 +100,12 @@ and lit =
   | String of string
 
   | Quote of expr
+  | Rec of (string * expr) list
 
 and stmt = _stmt * Metadata.Span.t
 and _stmt = 
   | Def of string * ty_expr option * expr
+  | DatDef of string list * string * (string * value_expr list list) list
+  | RecDef of string list * string * (string * value_expr list list) list
 
 type toplevel = stmt list

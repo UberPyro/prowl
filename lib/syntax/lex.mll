@@ -34,13 +34,15 @@ rule token = parse
   | "#"         {EACH}
   | "."         {WITHIN}
   | "->"        {ARROW}
+  | "dat"       {DAT}
 
   | "("         {LPAREN}
   | ")"         {RPAREN}
   | "["         {LBRACK}
   | "]"         {RBRACK}
-  (* | "{"         {LBRACE} *)
-  (* | "}"         {RBRACE} *)
+  | "{"         {LBRACE}
+  | "}"         {RBRACE}
+  | "match"     {MATCH}
 
   | ","         {UNION}
   | "|"         {UNION}

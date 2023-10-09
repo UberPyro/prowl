@@ -10,8 +10,8 @@
 %token
   LPAREN RPAREN
   LBRACK RBRACK
-  // LBRACE RBRACE
-  LET ASSIGN SPECIFY IN
+  LBRACE RBRACE MATCH
+  LET ASSIGN SPECIFY IN DAT
   EXISTS EACH WITHIN ARROW
   ADD SUB MUL
   EQ NEQ GT LT GE LE
@@ -95,6 +95,12 @@ stmt: _stmt {$1, $loc}
       "Mismatched names: definition [%s] and annotation [%s]" $2 $5
     else Def ($5, Some $3, $6)
   }
+  | DAT list(VAR) VAR LBRACK
+      list(pair(preceded(SPECIFY, VAR), nonempty_list(list(value_ty))))
+    RBRACK {Dat ($2, $3, $4)}
+  | DAT list(VAR) VAR LBRACE
+      list(pair(preceded(SPECIFY, VAR), nonempty_list(list(value_ty))))
+    RBRACE {Rec ($2, $3, $4)}
 
 sect: _sect {$1, $loc, fresh ()}
 %inline _sect: 
@@ -133,6 +139,8 @@ _hiexpr:
   | LPAREN RPAREN {Nop Noop}
   | nop {Nop $1}
   | VAR {Var $1}
+  | LBRACE list(pair(preceded(ASSIGN, VAR), sect)) RBRACE {Rec $2}
+  | MATCH LBRACK list(pair(preceded(ASSIGN, VAR), sect)) RBRACK {Match $2}
 
 %inline lit: 
   | INT {Int $1}
