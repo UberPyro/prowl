@@ -15,6 +15,8 @@ type uerr =
   | UnboundVariable of string
   | UnboundUVar of string
   | UnboundSVar of string
+  | UnboundData of string
+  | PartialData of string
 exception UnifError of uerr
 
 let pp_err out = begin function
@@ -35,6 +37,8 @@ let pp_err out = begin function
   | UnboundVariable s -> fprintf out "Cannot find unbound variable [%s]" s
   | UnboundUVar s -> fprintf out "Cannot find unbound unification variable [%s]" s
   | UnboundSVar s -> fprintf out "Cannot find unbound stack variable [%s]" s
+  | UnboundData s -> fprintf out "Cannot find unbound datatype [%s]" s
+  | PartialData s -> fprintf out "Cannot elaborate incompletely applied datatype [%s]" s
 end %> fun () -> fprintf out "\n"
 
 let pp_uref fmt x y = fmt x (uget y)

@@ -95,12 +95,12 @@ stmt: _stmt {$1, $loc}
       "Mismatched names: definition [%s] and annotation [%s]" $2 $5
     else Def ($5, Some $3, $6)
   }
-  | DAT list(VAR) VAR LBRACK
-      list(pair(preceded(SPECIFY, VAR), nonempty_list(list(value_ty))))
-    RBRACK {Dat ($2, $3, $4)}
-  | DAT list(VAR) VAR LBRACE
-      list(pair(preceded(SPECIFY, VAR), nonempty_list(list(value_ty))))
-    RBRACE {Rec ($2, $3, $4)}
+  | DAT nonempty_list(VAR) LBRACK
+      list(pair(preceded(SPECIFY, VAR), separated_nonempty_list(UNION, list(value_ty))))
+    RBRACK {DatDef (List.rev $2 |> List.tl |> List.rev, List.last $2, $4)}
+  | DAT nonempty_list(VAR) LBRACE
+      list(pair(preceded(SPECIFY, VAR), separated_nonempty_list(UNION, list(value_ty))))
+    RBRACE {RecDef (List.rev $2 |> List.tl |> List.rev, List.last $2, $4)}
 
 sect: _sect {$1, $loc, fresh ()}
 %inline _sect: 
@@ -140,7 +140,7 @@ _hiexpr:
   | nop {Nop $1}
   | VAR {Var $1}
   | LBRACE list(pair(preceded(ASSIGN, VAR), sect)) RBRACE {Rec $2}
-  | MATCH LBRACK list(pair(preceded(ASSIGN, VAR), sect)) RBRACK {Match $2}
+  | MATCH LBRACK list(pair(preceded(ASSIGN, VAR), sect)) RBRACK {Match $3}
 
 %inline lit: 
   | INT {Int $1}

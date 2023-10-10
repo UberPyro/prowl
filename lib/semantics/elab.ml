@@ -1,6 +1,7 @@
 open! Batteries
-open Tuple4
+open Tuple5
 
+open Ctx
 open Syntax
 open Ast
 open System
@@ -44,8 +45,8 @@ let rec fn_expr m = function
     det_expr m d1, det_expr m d2
   | ImplicitStack (w1, w2, d1, d2) -> 
     let s0 = Stack.ufresh () in
-    let s1 = List.map (value_expr m) w1 |> Stack.ujoin s0 in
-    let s2 = List.map (value_expr m) w2 |> Stack.ujoin s0 in
+    let s1 = value_exprs m w1 |> Stack.ujoin s0 in
+    let s2 = value_exprs m w2 |> Stack.ujoin s0 in
     let c0 = Costack.ufresh () in
     s1 @>> c0, s2 @>> c0, det_expr m d1, det_expr m d2
 
@@ -56,16 +57,23 @@ and costack_expr m (opt, z) =
     | Some name -> link_costack (first m) name
 
 and stack_expr m (opt, w) = 
-  List.map (value_expr m) w
+  value_exprs m w
   |> Stack.ujoin @@ match opt with
     | None -> Stack.unil ()
     | Some name -> link_stack (second m) name
 
-and value_expr m = function
-  | TyInt -> Value.usyn "int" []
-  | TyString -> Value.usyn "string" []
-  | TyQuote ty -> Value.usyn "quote" [Value.uatom @@ fn_expr m ty]
-  | TyVal s -> link_var (third m) s
+and value_exprs ?(acc=[]) m = function
+  | [] -> List.rev acc
+  | TyInt :: t -> value_exprs ~acc:(Value.usyn "int" [] :: acc) m t
+  | TyString :: t -> value_exprs ~acc:(Value.usyn "string" [] :: acc) m t
+  | TyQuote ty :: t ->  value_exprs ~acc:(Value.usyn "quote" [Value.uatom @@ fn_expr m ty] :: acc) m t
+  | TyVal s :: t -> value_exprs ~acc:(link_var (third m) s :: acc) m t
+  | TyDat s :: t | TyRec s :: t -> 
+    let n = Map.find_opt s (fifth m).dats |> Option.default_delayed @@ fun () -> 
+      raise Unify.Ucommon.(UnifError (UnboundData s)) in
+    let params, rest = try List.split_at (List.length (fst n)) acc with Invalid_argument _ -> 
+      raise Unify.Ucommon.(UnifError (PartialData s)) in
+    value_exprs ~acc:(Value.usyn s (List.rev params) :: rest) m t
 
 and det_expr m = _det_expr m %> Det.simp %> uref
 and _det_expr m = function
@@ -74,5 +82,4 @@ and _det_expr m = function
   | DXor (d1, d2) -> Det.add_xor (_det_expr m d1) (_det_expr m d2)
   | DVar s -> [[link_bvar (fourth m) s]]
 
-
-let ty_expr x = fn_expr Dict.(create 16, create 16, create 16, create 16) x
+let ty_expr ctx x = fn_expr Dict.(create 16, create 16, create 16, create 16, ctx) x

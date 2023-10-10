@@ -31,7 +31,9 @@ and _expr =
   | Uop of expr * uop
   | Dop of expr * dop * expr
   | Nop of nop
+  
   | Match of (string * expr) list
+  | Rec of (string * expr) list
 
   | Lit of lit
   | Var of string
@@ -100,7 +102,6 @@ and lit =
   | String of string
 
   | Quote of expr
-  | Rec of (string * expr) list
 
 and stmt = _stmt * Metadata.Span.t
 and _stmt = 

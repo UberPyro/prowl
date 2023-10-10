@@ -15,6 +15,8 @@ type t = {
   sctx : (string, Stack.t) Map.t;
   scount : varcounter;
   sdagcount : varcounter;
+  dats : (string, string list * Fn.t) Map.t;
+  recs : (string, string list * Fn.t) Map.t;
 }
 
 let empty : t = {
@@ -25,6 +27,8 @@ let empty : t = {
   sctx = Map.empty;
   scount = Map.empty;
   sdagcount = Map.empty;
+  dats = Map.empty;
+  recs = Map.empty;
 }
 
 let map_ctx f t = {t with ctx = f t.ctx}
@@ -34,6 +38,8 @@ let map_ucount f t = {t with ucount = f t.ucount}
 let map_udagcount f t = {t with udagcount = f t.udagcount}
 let map_scount f t = {t with scount = f t.scount}
 let map_sdagcount f t = {t with sdagcount = f t.sdagcount}
+let map_dats f t = {t with dats = f t.dats}
+let map_recs f t = {t with recs = f t.recs}
 
 let find_rec_opt k t = Ouro.find_rec_opt k t.ctx
 let insert_many lst t = map_ctx (Ouro.insert_many lst) t
@@ -76,6 +82,9 @@ let introduce_stkvar n u t =
   |> map_sdagcount (vc_init n)
   |> map_sctx (Map.add n u)
 
+let add_dat s d = map_dats @@ Map.add s d
+let add_rec s r = map_recs @@ Map.add s r
+
 let pretty_ouro out t = 
   let lst = Ouro.to_list t.ctx in
   fprintf out "Context: \n";
@@ -101,9 +110,33 @@ let pretty_stkctx out t =
     Stack.pretty out uvar;
     fprintf out "%s" "\n"
 
+let pretty_dats out t = 
+  let lst = Map.to_seq t.dats |> List.of_seq in
+  fprintf out "Datatypes: \n";
+  lst |> List.iter @@ fun (n, (xs, fn)) -> 
+    fprintf out "%s => " n;
+    List.iter (fprintf out "%s ") xs;
+    fprintf out " =>> ";
+    Fn.pretty out fn;
+    fprintf out "%s" "\n"
+
+let pretty_recs out t = 
+  let lst = Map.to_seq t.recs |> List.of_seq in
+  fprintf out "Records: \n";
+  lst |> List.iter @@ fun (n, (xs, fn)) -> 
+    fprintf out "%s => " n;
+    List.iter (fprintf out "%s ") xs;
+    fprintf out " =>> ";
+    Fn.pretty out fn;
+    fprintf out "%s" "\n"
+
 let pretty out t = 
   pretty_ouro out t;
   fprintf out "%s" "\n";
   pretty_uctx out t;
   fprintf out "%s" "\n";
-  pretty_stkctx out t
+  pretty_stkctx out t;
+  fprintf out "%s" "\n";
+  pretty_dats out t;
+  fprintf out "%s" "\n";
+  pretty_recs out t
