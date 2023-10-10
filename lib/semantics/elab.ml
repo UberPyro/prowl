@@ -82,4 +82,5 @@ and _det_expr m = function
   | DXor (d1, d2) -> Det.add_xor (_det_expr m d1) (_det_expr m d2)
   | DVar s -> [[link_bvar (fourth m) s]]
 
-let ty_expr ctx x = fn_expr Dict.(create 16, create 16, create 16, create 16, ctx) x
+let ty_expr ctx = fn_expr Dict.(create 16, create 16, create 16, create 16, ctx)
+let ty_vals ctx = value_exprs Dict.(create 16, create 16, create 16, create 16, ctx)

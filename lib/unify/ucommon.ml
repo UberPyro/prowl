@@ -17,6 +17,7 @@ type uerr =
   | UnboundSVar of string
   | UnboundData of string
   | PartialData of string
+  | LocalDataDef
 exception UnifError of uerr
 
 let pp_err out = begin function
@@ -39,6 +40,7 @@ let pp_err out = begin function
   | UnboundSVar s -> fprintf out "Cannot find unbound stack variable [%s]" s
   | UnboundData s -> fprintf out "Cannot find unbound datatype [%s]" s
   | PartialData s -> fprintf out "Cannot elaborate incompletely applied datatype [%s]" s
+  | LocalDataDef -> fprintf out "Cannot define a local datatype"
 end %> fun () -> fprintf out "\n"
 
 let pp_uref fmt x y = fmt x (uget y)

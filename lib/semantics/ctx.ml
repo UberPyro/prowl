@@ -15,8 +15,8 @@ type t = {
   sctx : (string, Stack.t) Map.t;
   scount : varcounter;
   sdagcount : varcounter;
-  dats : (string, string list * Fn.t) Map.t;
-  recs : (string, string list * Fn.t) Map.t;
+  dats : (string, string list * (string * Fn.t) list) Map.t;
+  recs : (string, string list * (string * Fn.t) list) Map.t;
 }
 
 let empty : t = {
@@ -110,7 +110,7 @@ let pretty_stkctx out t =
     Stack.pretty out uvar;
     fprintf out "%s" "\n"
 
-let pretty_dats out t = 
+(* let pretty_dats out t = 
   let lst = Map.to_seq t.dats |> List.of_seq in
   fprintf out "Datatypes: \n";
   lst |> List.iter @@ fun (n, (xs, fn)) -> 
@@ -128,7 +128,7 @@ let pretty_recs out t =
     List.iter (fprintf out "%s ") xs;
     fprintf out " =>> ";
     Fn.pretty out fn;
-    fprintf out "%s" "\n"
+    fprintf out "%s" "\n" *)
 
 let pretty out t = 
   pretty_ouro out t;
@@ -136,7 +136,7 @@ let pretty out t =
   pretty_uctx out t;
   fprintf out "%s" "\n";
   pretty_stkctx out t;
-  fprintf out "%s" "\n";
+  (* fprintf out "%s" "\n";
   pretty_dats out t;
   fprintf out "%s" "\n";
-  pretty_recs out t
+  pretty_recs out t *)

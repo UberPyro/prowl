@@ -366,12 +366,13 @@ and stmts_rec ctx stmts =
   let ctx' = insert_many begin stmts |> List.map @@ function
     | Def (s, None, (_, _, fn)), _ -> s, (false, fn)
     | Def (d, Some ty, (_, _, fn)), _ -> 
-      Fn.unify fn (Elab.ty_expr ty);
+      Fn.unify fn (Elab.ty_expr ctx ty);
       d, (true, fn)
+    | DatDef _, _ | RecDef _, _ -> raise @@ Unify.Ucommon.UnifError LocalDataDef
   end ctx in
-  List.iter begin fun (Def (_, sty, (_, _, fn as e)), _) -> 
+  List.iter begin fun[@warning "-8"] (Def (_, sty, (_, _, fn as e)), _) -> 
     infer ctx' e;
-    sty |> Option.may @@ Elab.ty_expr %> fun elab_ty -> 
+    sty |> Option.may @@ Elab.ty_expr ctx' %> fun elab_ty -> 
       if not @@ Fn.ge fn elab_ty then
         UnifError (TooGeneralSpec (pstr Fn.pretty fn, pstr Fn.pretty elab_ty))
         |> raise
@@ -562,13 +563,36 @@ let top_stmts ctx =
       infer (insert d (false, fn) ctx') e;
       insert d (true, fn) ctx'
     | Def (d, Some ty, (_, _, fn as e)), _ -> 
-      let elab_ty = Elab.ty_expr ty in
+      let elab_ty = Elab.ty_expr ctx' ty in
       let annotctx = insert d (true, Fn.gen elab_ty) ctx' in
       infer annotctx e;
       if not @@ Fn.ge fn elab_ty then
         UnifError (TooGeneralSpec (pstr Fn.pretty fn, pstr Fn.pretty elab_ty))
         |> raise;
       annotctx
+    | DatDef (params, d, fields), _ -> 
+      let c = C.ufresh () in
+      let s = S.ufresh () in
+      add_dat d (params, 
+        fields |> List.map (Tuple2.map2 (fun vss -> (
+          List.fold_left begin fun c' vs -> 
+            List.fold_left (Fun.flip Stack.ucons) s (Elab.ty_vals ctx' vs) @>> c'
+          end c vss, 
+          s @>> c, 
+          begin match fields with
+            | [_] -> b_any (true, true)
+            | _ -> b_any (false, true) end, 
+          b_any (true, true)
+        )))
+      ) ctx'
+      
+      (* TODO *)
+      (* add (de)constructors -- cache-replace strings to variables *)
+      (* use ouro trees for recursive datatypes *)
+
+      (* inference *)
+
+    | RecDef _, _ -> failwith "todo"
   end ctx
 
 let prog : (_stmt * Span.t) list -> 'a = 
